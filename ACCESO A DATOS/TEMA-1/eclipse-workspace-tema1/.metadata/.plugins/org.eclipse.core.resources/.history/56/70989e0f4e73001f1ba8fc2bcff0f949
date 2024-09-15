@@ -1,0 +1,28 @@
+package pruebaficheros;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.RandomAccessFile;
+
+public class LeerFichAleatorio {
+
+	public static void main(String[] args) throws FileNotFoundException {
+		
+		File fichero = new File(".\\AleatorioEmple.dat");
+		
+		// Declarar el fichero de acceso aleatorio
+		RandomAccessFile file = new RandomAccessFile(fichero, "r");
+		
+		// Inicializar variables
+		Double salario;
+		char apellido[] = new char[10], aux;
+		int id, dep;
+		int posicion = 0;
+		
+		// Recorrer el fichero
+		for (;;) {
+			
+		}
+	}
+
+}

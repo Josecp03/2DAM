@@ -1,0 +1,14 @@
+package pruebaficheros;
+
+import java.io.File;
+
+public class EscribirFichAleatorio {
+
+	public static void main(String[] args) {
+		
+		File fichero = new File(".\\AleatorioEmple.dat");
+		
+		
+	}
+
+}
