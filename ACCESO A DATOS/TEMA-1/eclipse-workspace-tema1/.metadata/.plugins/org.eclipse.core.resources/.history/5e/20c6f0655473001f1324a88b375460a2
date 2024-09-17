@@ -1,0 +1,46 @@
+package pruebaficheros;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+public class consultarEmpleado {
+
+    public static void main(String[] args) throws IOException {
+        
+        File fichero = new File(".\\AleatorioEmpleUTF.dat");
+        
+        // Declarar el fichero de acceso aleatorio
+        RandomAccessFile file = new RandomAccessFile(fichero, "r");
+        
+        // Inicializar variables
+        int id = 5;
+        int dep;
+        double salario;
+        String apellido;
+        
+        // Establecer el tamaño del registro
+        int TAMANO_REGISTRO = 4 + 20 + 4 + 8; // Tamaño en bytes del int, String (suponiendo 20 bytes), int y double
+        
+        // Calcular la posición del registro en el fichero
+        int posicion = (id - 1) * TAMANO_REGISTRO; 
+        
+        // Comprobar si la posición es válida
+        if (posicion >= file.length()) {
+            System.out.println("El empleado con el identificador " + id + " no existe");
+        } else {
+            // Obtener los datos del empleado
+            file.seek(posicion);
+            int idLeido = file.readInt();
+            apellido = file.readUTF();
+            dep = file.readInt();
+            salario = file.readDouble();
+            
+            // Mostrar los datos del empleado
+            System.out.println("ID: " + idLeido + ", Apellido: " + apellido + ", Departamento: " + dep + ", Salario: " + salario + "€");
+        }
+        
+        // Cerrar el fichero
+        file.close();
+    }
+}

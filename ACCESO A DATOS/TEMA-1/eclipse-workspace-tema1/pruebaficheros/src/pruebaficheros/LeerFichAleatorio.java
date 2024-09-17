@@ -16,8 +16,7 @@ public class LeerFichAleatorio {
 		// Inicializar variables
 		Double salario;
 		char apellido[] = new char[10], aux;
-		int id, dep;
-		int posicion = 0;
+		int id, dep, posicion = 0;
 		
 		// Recorrer el fichero
 		for (;;) {

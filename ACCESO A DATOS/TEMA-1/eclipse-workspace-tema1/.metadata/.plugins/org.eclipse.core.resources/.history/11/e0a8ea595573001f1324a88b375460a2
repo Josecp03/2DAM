@@ -1,0 +1,9 @@
+package pruebaficheros;
+
+public class insertarEmpleado {
+
+	public static void main(String[] args) {
+		
+	}
+	
+}

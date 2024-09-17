@@ -1,0 +1,9 @@
+package pruebaficheros;
+
+public class consultarEmleado {
+
+	public static void main(String[] args) {
+		
+	}
+	
+}
