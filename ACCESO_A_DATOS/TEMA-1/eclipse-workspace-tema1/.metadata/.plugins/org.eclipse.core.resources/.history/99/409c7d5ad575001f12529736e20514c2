@@ -2,11 +2,9 @@ package ejercicioResumen;
 
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Scanner;
-import java.io.*;
 
 public class operacionesFicheros {
 
@@ -58,8 +56,8 @@ public class operacionesFicheros {
 
 				break;
 			case 3:
-				int codigoDepartamento2 = 6;
-				String nombre = "Pepe";
+				int codigoDepartamento2 = 0;
+				String nombre = "José";
 				String localidad = "Talavera";
 				int numeroEmpleados = 33;
 				float mediaSalario = 1800;
@@ -81,84 +79,60 @@ public class operacionesFicheros {
 	}
 	
 	// Método para insertar el registro
-	private static void insertarRegistro(int id, String nom, String loc, int numEmple, float mediaSal) throws IOException {
+	private static void insertarregistro(int id, String apellido, int dep, double salario) throws IOException {
 
-		File fiche = new File(".\\EmpleadosEjemplo.dat");
-		
-		if (id >= 1 && id <= 100) {
-			
-			try {
-				
-				
-				
-				// Declara el fichero de acceso aleatorio
-				RandomAccessFile file = new RandomAccessFile(fiche, "rw");
-				
-				
-				
-				
-				
-				
-				long posicion = (id - 1) * 42; // calculamos la posicion
+		File fiche = new File(".\\AleatorioEmple.dat");
+		// declara el fichero de acceso aleatorio
+		try {
+			RandomAccessFile file = new RandomAccessFile(fiche, "rw");
+			long posicion = (id - 1) * 36; // calculamos la posicion
 
-				if (posicion >= file.length()) {
-					// id no existe, se añade
-					System.out.println("ID: " + id + ", NO EXISTE. Se inserta:");
-					file.seek(posicion); // nos posicionamos
-					file.writeInt(id); // se escribe id
-					StringBuffer buffer = new StringBuffer(nom);
-					buffer.setLength(15); // 15 caracteres para el nombre
-					file.writeChars(buffer.toString());// insertar nombre
+			if (posicion >= file.length()) {
+				// id no existe, se añade
+				System.out.println("ID: " + id + ", NO EXISTE. Se inserta:");
+				file.seek(posicion); // nos posicionamos
+				file.writeInt(id); // se escribe id
+				StringBuffer buffer = new StringBuffer(apellido);
+				buffer.setLength(10); // 10 caracteres para el apellido
+				file.writeChars(buffer.toString());// insertar apellido
 
-					buffer = new StringBuffer(loc);
-					buffer.setLength(15); // 15 caracteres para la localidad
-					file.writeChars(buffer.toString());// insertar localidad
-					
-					file.writeInt(numEmple); // insertar número de empleados
+				file.writeInt(dep); // insertar departamento
 
-					file.writeFloat(mediaSal);// insertar mediaSal
+				file.writeDouble(salario);// insertar salario
 
-				} else { // ident existe o es un hueco
-					System.out.println("ID: " + id + ", EXISTE O ES HUECO.");
-					// comprobamos el id
+			}
+
+			else { // ident existe o es un hueco
+				System.out.println("ID: " + id + ", EXISTE O ES HUECO.");
+				// comprobamos el id
+				file.seek(posicion);
+				int iden = file.readInt();
+				if (iden == 0) {
+					// id es hueco, nuevo registro se graba
 					file.seek(posicion);
-					int iden = file.readInt();
-					if (iden == 0) {
-						// id es hueco, nuevo registro se graba
-						file.seek(posicion); // nos posicionamos
-						file.writeInt(id); // se escribe id
-						StringBuffer buffer = new StringBuffer(nom);
-						buffer.setLength(15); // 15 caracteres para el nombre
-						file.writeChars(buffer.toString());// insertar nombre
+					file.writeInt(id); // se escribe id
 
-						buffer = new StringBuffer(loc);
-						buffer.setLength(15); // 15 caracteres para la localidad
-						file.writeChars(buffer.toString());// insertar localidad
-						
-						file.writeInt(numEmple); // insertar número de empleados
+					StringBuffer buffer = new StringBuffer(apellido);
+					buffer.setLength(10); // 10 caracteres para el apellido
+					file.writeChars(buffer.toString());// insertar apellido
 
-						file.writeFloat(mediaSal);// insertar mediaSal
-						System.out.println("ID: " + id + ", ES HUECO, SE INSERTA.");
+					file.writeInt(dep); // insertar departamento
 
-					} else {
-						// id ya existe, escribimos mensaje
-						System.out.println("ID: " + id + ", YA EXISTE. NO SE INSERTA.");
+					file.writeDouble(salario);// insertar salario
+					System.out.println("ID: " + id + ", ES HUECO, SE INSERTA.");
 
-					}
+				} else {
+					// id ya existe, escribimos mensaje
+					System.out.println("ID: " + id + ", YA EXISTE. NO SE INSERTA.");
 
 				}
-				file.close();
 
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
 			}
-		} else {
-			System.out.println("ERROR EL DEPARTAMENTO DEBE ESTAR ENTRE 1 Y 100");
+			file.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		}
-		
-		
-		
-		
 
 	}
 
@@ -212,8 +186,7 @@ public class operacionesFicheros {
 
 	// Método para crear el fichero
 	private static void crearFichero(String nombreFichero) throws IOException {
-		
-		
+
 		// Crear el fichero
 		File fichero = new File(".\\" + nombreFichero + ".dat");
 
@@ -268,7 +241,6 @@ public class operacionesFicheros {
 				System.out.println("El archivo no pudo ser creado.");
 			}
 		}
-		
 
 	}
 
