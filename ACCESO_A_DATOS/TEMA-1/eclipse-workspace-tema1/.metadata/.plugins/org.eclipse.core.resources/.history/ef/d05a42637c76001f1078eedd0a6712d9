@@ -1,0 +1,83 @@
+package ejercicioResumen;
+
+import java.io.IOException;
+import java.util.Scanner;
+
+public class EjercicioEmpleadosDepartamentos {
+
+	public static void main(String[] args) throws IOException {
+
+		// Inicalizar variables
+		Scanner sc = new Scanner(System.in);
+		int respuesta = 0;
+
+		// Bucle para el menú
+		do {
+
+			// Mostrar el menú por pantalla
+			System.out.println("\nSeleccione una opción:");
+			System.out.println("1) Crear fichero");
+			System.out.println("2) Consultar registro");
+			System.out.println("3) Insertar Registro");
+			System.out.println("4) Visualizar registro");
+			System.out.println("5) Modificar registro");
+			System.out.println("6) Borrar registro");
+			System.out.println("7) Salir");
+			respuesta = sc.nextInt();
+
+			// Comprobar las respuestas
+			if (respuesta == 7) {
+				System.out.println("Saliendo del programa");
+			} else if (respuesta <= 0 || respuesta > 7) {
+				System.out.println("Introduzca una opción correcta ");
+			}
+
+			// Case para la respuesta
+			switch (respuesta) {
+			case 1:
+
+				// Establecer el nombre del fichero
+				String nombreFichero = "EmpleadosEjemplo";
+				crearFichero(nombreFichero);
+
+				break;
+			case 2:
+
+				// Establecer el código de departamento del empleado que se va a modificar
+				int codigoDepartamento = 0;
+				if (consultarRegistro(codigoDepartamento)) {
+					System.out.println("DEPARTAMENTO SI EXISTE");
+				} else {
+					System.out.println("DEPARTAMENTO NO EXISTE");
+				}
+
+				break;
+			case 3:
+				int codigoDepartamento2 = 6;
+				String nombre = "Pepe";
+				String localidad = "Talavera";
+				int numeroEmpleados = 33;
+				float mediaSalario = 1800;
+				insertarRegistro(codigoDepartamento2, nombre, localidad, numeroEmpleados, mediaSalario);
+				break;
+			case 4:
+
+				break;
+			case 5:
+
+				break;
+			case 6:
+
+				break;
+			}
+
+		} while (respuesta != 7);
+
+	}
+
+	private static void crearFichero(String nombreFichero) {
+		
+		
+	}
+	
+}
