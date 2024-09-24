@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
     <fullyQualifiedTypeName name="java.io.FileNotFoundException"/>
+    <fullyQualifiedTypeName name="centrosProfesores.Profesor"/>
+    <fullyQualifiedTypeName name="centrosProfesores.Centro"/>
+    <fullyQualifiedTypeName name="centrosProfesores.UnCentro"/>
+    <fullyQualifiedTypeName name="java.util.ArrayList"/>
+    <fullyQualifiedTypeName name="centrosProfesores.DatosCentro"/>
 </qualifiedTypeNameHistroy>

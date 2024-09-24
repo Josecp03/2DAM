@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<datoscentro>
+    <uncentro>
+        <centro>
+            <codigocentro>1</codigocentro>
+            <nombrecentro>IES RIBERA DEL TAJO</nombrecentro>
+            <direccion>AVDA REAL FABRICA DE SEDAS S/N</direccion>
+            <director>
+                <codigoProfesor>1234</codigoProfesor>
+                <nombreprofe>Andrés García</nombreprofe>
+                <salario>1800.25</salario>
+            </director>
+        </centro>
+        <profesores>
+            <profe>
+                <codigoProfesor>1240</codigoProfesor>
+                <nombreprofe>Antonio García</nombreprofe>
+                <salario>1400.25</salario>
+            </profe>
+            <profe>
+                <codigoProfesor>1223</codigoProfesor>
+                <nombreprofe>Alicia Ramos</nombreprofe>
+                <salario>1555.55</salario>
+            </profe>
+            <profe>
+                <codigoProfesor>3422</codigoProfesor>
+                <nombreprofe>Julían Salmero</nombreprofe>
+                <salario>1678.25</salario>
+            </profe>
+        </profesores>
+    </uncentro>
+    <uncentro>
+        <centro>
+            <codigocentro>1</codigocentro>
+            <nombrecentro>IES RIBERA DEL TAJO</nombrecentro>
+            <direccion>AVDA REAL FABRICA DE SEDAS S/N</direccion>
+            <director>
+                <codigoProfesor>1234</codigoProfesor>
+                <nombreprofe>Andrés García</nombreprofe>
+                <salario>1800.25</salario>
+            </director>
+        </centro>
+        <profesores>
+            <profe>
+                <codigoProfesor>1240</codigoProfesor>
+                <nombreprofe>Antonio García</nombreprofe>
+                <salario>1400.25</salario>
+            </profe>
+            <profe>
+                <codigoProfesor>1223</codigoProfesor>
+                <nombreprofe>Alicia Ramos</nombreprofe>
+                <salario>1555.55</salario>
+            </profe>
+            <profe>
+                <codigoProfesor>3422</codigoProfesor>
+                <nombreprofe>Julían Salmero</nombreprofe>
+                <salario>1678.25</salario>
+            </profe>
+        </profesores>
+    </uncentro>
+</datoscentro>
