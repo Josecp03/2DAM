@@ -6,8 +6,9 @@ while numeroDeNumeros < 0:
     # Pedir al usuario el número de números que se van a introducir
     numeroDeNumeros = int(input("¿Cuántos números se van a introducir? "))
 
-# Inicializar la variable que contiene al primer número
-primerNumero = None
+# Inicializar los contadores de pares e impares
+contadorPares = 0
+contadorImpares = 0
 
 for i in range (numeroDeNumeros):
         
@@ -15,12 +16,10 @@ for i in range (numeroDeNumeros):
     num = int(input(f"Introduzca el número { i + 1}: "))
 
     # Guardar el primer número que se introduce en una variable
-    if i == 0:
-        primerNumero = num
+    if num % 2 == 0:
+        contadorPares += 1
+    else:
+        contadorImpares += 1
 
-    # Comprobar que el número sea menor que el primero
-    if num < primerNumero:
-        print("El número no es mayor que el primero")
-
-# Imprimir un mensaje cuando el programa haya terminado
-print("Programa terminado")
+# Imprimir cúantos pares e impares se han introducido
+print(f"Se han introducido {contadorPares} números pares y {contadorImpares} impares")
