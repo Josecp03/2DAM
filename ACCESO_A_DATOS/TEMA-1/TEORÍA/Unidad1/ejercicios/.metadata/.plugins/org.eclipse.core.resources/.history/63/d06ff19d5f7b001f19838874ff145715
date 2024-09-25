@@ -1,0 +1,28 @@
+package ventasarticulos;
+
+import java.io.File;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
+
+public class Principal {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		JAXBContext context;
+		try {
+			context = JAXBContext.newInstance(Ventasarticulos.class);
+			Unmarshaller unmars = context.createUnmarshaller();
+			Ventasarticulos objeto = (Ventasarticulos) unmars.unmarshal(new File(".\\ventasarticulos.xml"));
+	
+			
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+}

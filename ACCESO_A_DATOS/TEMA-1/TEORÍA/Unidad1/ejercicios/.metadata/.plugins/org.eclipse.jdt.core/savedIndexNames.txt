@@ -1,0 +1,7 @@
+INDEX VERSION 1.134+C:\Alicia\CompartidaAlicia_2425\Unidad1\ejercicios\.metadata\.plugins\org.eclipse.jdt.core
+2393563997.index
+1886696476.index
+1865797976.index
+2717697579.index
+466467235.index
+4018838430.index

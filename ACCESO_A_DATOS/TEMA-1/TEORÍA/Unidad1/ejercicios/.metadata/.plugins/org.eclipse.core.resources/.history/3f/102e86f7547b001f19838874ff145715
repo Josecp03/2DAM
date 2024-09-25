@@ -1,0 +1,11 @@
+package nuevosdept;
+
+public class Departamento {
+
+	private int deptno;
+	private String dnombre ;
+	private String localidad;
+	
+	
+	
+}

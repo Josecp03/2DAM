@@ -1,0 +1,240 @@
+package ejercicioDepartamentos;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Scanner;
+
+public class Principal {
+
+	static String fichdep = ".\\AleatorioDepart.dat";
+	static int LON = 72;
+
+	public static void main(String[] args) throws IOException {
+		Scanner sc = new Scanner(System.in);
+		int opcion = 0;
+
+		do {
+			mostrarMenu();
+			opcion = sc.nextInt();
+			switch (opcion) {
+			case 1:
+				ejercicio1();
+				break;
+			case 2:
+				System.out.println("Ejercicio 2. Consultar si existe");
+				int dep = 5;
+				if (ejercicio2(dep)) {
+					System.out.println("DEPARTAMENTO " + dep + " EXISTE");
+				} else {
+					System.out.println("DEPARTAMENTO " + dep + "  NO EXISTE");
+				}
+				dep = 25;
+				if (ejercicio2(25)) {
+					System.out.println("DEPARTAMENTO " + dep + " EXISTE");
+				} else {
+					System.out.println("DEPARTAMENTO " + dep + "  NO EXISTE");
+				}
+
+				break;
+			case 3:
+				// insertar ejercicio3();
+				// cod nombre loc num mediasal
+				int cod = 10, num = 3;
+				float mediasal = 1000f;
+				String nombre = "VENTAS", loc = "TALAVERA";
+				System.out.println(ejercicio3(cod, nombre, loc, num, mediasal));
+
+				cod = 20;
+				num = 2;
+				mediasal = 1500f;
+				nombre = "INFORMÁTICA";
+				loc = "MADRID";
+				System.out.println(ejercicio3(cod, nombre, loc, num, mediasal));
+
+				cod = 120;
+				num = 2;
+				mediasal = 1500f;
+				nombre = "INFORMÁTICA";
+				loc = "MADRID";
+				System.out.println(ejercicio3(cod, nombre, loc, num, mediasal));
+
+				break;
+			case 7:
+				ejercicio7();
+				break;
+			default:
+				System.out.println("Seleccione una opción válida!");
+				break;
+			}
+		} while (opcion != 4);
+
+		sc.close();
+	}
+
+	private static void ejercicio7() throws IOException {
+
+		File fiche = new File(fichdep);
+		try {
+			RandomAccessFile file = new RandomAccessFile(fiche, "r");
+
+			long posicion = 0;
+
+			System.out.printf("%6s %-15s %-15s %6s %9s %n", "CODDEP", "NOMBRE DEP", "LOC DEP", "NUMEMP", "MEDIA SAL");
+			System.out.printf("%6s %-15s %-15s %6s %9s %n", "------", "---------------", "---------------", "------",
+					"---------");
+
+			for (;;) {
+
+				file.seek(posicion); // nos posicionamos en posicion
+				int cod = file.readInt();
+				if (cod != 0) {
+					String nom = "";
+					for (int i = 0; i < 15; i++) {
+						nom = nom + file.readChar();
+					}
+
+					String loc = "";
+					for (int i = 0; i < 15; i++) {
+						loc = loc + file.readChar();
+					}
+
+					int num = file.readInt();
+
+					float med = file.readFloat();
+
+					System.out.printf("%6s %15s %15s %6s %9s %n", cod, nom, loc, num, med);
+				}
+
+					posicion = posicion + LON;
+				if (posicion >= file.length())
+					break;
+
+			}
+			System.out.printf("%6s %-15s %-15s %6s %9s %n%n", "------", "---------------", "---------------", "------",
+					"---------");
+
+		
+			file.close();
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private static String ejercicio3(int cod, String nombre, String loc, int num, float mediasal) throws IOException {
+
+		String mensaje = "";
+		if (cod < 1 || cod > 100) {
+			return "ERROR EL DEPARTAMENTO DEBE ESTAR ENTRE 1 Y 100: " + cod;
+		}
+
+		if (ejercicio2(cod)) {
+			return "ERROR EL DEPARTAMENTO YA EXISTE NO SE PUEDE INSERTAR: " + cod;
+		}
+
+		// No existe el reg, se inserta
+		File fiche = new File(fichdep);
+		try {
+			RandomAccessFile file = new RandomAccessFile(fiche, "rw");
+			long posicion = (cod - 1) * LON;
+			file.seek(posicion);
+			file.writeInt(cod);
+			StringBuffer buffer = new StringBuffer(nombre);
+			buffer.setLength(15);
+			file.writeChars(buffer.toString());
+
+			buffer = new StringBuffer(loc);
+			buffer.setLength(15);
+			file.writeChars(buffer.toString());
+
+			file.writeInt(num);
+
+			file.writeFloat(mediasal);
+
+			mensaje = "REGISTRO INSERTADO. Cod: " + cod + ", " + nombre;
+
+			file.close();
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return mensaje;
+	}
+
+	private static boolean ejercicio2(int id) throws IOException {
+		// Consultar id, devuelve true o false
+		File fichero = new File(fichdep);
+		// declara el fichero de acceso aleatorio
+		boolean existe = false;
+		try {
+			RandomAccessFile file = new RandomAccessFile(fichero, "r");
+			int posicion = (id - 1) * LON;
+			if (posicion >= file.length()) {
+				existe = false;
+			}
+
+			else {
+				file.seek(posicion);// nos posicionamos
+				int ident = file.readInt(); // obtengo id de dep
+				if (ident == id) {
+					existe = true;
+				}
+			}
+
+			file.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return existe;
+	}
+
+	private static void ejercicio1() {
+		// Crear el fichero
+		File fichero = new File(fichdep);
+		if (fichero.exists())
+			System.out.println("Fichero ya está creado.\n");
+		else {
+
+			// declara el fichero de acceso aleatorio
+			try {
+				RandomAccessFile file = new RandomAccessFile(fichero, "rw");
+
+				try {
+					file.close();
+
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			System.out.println("Fichero creado.\n");
+		}
+
+	}
+
+	private static void mostrarMenu() {
+		System.out.println("------------------------------------------------------");
+		System.out.println("OPERACIONES CON DEPARTAMENTOS");
+		System.out.println("  1. Ejercicio 1. Crea fichero.");
+		System.out.println("  2. Ejercicio 2. Consultar registro.");
+		System.out.println("  3. Ejercicio 3. Insertar registro.");
+		System.out.println("  4. Ejercicio 4. Visualizar registro.");
+		System.out.println("  5. Ejercicio 5. Modificar registro.");
+		System.out.println("  6. Ejercicio 6. Borrar registro.");
+		System.out.println("  7. Ejercicio 7. Listar.");
+		System.out.println("  0. Salir");
+		System.out.println("------------------------------------------------------");
+	}
+}

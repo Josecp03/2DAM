@@ -1,0 +1,23 @@
+package ventasarticulos;
+
+import java.util.ArrayList;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+
+public class Ventasarticulos {
+	
+    private Articulo articulo;
+	private ArrayList<Venta> listaventas;
+	
+	@XmlElementWrapper(name = "ventas")  
+	@XmlElement(name = "venta")
+	public ArrayList<Venta> getListaventas() {
+		return listaventas;
+	}
+	
+	
+	public void setListaventas(ArrayList<Venta> listaventas) {
+		this.listaventas = listaventas;
+	}
+}

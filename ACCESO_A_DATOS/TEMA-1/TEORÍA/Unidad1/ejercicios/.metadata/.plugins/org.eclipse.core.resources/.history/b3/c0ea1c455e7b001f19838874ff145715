@@ -1,0 +1,14 @@
+package ventasarticulos;
+
+import java.util.ArrayList;
+
+
+public class Articulo {
+
+	private String codigo;
+	private String denominacion;
+	private int stock;
+	private int precio;
+	private ArrayList<Venta> listaventas;
+	
+}

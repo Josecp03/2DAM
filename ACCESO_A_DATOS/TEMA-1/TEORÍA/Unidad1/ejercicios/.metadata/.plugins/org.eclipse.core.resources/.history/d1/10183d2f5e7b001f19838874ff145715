@@ -1,0 +1,9 @@
+package ventasarticulos;
+
+public class Articulo {
+
+	private String codigo;
+	private String denominacion;
+	private int stock;
+	private int precio;
+}
