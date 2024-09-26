@@ -6,4 +6,5 @@
     <fullyQualifiedTypeName name="centrosProfesores.UnCentro"/>
     <fullyQualifiedTypeName name="java.util.ArrayList"/>
     <fullyQualifiedTypeName name="centrosProfesores.DatosCentro"/>
+    <fullyQualifiedTypeName name="java.io.File"/>
 </qualifiedTypeNameHistroy>
