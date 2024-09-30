@@ -8,12 +8,12 @@
  *
  * @author josec
  */
-public class PantallaZafiro extends javax.swing.JFrame {
+public class PantallaAzul extends javax.swing.JFrame {
 
     /**
-     * Creates new form PantallaZafiro
+     * Creates new form PantallaAzul
      */
-    public PantallaZafiro() {
+    public PantallaAzul() {
         initComponents();
     }
 
@@ -26,60 +26,49 @@ public class PantallaZafiro extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        txtTitle = new javax.swing.JLabel();
-        btnSapphire = new javax.swing.JButton();
-        txtTitleSapphire = new javax.swing.JLabel();
-
-        txtTitle.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
-        txtTitle.setText("Pantalla Azul");
+        btnBlue = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        btnSapphire.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
-        btnSapphire.setForeground(new java.awt.Color(255, 51, 102));
-        btnSapphire.setText("Zafiro");
-        btnSapphire.addActionListener(new java.awt.event.ActionListener() {
+        btnBlue.setBackground(new java.awt.Color(51, 153, 255));
+        btnBlue.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
+        btnBlue.setForeground(new java.awt.Color(255, 255, 255));
+        btnBlue.setText("Azul");
+        btnBlue.setBorder(null);
+        btnBlue.setBorderPainted(false);
+        btnBlue.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnBlue.setFocusPainted(false);
+        btnBlue.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSapphireActionPerformed(evt);
+                btnBlueActionPerformed(evt);
             }
         });
-
-        txtTitleSapphire.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
-        txtTitleSapphire.setForeground(new java.awt.Color(255, 51, 102));
-        txtTitleSapphire.setText("Pantalla Zafiro");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(142, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(20, 20, 20)
-                        .addComponent(btnSapphire)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(txtTitleSapphire, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addGap(138, 138, 138))
+                .addContainerGap(156, Short.MAX_VALUE)
+                .addComponent(btnBlue, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(154, 154, 154))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(104, 104, 104)
-                .addComponent(txtTitleSapphire)
-                .addGap(18, 18, 18)
-                .addComponent(btnSapphire)
-                .addContainerGap(128, Short.MAX_VALUE))
+                .addGap(128, 128, 128)
+                .addComponent(btnBlue, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(137, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnSapphireActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSapphireActionPerformed
-        PantallaColores pantallaColores = new PantallaColores();
-        pantallaColores.setVisible(true); // Vuelve a la pantalla principal
+    private void btnBlueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBlueActionPerformed
+        PantallaZafiro pantallaZafiro = new PantallaZafiro();
+        pantallaZafiro.setVisible(true); // Abre la ventana PantallaZafiro
         this.setVisible(false);
-    }//GEN-LAST:event_btnSapphireActionPerformed
+    }//GEN-LAST:event_btnBlueActionPerformed
 
     /**
      * @param args the command line arguments
@@ -98,27 +87,25 @@ public class PantallaZafiro extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(PantallaZafiro.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PantallaAzul.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(PantallaZafiro.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PantallaAzul.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(PantallaZafiro.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PantallaAzul.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(PantallaZafiro.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PantallaAzul.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new PantallaZafiro().setVisible(true);
+                new PantallaAzul().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnSapphire;
-    private javax.swing.JLabel txtTitle;
-    private javax.swing.JLabel txtTitleSapphire;
+    private javax.swing.JButton btnBlue;
     // End of variables declaration//GEN-END:variables
 }

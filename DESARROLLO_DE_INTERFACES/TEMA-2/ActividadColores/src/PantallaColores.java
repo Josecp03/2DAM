@@ -26,16 +26,18 @@ public class PantallaColores extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        txtTitle = new javax.swing.JLabel();
         btnColors = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        txtTitle.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
-        txtTitle.setText("Pantalla Prinicipal");
-
+        btnColors.setBackground(new java.awt.Color(0, 0, 0));
         btnColors.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
+        btnColors.setForeground(new java.awt.Color(255, 255, 255));
         btnColors.setText("Colores");
+        btnColors.setBorder(null);
+        btnColors.setBorderPainted(false);
+        btnColors.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnColors.setFocusPainted(false);
         btnColors.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnColorsActionPerformed(evt);
@@ -46,24 +48,17 @@ public class PantallaColores extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap(129, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(txtTitle)
-                        .addGap(119, 119, 119))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(btnColors)
-                        .addGap(152, 152, 152))))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(162, Short.MAX_VALUE)
+                .addComponent(btnColors, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(148, 148, 148))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(112, 112, 112)
-                .addComponent(txtTitle)
-                .addGap(18, 18, 18)
-                .addComponent(btnColors)
-                .addContainerGap(120, Short.MAX_VALUE))
+                .addGap(129, 129, 129)
+                .addComponent(btnColors, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(136, Short.MAX_VALUE))
         );
 
         pack();
@@ -112,6 +107,5 @@ public class PantallaColores extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnColors;
-    private javax.swing.JLabel txtTitle;
     // End of variables declaration//GEN-END:variables
 }

@@ -8,12 +8,12 @@
  *
  * @author josec
  */
-public class PantallaAzul extends javax.swing.JFrame {
+public class PantallaZafiro extends javax.swing.JFrame {
 
     /**
-     * Creates new form PantallaAzul
+     * Creates new form PantallaZafiro
      */
-    public PantallaAzul() {
+    public PantallaZafiro() {
         initComponents();
     }
 
@@ -26,56 +26,52 @@ public class PantallaAzul extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        btnBlue = new javax.swing.JButton();
-        txtTitleBlue = new javax.swing.JLabel();
+        txtTitle = new javax.swing.JLabel();
+        btnSapphire = new javax.swing.JButton();
+
+        txtTitle.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
+        txtTitle.setText("Pantalla Azul");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        btnBlue.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
-        btnBlue.setForeground(new java.awt.Color(51, 153, 255));
-        btnBlue.setText("Azul");
-        btnBlue.addActionListener(new java.awt.event.ActionListener() {
+        btnSapphire.setBackground(new java.awt.Color(255, 51, 51));
+        btnSapphire.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
+        btnSapphire.setForeground(new java.awt.Color(255, 255, 255));
+        btnSapphire.setText("Zafiro");
+        btnSapphire.setBorder(null);
+        btnSapphire.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnSapphire.setFocusPainted(false);
+        btnSapphire.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBlueActionPerformed(evt);
+                btnSapphireActionPerformed(evt);
             }
         });
-
-        txtTitleBlue.setFont(new java.awt.Font("Lucida Sans Typewriter", 1, 14)); // NOI18N
-        txtTitleBlue.setForeground(new java.awt.Color(51, 153, 255));
-        txtTitleBlue.setText("Pantalla Azul");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(148, 148, 148)
-                        .addComponent(txtTitleBlue))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(167, 167, 167)
-                        .addComponent(btnBlue)))
-                .addContainerGap(148, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(159, Short.MAX_VALUE)
+                .addComponent(btnSapphire, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(151, 151, 151))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(100, 100, 100)
-                .addComponent(txtTitleBlue)
-                .addGap(18, 18, 18)
-                .addComponent(btnBlue)
-                .addContainerGap(132, Short.MAX_VALUE))
+                .addGap(128, 128, 128)
+                .addComponent(btnSapphire, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(137, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnBlueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBlueActionPerformed
-        PantallaZafiro pantallaZafiro = new PantallaZafiro();
-        pantallaZafiro.setVisible(true); // Abre la ventana PantallaZafiro
+    private void btnSapphireActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSapphireActionPerformed
+        PantallaColores pantallaColores = new PantallaColores();
+        pantallaColores.setVisible(true); // Vuelve a la pantalla principal
         this.setVisible(false);
-    }//GEN-LAST:event_btnBlueActionPerformed
+    }//GEN-LAST:event_btnSapphireActionPerformed
 
     /**
      * @param args the command line arguments
@@ -94,26 +90,26 @@ public class PantallaAzul extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(PantallaAzul.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PantallaZafiro.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(PantallaAzul.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PantallaZafiro.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(PantallaAzul.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PantallaZafiro.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(PantallaAzul.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PantallaZafiro.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new PantallaAzul().setVisible(true);
+                new PantallaZafiro().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnBlue;
-    private javax.swing.JLabel txtTitleBlue;
+    private javax.swing.JButton btnSapphire;
+    private javax.swing.JLabel txtTitle;
     // End of variables declaration//GEN-END:variables
 }
