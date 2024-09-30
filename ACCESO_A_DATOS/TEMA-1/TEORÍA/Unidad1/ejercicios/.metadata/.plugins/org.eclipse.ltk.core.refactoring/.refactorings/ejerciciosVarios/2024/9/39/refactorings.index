@@ -1,2 +1,4 @@
 1727278760001	Rename type 'Principan'
 1727280262546	Delete element
+1727368993169	Extract method 'insertarregistros'
+1727369056755	Rename method 'crearxmldepatamentos'

@@ -1,0 +1,335 @@
+package ejercicioproductos;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+//import xmlproductos.Producto;
+
+public class Principal {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		Scanner sc = new Scanner(System.in);
+		int opcion = 0;
+
+		do {
+			mostrarMenu();
+			opcion = sc.nextInt();
+			switch (opcion) {
+			case 1:
+				try {
+					ejercicio1();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				break;
+			case 2:
+
+				try {
+					ejercicio2();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				break;
+			case 3:
+				try {
+					ejercicio3();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				break;
+			case 4:
+				try {
+					ejercicio4();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				break;
+
+			case 0:
+				System.out.println("FIN DE MENÚ!");
+				break;
+			default:
+				System.out.println("Seleccione una opción válida!");
+				break;
+			}
+		} while (opcion != 0);
+
+		sc.close();
+	}
+
+	private static void ejercicio1() throws IOException {
+
+		System.out.println("LISTADO DE PRODUCTOS");
+		System.out.println("------------------------------");
+		// Productos.dat, lon = 46
+		int codigoPro; // campo identificativo – código del producto – debe ser de 1 a 99
+		String nombrePro; // nombre de producto, 15 caracteres, se graba sin writeUTF
+		int existencias; // existencias del producto
+		double pvp; // precio del producto
+
+		System.out.printf("%6s %-30s %12s %10s %n", "CODIGO", "NOMBRE", "EXISTENCIAS", "PVP");
+		System.out.printf("%6s %-30s %12s %10s %n", "------", "------------------------------", "------------",
+				"----------");
+
+		File fichero = new File(".\\Productos.dat");
+		// declara el fichero de acceso aleatorio
+		try {
+			RandomAccessFile file = new RandomAccessFile(fichero, "r");
+
+			int lonprod = 46;
+			int posicion = 0; // para situarnos al principio
+
+			for (;;) { // recorro el fichero
+				file.seek(posicion);
+				codigoPro = file.readInt();
+				if (codigoPro != 0) {
+					// leer resto y visualizar
+					nombrePro = "";
+					for (int i = 0; i < 15; i++) {
+						nombrePro = nombrePro + file.readChar();
+					}
+					existencias = file.readInt();
+					pvp = file.readDouble();
+					System.out.printf("%6s %-30s %12s %10s %n", codigoPro, nombrePro, existencias, pvp);
+
+				}
+				posicion = posicion + lonprod;
+
+				// si posición es igual o mayo a la longitud del fichero
+				if (posicion >= file.length())
+					break;
+
+			} // fin for
+
+			file.close();
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("**** FICHERO NO ENCONTRADO ****");
+			e.printStackTrace();
+		}
+		//
+
+	}
+
+	private static void ejercicio2() throws IOException {
+		System.out.println("LISTADO DE VENTAS");
+		System.out.println("------------------------------");
+		// DatosVentas.dat, lon = 28
+		int codigoPro; // código del producto
+		int uniVen; // Unidades vendidas del producto
+		String fecha; // fecha de la venta, 10 caracteres.
+
+		System.out.printf("%6s %-17s %10s %n", "CODIGO", "UNIDADES VENDIDAS", "FECHA");
+		System.out.printf("%6s %-17s %10s %n", "------", "-----------------", "----------");
+
+		File fichero = new File(".\\DatosdeVentas.dat");
+		// declara el fichero de acceso aleatorio
+		try {
+			RandomAccessFile file = new RandomAccessFile(fichero, "r");
+
+			int lon = 28;
+			int posicion = 0; // para situarnos al principio
+
+			for (;;) { // recorro el fichero
+				file.seek(posicion);
+				codigoPro = file.readInt();
+				uniVen = file.readInt();
+				fecha = "";
+				for (int i = 0; i < 10; i++) {
+					fecha = fecha + file.readChar();
+				}
+				System.out.printf("%6s %-17s %10s %n", codigoPro, uniVen, fecha);
+
+				posicion = posicion + lon;
+
+				// si posición es igual o mayo a la longitud del fichero
+				if (posicion >= file.length())
+					break;
+
+			} // fin for
+
+			file.close();
+
+		} catch (
+
+		FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("**** FICHERO NO ENCONTRADO ****");
+			e.printStackTrace();
+		}
+		//
+
+	}
+
+	private static void ejercicio3() throws IOException {
+		System.out.println("ACUALIZACIÓN DE PRODUCTOS");
+		System.out.println("------------------------------");
+		// DatosVentas.dat, lon = 28
+		int codigoPro; // código del producto
+		int uniVen; // Unidades vendidas del producto
+		String fecha; // fecha de la venta, 10 caracteres.
+
+		File fichero = new File(".\\DatosdeVentas.dat");
+		File productos = new File(".\\Productos.dat");
+		// declara el fichero de acceso aleatorio
+		try {
+			RandomAccessFile file = new RandomAccessFile(fichero, "r");
+			RandomAccessFile fiprod = new RandomAccessFile(productos, "rw");
+
+			int lon = 28;
+			int lonprod = 46;
+
+			int posicion = 0; // para situarnos al principio de las ventas
+			int posicionprod = 0;
+
+			for (;;) { // recorro el fichero
+				file.seek(posicion);
+				codigoPro = file.readInt();
+				uniVen = file.readInt();
+
+				// comprobar que esté entre 1 y 99
+				if (codigoPro < 1 || codigoPro > 99) {
+					System.out.println("Error, código erróneo, no está entre 1 y 99: " + codigoPro);
+				} else {
+					// comprobar si el código existe en Productos
+					posicionprod = (codigoPro - 1) * lonprod;
+					if (posicionprod >= fiprod.length()) {
+						System.out.println("NO Localizado, sobrepasa al último, producto: " + codigoPro);
+
+					}
+
+					else {
+
+						fiprod.seek(posicionprod);
+						int codPro = fiprod.readInt();
+						if (codPro == codigoPro) {
+							// Localizado, se actualiza, nos posicionamos en existencias
+							fiprod.seek(posicionprod + 34);
+							int exis = fiprod.readInt();
+							exis = exis - uniVen;
+							// actualizar
+							fiprod.seek(posicionprod + 34);
+							fiprod.writeInt(exis);
+
+							System.out.println(
+									"Localizado producto: " + codigoPro + ", se actualiza, exis actuales: " + exis);
+
+						} else {
+							System.out.println("NO localizado producto: " + codigoPro + ", es hueco");
+
+						}
+
+					} // fin else sobrepasa longitud
+
+				} // fin else entre 1 y 99
+
+				posicion = posicion + lon;
+
+				// si posición es igual o mayo a la longitud del fichero
+				if (posicion >= file.length())
+					break;
+
+			} // fin for
+
+			file.close();
+			fiprod.close();
+
+		} catch (
+
+		FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("**** FICHERO NO ENCONTRADO ****");
+			e.printStackTrace();
+		}
+		//
+
+	}
+
+	private static void ejercicio4() throws IOException {
+
+		System.out.println("GENERAR XML DE PRODUCTOS");
+		System.out.println("------------------------------");
+		
+		int codigoPro; // campo identificativo – código del producto – debe ser de 1 a 99
+		String nombrePro; // nombre de producto, 15 caracteres, se graba sin writeUTF
+		int existencias; // existencias del producto
+		double pvp; // precio del producto
+
+		// Cargar el fichero productos en la lista de productos
+		ArrayList<xmlproductos.Producto> lista = new ArrayList<xmlproductos.Producto>();
+		
+		File fichero = new File(".\\Productos.dat");
+		// declara el fichero de acceso aleatorio
+		try {
+			RandomAccessFile file = new RandomAccessFile(fichero, "r");
+
+			int lonprod = 46;
+			int posicion = 0; // para situarnos al principio
+
+			for (;;) { // recorro el fichero
+				file.seek(posicion);
+				codigoPro = file.readInt();
+				if (codigoPro != 0) {
+					// leer resto y visualizar
+					nombrePro = "";
+					for (int i = 0; i < 15; i++) {
+						nombrePro = nombrePro + file.readChar();
+					}
+					existencias = file.readInt();
+					pvp = file.readDouble();
+					xmlproductos.Producto pro = new xmlproductos.Producto(codigoPro, nombrePro, 
+							existencias, pvp,0,0,"SIN ESTADO");
+					lista.add(pro);
+
+				}
+				posicion = posicion + lonprod;
+
+				// si posición es igual o mayo a la longitud del fichero
+				if (posicion >= file.length())
+					break;
+
+			} // fin for
+
+			file.close();
+			// GENERAR EL XML, creamos un objeto de la raiz, y asignamos los productos
+			xmlproductos.Productos pp= new xmlproductos.Productos();
+			pp.setLista(lista);
+			
+			
+			
+			
+			
+			
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("**** FICHERO NO ENCONTRADO ****");
+			e.printStackTrace();
+		}
+
+	}
+
+	private static void mostrarMenu() {
+		System.out.println("------------------------------------------------------");
+		System.out.println("OPERACIONES CON DEPARTAMENTOS");
+		System.out.println("  1. Ejercicio 1. Listar productos.");
+		System.out.println("  2. Ejercicio 2. Listar ventas.");
+		System.out.println("  3. Ejercicio 3. Actualizar.");
+		System.out.println("  4. Ejercicio 4. Crear XML Productos.");
+		System.out.println("  5. Ejercicio 5. Crear XML Detalle Ventas.");
+		System.out.println("  0. Salir");
+		System.out.println("------------------------------------------------------");
+	}
+
+}

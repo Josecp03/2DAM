@@ -1,0 +1,26 @@
+package xmlproductos;
+
+import java.util.ArrayList;
+
+
+
+public class Productos {
+
+	private ArrayList<Producto> lista;
+	
+	public Productos() {}
+
+	public Productos(ArrayList<Producto> lista) {
+		super();
+		this.lista = lista;
+	}
+
+	public ArrayList<Producto> getLista() {
+		return lista;
+	}
+
+	public void setLista(ArrayList<Producto> lista) {
+		this.lista = lista;
+	}
+	
+}

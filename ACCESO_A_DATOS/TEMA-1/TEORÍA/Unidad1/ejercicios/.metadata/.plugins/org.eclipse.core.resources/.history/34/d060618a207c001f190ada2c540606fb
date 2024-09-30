@@ -1,0 +1,60 @@
+package cursosalumnosVer2;
+
+import java.io.File;
+import java.util.ArrayList;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
+public class Principal {
+
+	public static void main(String[] args) {
+
+		JAXBContext context;
+		try {
+			context = JAXBContext.newInstance(Cursosalumnos.class);
+			Unmarshaller unmars = context.createUnmarshaller();
+			Cursosalumnos objeto = (Cursosalumnos) unmars.unmarshal(new File(".\\cursosalumnosVer2.xml"));
+
+			ArrayList<Curso> lista = objeto.getCurso();
+			System.out.println("Número de cursos: " + lista.size());
+
+			for (Curso cur : lista) {
+
+				System.out.println("CURSO: " + cur.getNombre());
+				System.out.printf("    %25s %10s %n", "NOMBRE", "NOTA MEDIA");
+				System.out.printf("    %25s %10s %n", "-------------------------", "----------");
+
+				ArrayList<Alumno> listaalum = cur.getLista();
+
+				if (listaalum == null) {
+					System.out.println("CURSO SIN ALUMNOS");
+
+				}
+
+				else {
+					float sumanota = 0;
+
+					for (Alumno al : listaalum) {
+
+						System.out.printf("    %25s %10s %n", al.getNombre(), al.getNotamedia());
+						sumanota = sumanota + al.getNotamedia();
+
+					}
+					float media = sumanota / listaalum.size();
+					System.out.printf("    %25s %10s %n", "-------------------------", "----------");
+					System.out.printf("    %25s %10.1f %n", "MEDIA:", media);
+
+				}
+
+			}
+
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+}

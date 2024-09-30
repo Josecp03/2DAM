@@ -1,0 +1,14 @@
+package creardepartamentosxml;
+
+import javax.xml.bind.annotation.XmlType;
+
+@XmlType(propOrder = {"id", "nombre", "localidad", "numemple","salario"})
+public class Dep {
+
+    private int id;
+    private String nombre;
+    private String localidad;
+    private int numemple;
+    private float salario;
+
+}

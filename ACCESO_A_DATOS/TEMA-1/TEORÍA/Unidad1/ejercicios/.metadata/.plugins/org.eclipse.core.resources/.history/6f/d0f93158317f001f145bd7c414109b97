@@ -1,0 +1,113 @@
+package ejercicioproductos;
+
+import java.util.Scanner;
+
+public class Principal {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		Scanner sc = new Scanner(System.in);
+		int opcion = 0;
+
+		do {
+			mostrarMenu();
+			opcion = sc.nextInt();
+			switch (opcion) {
+			case 1:
+				ejercicio1();
+				break;
+			case 2:
+				System.out.println("Ejercicio 2. Consultar si existe");
+				int dep = 5;
+				if (ejercicio2(dep)) {
+					System.out.println("DEPARTAMENTO " + dep + " EXISTE");
+				} else {
+					System.out.println("DEPARTAMENTO " + dep + "  NO EXISTE");
+				}
+				dep = 25;
+				if (ejercicio2(25)) {
+					System.out.println("DEPARTAMENTO " + dep + " EXISTE");
+				} else {
+					System.out.println("DEPARTAMENTO " + dep + "  NO EXISTE");
+				}
+
+				break;
+			case 3:
+				// insertar ejercicio3();
+				// cod nombre loc num mediasal
+				int cod = 10, num = 3;
+				float mediasal = 1000f;
+				String nombre = "VENTAS", loc = "TALAVERA";
+				System.out.println(ejercicio3(cod, nombre, loc, num, mediasal));
+
+				cod = 20;
+				num = 2;
+				mediasal = 1500f;
+				nombre = "INFORMÁTICA";
+				loc = "MADRID";
+				System.out.println(ejercicio3(cod, nombre, loc, num, mediasal));
+
+				cod = 120;
+				num = 2;
+				mediasal = 1500f;
+				nombre = "INFORMÁTICA";
+				loc = "MADRID";
+				System.out.println(ejercicio3(cod, nombre, loc, num, mediasal));
+
+				break;
+			case 4:
+				// Visualizar
+				int cod1 = 3;
+				ejercicio4(cod1);
+				cod1 = 10;
+				ejercicio4(cod1);
+				break;
+
+			case 5:
+				// modificarregistro
+				int cod2 = 10;
+				float mediasal2 = 1500f;
+				String loc2 = "TOLEDO";
+				System.out.println(ejercicio5(cod2, loc2, mediasal2));
+
+				cod2 = 15;
+				mediasal2 = 1500f;
+				loc2 = "TOLEDO";
+				System.out.println(ejercicio5(cod2, loc2, mediasal2));
+
+				break;
+
+			case 6:
+				// Borrar
+				int cod3 = 3;
+				System.out.println(ejercicio6(cod3));
+				cod3 = 10;
+				System.out.println(ejercicio6(cod3));
+				break;
+
+			case 7:
+				ejercicio7();
+				break;
+			case 8:
+
+				listarempleados();
+				break;
+
+			case 9:
+
+				actualizardepartamentos();
+				break;
+
+			case 0:
+				System.out.println("FIN DE MENÚ!");
+				break;
+			default:
+				System.out.println("Seleccione una opción válida!");
+				break;
+			}
+		} while (opcion != 0);
+
+		sc.close();
+	}
+
+}

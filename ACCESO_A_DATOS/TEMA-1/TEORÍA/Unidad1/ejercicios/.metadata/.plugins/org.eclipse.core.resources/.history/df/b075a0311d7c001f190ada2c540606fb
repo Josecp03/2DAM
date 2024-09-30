@@ -1,0 +1,31 @@
+package cursosalumnosVer2;
+
+import java.util.ArrayList;
+
+
+public class Curso {
+
+	private String nombre;
+	private ArrayList<Alumno> lista;
+	public Curso() {}
+	public Curso(String nombre, ArrayList<Alumno> lista) {
+		super();
+		this.nombre = nombre;
+		this.lista = lista;
+	}
+	public String getNombre() {
+		return nombre;
+	}
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+	public ArrayList<Alumno> getLista() {
+		return lista;
+	}
+	public void setLista(ArrayList<Alumno> lista) {
+		this.lista = lista;
+	}
+	
+	
+	
+}
