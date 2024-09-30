@@ -1,69 +1,72 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.HashSet;
-import java.util.Set;
 
 public class ListarNotas {
 
-    static int LON = 48; // Tamaño del registro en Notas.dat
+	static int LON = 48;
 
-    public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException {
 
-        // Fichero
-        File fichero = new File(".\\Notas.dat");
-        RandomAccessFile file = new RandomAccessFile(fichero, "r");
+		// Inicializar el objeto File
+		File fichero = new File(".\\Notas.dat");
 
-        Set<Integer> codigosAlumnos = new HashSet<>();
+		// Declarar el fichero de acceso aleatorio
+		RandomAccessFile file = new RandomAccessFile(fichero, "rw");
 
-        // Primera pasada: obtener los códigos de alumno únicos
-        long posicion = 0;
-        while (posicion < file.length()) {
-            file.seek(posicion);
-            int codAlumno = file.readInt();
-            codigosAlumnos.add(codAlumno);
-            posicion += LON;
-        }
+		// Inicializar variables
+		int codAlumno;
+		char asignatura[] = new char[20];
+		char aux;
+		float nota;
 
-        // Cerrar archivo después de la primera pasada
-        file.close();
+		// Establecer la posición a 0 para que empiece desde el principio
+		int posicion = 0;
 
-        // Segunda pasada: mostrar las notas de cada alumno
-        System.out.printf("%9s %-20s %9s %n", "NUMALUM", "ASIGNATURA", "NOTA");
-        System.out.printf("%9s %-20s %9s %n", "-------", "--------------------", "----");
+		// Escribir el encabezado
+		System.out.printf("%9s %9s %-20s %9s %n", "REGIS", "NUMALUM", "ASIGNATURA", "NOTA");
+		System.out.printf("%9s %9s %-20s %9s %n", "-----", "-------", "--------------------","-------");
 
-        // Recorrer cada código de alumno y mostrar sus notas secuencialmente
-        for (int codAlumno : codigosAlumnos) {
-            file = new RandomAccessFile(fichero, "r");
-            posicion = 0;
+		// Inicializar un contador
+		int contador = 1;
+		
+		// Recorrer el fichero
+		for (;;) {
 
-            while (posicion < file.length()) {
-                file.seek(posicion);
+			// Situarse en la posición inicializada
+			file.seek(posicion);
+			
+			// Obtener el id del alumno
+			codAlumno = file.readInt();
 
-                // Leer código del alumno
-                int cod = file.readInt();
+			// Obtener el nombre de la asignatura recorriendo uno a uno los caracteres
+			for (int i = 0; i < asignatura.length; i++) {
+				aux = file.readChar(); // Leer el caracter
+				asignatura[i] = aux; // Guardarlo en el array formando el nombre completo
+			}
 
-                // Leer nombre de la asignatura
-                char asignatura[] = new char[20];
-                for (int i = 0; i < asignatura.length; i++) {
-                    asignatura[i] = file.readChar();
-                }
-                String asignaturaS = new String(asignatura).trim();
+			// Convertir el array en un string
+			String asignaturaS = new String(asignatura);
 
-                // Leer nota de la asignatura
-                float notaAsignatura = file.readFloat();
+			// Obtener los datos restantes
+			nota = file.readFloat();
 
-                // Imprimir las notas solo para el alumno actual
-                if (cod == codAlumno) {
-                    System.out.printf("%9d %-20s %9.2f %n", cod, asignaturaS, notaAsignatura);
-                }
+			System.out.printf("%9s %9s %-20s %9s %n", contador, codAlumno, asignaturaS, nota);
 
-                // Avanzar a la siguiente posición
-                posicion += LON;
-            }
+			// Posicionarse en el siguiente alumno
+			posicion = posicion + LON;
 
-            // Cerrar archivo después de cada pasada
-            file.close();
-        }
-    }
+			// Actualizar el contador
+			contador++;
+			
+			// Salir del for cuando haya recorrido todos los bytes (Y cerrar el file)
+			if (file.getFilePointer() == file.length()) {
+				file.close();
+				break;
+			}
+
+		}
+
+	}
+
 }
