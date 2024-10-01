@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Iterator;
 
 public class ActualizarAlumnos {
 
@@ -18,22 +19,72 @@ public class ActualizarAlumnos {
 		RandomAccessFile fileNotas = new RandomAccessFile(ficheroNotas, "r");
 				
 		// Inicializar la posicion
-		int posicion = 0;
+		int posicionAlumnos = 0;
+		int posicionNotas = 0;
+		
+		// Inicializar variables
+		int numAlumnoNotas;
+		String Asignatura;
+		int contadorAsignaturas = 0;
 		
 		// Recorrer el fichero
-		for (;;) {
+		while (posicionNotas + 4 <= fileNotas.length()) {
 			
-			// Posicionarnos correctamente
-			fileNotas.seek(posicion);
+			// Posicionarnos en el número de alumno correspondiente
+			fileNotas.seek(posicionNotas);
 			
-			// Salir del for cuando haya recorrido todos los bytes (Y cerrar los files)
-			if (fileNotas.getFilePointer() == fileNotas.length()) {
-				fileNotas.close();
-				fileAlumnos.close();
-				break;
+			// Leer sus datos
+			numAlumnoNotas = fileNotas.readInt();
+			
+			// Inicializar variables auxiliares
+			int numAlumnoAux;
+			
+			
+			// Recorrer otra vez el fichero para contar el número de asignaturas y hacer la nota media
+			for (;;) {
+				
+				// Actualizar la posicion
+				posicionNotas = 0;
+				
+				// Posicionarnos correctamente
+				fileNotas.seek(posicionNotas);
+
+				// Leer el número de alumno actual
+				numAlumnoAux = fileNotas.readInt();
+				
+				// Comprobar que sea el mismo alumno que se esta leyendo en el primer bucle
+				if (numAlumnoAux == numAlumnoNotas) {
+					
+					
+					
+				} else {
+					posicionNotas += (LON_Notas + 44);
+				}
+				
 			}
 			
+			
+			//Calcular la posción en la que estaría en el otro fichero de alumnos 
+			posicionAlumnos = (numAlumnoNotas - 1) * LON_Alumnos;
+			
+			// Comprobar que ese alumno esté en el otro fichero
+			if (posicionAlumnos >= fileAlumnos.length()) {
+				System.out.println("Alumno no localizado");
+			} else {
+				
+				// Posicionaros correctamente
+				fileAlumnos.seek(posicionAlumnos);
+				
+			}
+
+			
+			
+			posicionNotas += LON_Notas;
 		}
+		
+		// Cerrar los ficheros
+		fileNotas.close();
+		fileAlumnos.close();
 				
 		
 	}
