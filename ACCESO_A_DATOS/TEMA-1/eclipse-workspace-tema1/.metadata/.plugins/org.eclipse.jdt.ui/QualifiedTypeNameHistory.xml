@@ -4,8 +4,11 @@
     <fullyQualifiedTypeName name="centrosProfesores.Profesor"/>
     <fullyQualifiedTypeName name="centrosProfesores.Centro"/>
     <fullyQualifiedTypeName name="centrosProfesores.UnCentro"/>
-    <fullyQualifiedTypeName name="java.util.ArrayList"/>
     <fullyQualifiedTypeName name="centrosProfesores.DatosCentro"/>
     <fullyQualifiedTypeName name="java.lang.String"/>
     <fullyQualifiedTypeName name="java.io.File"/>
+    <fullyQualifiedTypeName name="xmlProductos.Producto"/>
+    <fullyQualifiedTypeName name="java.util.ArrayList"/>
+    <fullyQualifiedTypeName name="xmlProductosVentas.Venta"/>
+    <fullyQualifiedTypeName name="xmlProductosVentas.Producto"/>
 </qualifiedTypeNameHistroy>

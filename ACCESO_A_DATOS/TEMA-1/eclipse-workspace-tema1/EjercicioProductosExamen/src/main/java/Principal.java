@@ -1,7 +1,16 @@
 import java.io.File;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Scanner;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
+import xmlProductosVentas.Venta;
 
 public class Principal {
 
@@ -35,6 +44,12 @@ public class Principal {
 			case 3:
 				actualizarProductos();
 				break;
+			case 4:
+				crearXMLProductos();
+				break;
+			case 5:
+				crearXMLProductosVentas();
+				break;
 			case 0:
 				System.out.println("FIN DEL MENÚ!");
 				break;
@@ -48,6 +63,327 @@ public class Principal {
 		// Cerrar el fichero
 		sc.close();
 
+	}
+
+	// Método para crear el XML de productos y ventas
+	private static void crearXMLProductosVentas() throws IOException {
+		
+		// Inicializar variables
+		int codigoPro; 
+		String nombrePro; 
+		int existencias; 
+		double pvp; 
+
+		// Cargar el fichero productos en la lista de productos
+		ArrayList<xmlProductosVentas.Producto> listaProductos = new ArrayList<>();
+		
+		// Inicializar el objeto file
+		File fichero = new File(".\\Productos.dat");
+		// declara el fichero de acceso aleatorio
+		try {
+			
+			// Declarar el fichero de acceso aleatorio
+			RandomAccessFile file = new RandomAccessFile(fichero, "r");
+
+			// Inicializar la posición a 0
+			int posicion = 0; 
+			
+			// Recorrer el fichero
+			for (;;) { 
+				
+				// Posicionarse correctamente
+				file.seek(posicion);
+				
+				// Leer el código
+				codigoPro = file.readInt();
+				
+				// Obtener los datos si no es vacío
+				if (codigoPro != 0) {
+					
+					// Leer el nombre
+					nombrePro = "";
+					for (int i = 0; i < 15; i++) {
+						nombrePro = nombrePro + file.readChar();
+					}
+					
+					// Leer las existencias
+					existencias = file.readInt();
+					
+					// Leer el precio
+					pvp = file.readDouble();
+					
+					// Inicializar la lista de ventas
+					ArrayList<xmlProductosVentas.Venta> ventas = listaVentas(codigoPro);
+					
+					// Crear la lista y añadirla
+					xmlProductosVentas.Producto pro = new xmlProductosVentas.Producto(codigoPro, nombrePro.trim(), existencias, pvp, ventas);
+					listaProductos.add(pro);
+
+				}
+				
+				// Posicionarnos en el siguiente producto
+				posicion = posicion + LON_Productos;
+
+				// Salir del bucle cuando lleguemos al final del fichero
+				if (posicion >= file.length()) {
+					break;
+				}
+					
+			} 
+
+			// Cerrar el fichero
+			file.close();
+			
+			// GENERAR EL XML, creamos un objeto de la raiz, y asignamos los productos
+			xmlProductosVentas.Productos pp= new xmlProductosVentas.Productos();
+			pp.setListaProductos(listaProductos);
+			
+			// Inicializar el contexto
+			JAXBContext context;
+			try {
+				
+				context = JAXBContext.newInstance(xmlProductosVentas.Productos.class);
+				Marshaller m = context.createMarshaller();
+				m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+				m.marshal(pp, System.out);
+				m.marshal(pp, new File(".\\ProductosVentas.xml"));
+			} catch (JAXBException e) {
+				e.printStackTrace();
+			}
+
+		} catch (FileNotFoundException e) {
+			
+			System.out.println("**** FICHERO NO ENCONTRADO ****");
+			e.printStackTrace();
+		}
+
+		
+	}
+
+	private static ArrayList<Venta> listaVentas(int codigoPro) throws IOException {
+		
+		// Inicializar el Arrayist
+		ArrayList<xmlProductosVentas.Venta> ventas = new ArrayList<xmlProductosVentas.Venta>();
+		
+		// Inicializar los objetos File
+		File fichero = new File(".\\DatosdeVentas.dat");
+		
+		// Declarar el fichero de acceso aleatorio
+		RandomAccessFile file = new RandomAccessFile(fichero, "r");
+		
+		// Inicializar la posicion
+		int posicion = 0;
+		
+		// Inicializar variables
+		int codigoProActual;
+		int unidadesVendidas = 0;
+		String fecha = "";
+		
+		// Recorrer el fichero
+		for(;;) {
+			
+			// Posicionarnos correctamente
+			file.seek(posicion);
+			
+			// Leer el código actual
+			codigoProActual = file.readInt();
+			
+			// Leer la unidades vendidas del producto
+			unidadesVendidas = file.readInt();
+			
+			// Leer la fecha
+			fecha = "";
+			for (int i = 0; i < 10; i++) {
+				fecha += file.readChar();
+			}
+			
+			// Comprobar que sea igual al que le he pasado como parámetro
+			if (codigoPro == codigoProActual) {
+
+				// Crear la venta
+				xmlProductosVentas.Venta v = new xmlProductosVentas.Venta(unidadesVendidas, fecha.trim());
+				
+				// Añadir la venta a la lista
+				ventas.add(v);
+				
+			}
+
+			// Actualizar la posición
+			posicion += LON_Ventas;
+			
+			// Salirnos del fichero cuando llegue al final
+			if (posicion >= file.length()) {
+				break;
+			}
+		
+		}
+		
+		// Cerrar el fichero
+		file.close();
+		
+		// Devolver la lista de ventas
+		return ventas;
+		
+	}
+
+	// Método para crear el XML de Productos
+	private static void crearXMLProductos() throws IOException {
+		
+		int codigoPro; 
+		String nombrePro; 
+		int existencias; 
+		double pvp; 
+
+		// Cargar el fichero productos en la lista de productos
+		ArrayList<xmlProductos.Producto> listaProductos = new ArrayList<>();
+		
+		// Inicializar el onjeto file
+		File fichero = new File(".\\Productos.dat");
+		// declara el fichero de acceso aleatorio
+		try {
+			
+			// Declarar el fichero de acceso aleatorio
+			RandomAccessFile file = new RandomAccessFile(fichero, "r");
+
+			// Inicializar la posición a 0
+			int posicion = 0; 
+
+			// Recorrer el fichero
+			for (;;) { 
+				
+				// Posicionarse correctamente
+				file.seek(posicion);
+				
+				// Leer el código
+				codigoPro = file.readInt();
+				
+				// Obtener los datos si no es vacío
+				if (codigoPro != 0) {
+					
+					// Leer el nombre
+					nombrePro = "";
+					for (int i = 0; i < 15; i++) {
+						nombrePro = nombrePro + file.readChar();
+					}
+					
+					// Leer las existencias
+					existencias = file.readInt();
+					
+					// Leer el precio
+					pvp = file.readDouble();
+					
+					// Inicializar aquí las unidades vendidas porque es distinto para cada producto
+					int uni = 0;
+					
+					// calcular las unidades vendidas
+					// hacer un método que devuelva las unidades vendidas del prod
+					uni = unidadesVendidas(codigoPro);
+					
+					// Calcular el importe para el código actual
+					double impor = uni * pvp;
+					
+					// Calcular el mensaje de estadi
+					String mensaje="";
+					int stock = existencias - uni;
+					if (stock < 2) {
+						mensaje = "* A REPONER *";
+					}
+					
+					xmlProductos.Producto pro = new xmlProductos.Producto(codigoPro, nombrePro.trim(), existencias, pvp,uni,impor,mensaje);
+					listaProductos.add(pro);
+
+				}
+				
+				// Posicionarnos en el siguiente producto
+				posicion = posicion + LON_Productos;
+
+				// Salir del bucle cuando lleguemos al final del fichero
+				if (posicion >= file.length()) {
+					break;
+				}
+					
+			} 
+
+			// Cerrar el fichero
+			file.close();
+			
+			// GENERAR EL XML, creamos un objeto de la raiz, y asignamos los productos
+			xmlProductos.Productos pp= new xmlProductos.Productos();
+			pp.setListaProductos(listaProductos);
+			
+			// Inicializar el contexto
+			JAXBContext context;
+			try {
+				
+				context = JAXBContext.newInstance(xmlProductos.Productos.class);
+				Marshaller m = context.createMarshaller();
+				m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+				m.marshal(pp, System.out);
+				m.marshal(pp, new File(".\\Productos.xml"));
+			} catch (JAXBException e) {
+				e.printStackTrace();
+			}
+
+		} catch (FileNotFoundException e) {
+			
+			System.out.println("**** FICHERO NO ENCONTRADO ****");
+			e.printStackTrace();
+		}
+
+		
+	}
+
+	// Método para calcular las unidades vendidas por cada producto
+	private static int unidadesVendidas(int codigoPro) throws IOException {
+		
+		// Inicializar los objetos File
+		File fichero = new File(".\\DatosDeVentas.dat");
+		
+		// Declarar el fichero de acceso aleatorio
+		RandomAccessFile file = new RandomAccessFile(fichero, "r");
+		
+		// Inicializar la posicion
+		int posicion = 0;
+		
+		// Inicializar variables
+		int codigoProActual;
+		int unidadesVendidas;
+		int unidadesVendidasTotales = 0;
+		
+		// Recorrer el fichero
+		for(;;) {
+			
+			// Posicionarnos correctamente
+			file.seek(posicion);
+			
+			// Leer el código actual
+			codigoProActual = file.readInt();
+			
+			// Comprobar que sea igual al que le he pasado como parámetro
+			if (codigoPro == codigoProActual) {
+				
+				// Leer la unidades vendidas del producto
+				unidadesVendidas = file.readInt();
+				
+				// Sumar esas unidades a las unidades totales
+				unidadesVendidasTotales += unidadesVendidas;
+			}
+			
+			// Actualizar la posición
+			posicion += LON_Ventas;
+			
+			// Salirnos del fichero cuando llegue al final
+			if (posicion >= file.length()) {
+				break;
+			}
+			
+		}
+		
+		// Cerrar el fichero
+		file.close();
+		
+		// Devolver las unidades vendidas totales de cada producto
+		return unidadesVendidasTotales;
 	}
 
 	// Método para actualizar los productos
@@ -275,6 +611,8 @@ public class Principal {
 		System.out.println(" 1) Listar Productos");
 		System.out.println(" 2) Listar Ventas");
 		System.out.println(" 3) Actualizar Productos");
+		System.out.println(" 4) Crear XML Productos");
+		System.out.println(" 5) Crear XML ProductosVentas");
 		System.out.println(" 0) Salir");
 		System.out.println("-------------------------------------------------");
 
