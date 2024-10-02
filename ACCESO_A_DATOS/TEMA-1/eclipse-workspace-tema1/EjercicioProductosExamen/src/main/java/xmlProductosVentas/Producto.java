@@ -3,6 +3,7 @@ package xmlProductosVentas;
 import java.util.ArrayList;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlType(propOrder = {"codigo", "nombre", "existencias", "precio", "listaventas"})
@@ -65,6 +66,7 @@ public class Producto {
 		this.precio = precio;
 	}
 
+	@XmlElementWrapper(name = "listaventas")  
 	@XmlElement(name = "venta")
 	public ArrayList<Venta> getListaventas() {
 		return listaventas;

@@ -113,7 +113,7 @@ public class Principal {
 					pvp = file.readDouble();
 					
 					// Inicializar la lista de ventas
-					ArrayList<xmlProductosVentas.Venta> ventas = listaVentas(codigoPro);
+					ArrayList<xmlProductosVentas.Venta> ventas = listaVentas(codigoPro, pvp);
 					
 					// Crear la lista y añadirla
 					xmlProductosVentas.Producto pro = new xmlProductosVentas.Producto(codigoPro, nombrePro.trim(), existencias, pvp, ventas);
@@ -160,7 +160,7 @@ public class Principal {
 		
 	}
 
-	private static ArrayList<Venta> listaVentas(int codigoPro) throws IOException {
+	private static ArrayList<Venta> listaVentas(int codigoPro, double pvp) throws IOException {
 		
 		// Inicializar el Arrayist
 		ArrayList<xmlProductosVentas.Venta> ventas = new ArrayList<xmlProductosVentas.Venta>();
@@ -178,6 +178,7 @@ public class Principal {
 		int codigoProActual;
 		int unidadesVendidas = 0;
 		String fecha = "";
+		double importe = 0;
 		
 		// Recorrer el fichero
 		for(;;) {
@@ -196,12 +197,15 @@ public class Principal {
 			for (int i = 0; i < 10; i++) {
 				fecha += file.readChar();
 			}
-			
+						
 			// Comprobar que sea igual al que le he pasado como parámetro
 			if (codigoPro == codigoProActual) {
 
+				// Calcular el importe
+				importe = pvp * unidadesVendidas;
+				
 				// Crear la venta
-				xmlProductosVentas.Venta v = new xmlProductosVentas.Venta(unidadesVendidas, fecha.trim());
+				xmlProductosVentas.Venta v = new xmlProductosVentas.Venta(unidadesVendidas, fecha.trim(), importe);
 				
 				// Añadir la venta a la lista
 				ventas.add(v);
