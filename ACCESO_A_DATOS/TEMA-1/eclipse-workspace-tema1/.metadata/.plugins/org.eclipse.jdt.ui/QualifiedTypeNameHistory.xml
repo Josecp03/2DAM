@@ -8,7 +8,10 @@
     <fullyQualifiedTypeName name="java.lang.String"/>
     <fullyQualifiedTypeName name="java.io.File"/>
     <fullyQualifiedTypeName name="xmlProductos.Producto"/>
-    <fullyQualifiedTypeName name="java.util.ArrayList"/>
     <fullyQualifiedTypeName name="xmlProductosVentas.Venta"/>
     <fullyQualifiedTypeName name="xmlProductosVentas.Producto"/>
+    <fullyQualifiedTypeName name="java.util.ArrayList"/>
+    <fullyQualifiedTypeName name="xmlAlumnos.Nota"/>
+    <fullyQualifiedTypeName name="xmlAlumnos.Alumno"/>
+    <fullyQualifiedTypeName name="xmlAlumnos.ListaAlumnos"/>
 </qualifiedTypeNameHistroy>
