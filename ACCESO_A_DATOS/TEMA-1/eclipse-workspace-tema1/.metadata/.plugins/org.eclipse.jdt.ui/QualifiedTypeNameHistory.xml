@@ -10,8 +10,10 @@
     <fullyQualifiedTypeName name="xmlProductos.Producto"/>
     <fullyQualifiedTypeName name="xmlProductosVentas.Venta"/>
     <fullyQualifiedTypeName name="xmlProductosVentas.Producto"/>
-    <fullyQualifiedTypeName name="java.util.ArrayList"/>
     <fullyQualifiedTypeName name="xmlAlumnos.Nota"/>
     <fullyQualifiedTypeName name="xmlAlumnos.Alumno"/>
     <fullyQualifiedTypeName name="xmlAlumnos.ListaAlumnos"/>
+    <fullyQualifiedTypeName name="xmlViajes.ListaViajes"/>
+    <fullyQualifiedTypeName name="xmlViajes.Viaje"/>
+    <fullyQualifiedTypeName name="java.util.ArrayList"/>
 </qualifiedTypeNameHistroy>
