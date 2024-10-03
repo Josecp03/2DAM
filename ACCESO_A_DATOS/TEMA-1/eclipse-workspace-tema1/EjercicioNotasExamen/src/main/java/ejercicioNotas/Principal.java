@@ -19,6 +19,7 @@ public class Principal {
 	static int LON_Alumnos = 92;
 	static int LON_Notas = 48;
 
+	// Método Principal
 	public static void main(String[] args) throws IOException {
 
 		// Inicalizar variables
@@ -49,6 +50,16 @@ public class Principal {
 				crearXML();
 				break;
 			case 5:
+				int numeroAlumno = 2;
+				String nombreAsignatura = "Acceso a Datos";
+				float nota = (float) 4.67;
+				insertarNota(numeroAlumno, nombreAsignatura, nota);
+				break;
+			case 6:
+				int numeroAlumnoBorrado = 1;
+				borrarAlumno(numeroAlumnoBorrado);
+				break;
+			case 7:
 				System.out.println("FIN DEL MENÚ!");
 				break;
 			default:
@@ -56,13 +67,160 @@ public class Principal {
 				break;
 			}
 
-		} while (opcion != 5);
+		} while (opcion != 7);
 
 		// Cerrar el fichero
 		sc.close();
 
 	}
+	
+	// Método para borrar un alumno
+	private static void borrarAlumno(int numeroAlumnoBorrado) throws IOException {
+		
+		// Inicializar el objeto File
+		File fichero = new File(".\\Alumnos.dat");
 
+		// Declarar el fichero de acceso aleatorio
+		RandomAccessFile file = new RandomAccessFile(fichero, "rw");
+
+		// Inicializar variables
+		int numAlumnoActual;
+
+		// Establecer la posición a 0 para que empiece desde el principio
+		int posicion = 0;
+
+		// Recorrer el fichero
+		for (;;) {
+
+			// Situarse en la posición inicializada
+			file.seek(posicion);
+
+			// Obtener el código del producto
+			numAlumnoActual = file.readInt();
+
+			if (numAlumnoActual == numeroAlumnoBorrado) {
+				
+				// Posicionarnos donde el principio
+				file.seek(posicion);
+				
+				// Escribir un 0 en el número de alumno
+				file.writeInt(0);
+								
+			}
+
+			// Posicionarse en el siguiente alumno
+			posicion += LON_Alumnos;
+
+			// Salir del for cuando haya recorrido todos los bytes (Y cerrar el file)
+			if (posicion >= file.length()) {
+				break;
+			}
+
+		}
+		
+		// Cerrar el fichero
+		file.close();
+		
+	}
+
+	// Método para insertar una nueva nota
+	private static void insertarNota(int numeroAlumno, String nombreAsignatura, float nota) throws IOException {
+		
+		// Inicializar el objeto File
+        File fichero = new File(".\\Notas.dat");
+        
+        // Declarar el fichero de acceso aleatorio
+        RandomAccessFile file = new RandomAccessFile(fichero, "rw");
+                
+        // Comprobar que el número de alumno es válido
+        if (numeroCorrecto(numeroAlumno)) {
+            
+        	// Posicionarnos al final
+            file.seek(file.length());
+            
+            // Esribimos el número de alumno
+            file.writeInt(numeroAlumno);
+            
+            // Buffer para almacenar el 
+         	StringBuffer buffer = null;
+    		
+    		// Establecer 20 caracteres para el nombre de la asignatura
+    		buffer = new StringBuffer(nombreAsignatura);
+    		buffer.setLength(20);
+    		file.writeChars(buffer.toString());
+    		
+    		// Escribir la nota
+    		file.writeFloat(nota);
+    		
+    		// Cerrar el fichero
+    		file.close();
+		} else {
+			
+			// Imprimir mensaje de error
+			System.out.println("Número no encontrado en el fichero alumnos");
+		}
+        		
+	}
+
+	// Método para comprobar que el número sea correcto
+	private static boolean numeroCorrecto(int numeroAlumno) throws IOException {
+		
+		// Inicializar un valor booleano
+		boolean existe = false;
+		
+		// Comprobar que el número de alumno sea positivo
+		if (numeroAlumno > 1) {
+			
+			// Inicializar el objeto File
+			File fichero = new File(".\\Alumnos.dat");
+
+			// Declarar el fichero de acceso aleatorio
+			RandomAccessFile file = new RandomAccessFile(fichero, "r");
+
+			// Inicializar variables
+			int numAlumno;
+
+			// Establecer la posición a 0 para que empiece desde el principio
+			int posicion = 0;
+
+			// Recorrer el fichero
+			for (;;) {
+
+				// Situarse en la posición inicializada
+				file.seek(posicion);
+
+				// Obtener el código del producto
+				numAlumno = file.readInt();
+
+				// Comporbar que coincida con el numero de alumno actual
+				if (numAlumno == numeroAlumno) {
+					existe = true;
+				}
+				
+				// Posicionarse en el siguiente alumno
+				posicion = posicion + LON_Alumnos;
+
+				// Salir del for cuando haya recorrido todos los bytes (Y cerrar el file)
+				if (posicion >= file.length()) {
+					break;
+				}
+
+			}
+			
+			// Cerrar el fichero
+			file.close();
+			
+		} else {
+			
+			// Imprimir mensaje de error
+			System.out.println("Número incorrecto");
+		}
+		
+		// Devolver el valor booleano
+		return existe;
+	}
+
+	// Método para crear el xml
 	private static void crearXML() throws IOException {
 		
 		// Inicializar variables
@@ -163,6 +321,7 @@ public class Principal {
 		
 	}
 
+	// Método que devuelve un ArrayList con las notas del alumno indicado
 	private static ArrayList<Nota> listaNotas(int numalumno) throws IOException {
 		
 		// Inicializar el Arrayist
@@ -334,6 +493,7 @@ public class Principal {
 		
 	}
 
+	// Método para calular la nota media del alumno buscado
 	private static float calcularNotaMedia(int numAlumnoBuscado, int numAsignaturas) throws IOException{
 		
 		// Inicializar el objeto File
@@ -592,7 +752,9 @@ public class Principal {
 		System.out.println(" 2) Listar Notas");
 		System.out.println(" 3) Actualizar el fichero Alumnos");
 		System.out.println(" 4) Generar el fichero Alumnos.xml");
-		System.out.println(" 5) Salir");
+		System.out.println(" 5) Insertar Nueva nota");
+		System.out.println(" 6) Borrar Alumno");
+		System.out.println(" 7) Salir");
 		System.out.println("-------------------------------------------------");
 
 	}
