@@ -1,0 +1,76 @@
+!SESSION 2024-10-07 16:05:25.571 -----------------------------------------------
+eclipse.buildId=4.32.0.20240606-1231
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=es_ES
+Framework arguments:  -product org.eclipse.epp.package.jee.product
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 -product org.eclipse.epp.package.jee.product
+
+!ENTRY ch.qos.logback.classic 1 0 2024-10-07 16:06:08.069
+!MESSAGE Activated before the state location was initialized. Retry after the state location is initialized.
+
+!ENTRY ch.qos.logback.classic 1 0 2024-10-07 16:10:02.510
+!MESSAGE Logback config file: D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2\.metadata\.plugins\org.eclipse.m2e.logback\logback.2.6.1.20240411-1122.xml
+
+!ENTRY org.eclipse.egit.ui 2 0 2024-10-07 16:10:09.048
+!MESSAGE Warning: The environment variable HOME is not set. The following directory will be used to store the Git
+user global configuration and to define the default location to store repositories: 'C:\Users\josec'. If this is
+not correct please set the HOME environment variable and restart Eclipse. Otherwise Git for Windows and
+EGit might behave differently since they see different configuration options.
+This warning can be switched off on the Team > Git > Confirmations and Warnings preference page.
+
+!ENTRY org.eclipse.ui 2 2 2024-10-07 16:11:22.572
+!MESSAGE org.eclipse.ui.views.ContentOutline: Deprecated relationship "fast" should be converted to "stack".
+
+!ENTRY org.eclipse.core.jobs 4 2 2024-10-07 16:25:35.850
+!MESSAGE An internal error occurred during: "select *  from empleados".
+!STACK 0
+java.lang.NullPointerException: Cannot invoke "org.sqlite.core.SafeStmtPtr.isClosed()" because "this.pointer" is null
+	at org.sqlite.core.CoreStatement.checkOpen(CoreStatement.java:63)
+	at org.sqlite.jdbc3.JDBC3Statement.getMoreResults(JDBC3Statement.java:370)
+	at org.sqlite.jdbc3.JDBC3Statement.getMoreResults(JDBC3Statement.java:365)
+	at org.eclipse.datatools.sqltools.editor.core.result.ResultSupportRunnable.handleSQLException(ResultSupportRunnable.java:451)
+	at org.eclipse.datatools.sqltools.editor.core.result.ResultSupportRunnable.run(ResultSupportRunnable.java:172)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+
+!ENTRY org.eclipse.core.jobs 4 2 2024-10-07 16:25:49.692
+!MESSAGE An internal error occurred during: "select *  from empleados".
+!STACK 0
+java.lang.NullPointerException: Cannot invoke "org.sqlite.core.SafeStmtPtr.isClosed()" because "this.pointer" is null
+	at org.sqlite.core.CoreStatement.checkOpen(CoreStatement.java:63)
+	at org.sqlite.jdbc3.JDBC3Statement.getMoreResults(JDBC3Statement.java:370)
+	at org.sqlite.jdbc3.JDBC3Statement.getMoreResults(JDBC3Statement.java:365)
+	at org.eclipse.datatools.sqltools.editor.core.result.ResultSupportRunnable.handleSQLException(ResultSupportRunnable.java:451)
+	at org.eclipse.datatools.sqltools.editor.core.result.ResultSupportRunnable.run(ResultSupportRunnable.java:172)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+
+!ENTRY org.eclipse.core.jobs 4 2 2024-10-07 16:26:15.502
+!MESSAGE An internal error occurred during: "SELECT * FROM EMPLEADOS".
+!STACK 0
+java.lang.NullPointerException: Cannot invoke "org.sqlite.core.SafeStmtPtr.isClosed()" because "this.pointer" is null
+	at org.sqlite.core.CoreStatement.checkOpen(CoreStatement.java:63)
+	at org.sqlite.jdbc3.JDBC3Statement.getMoreResults(JDBC3Statement.java:370)
+	at org.sqlite.jdbc3.JDBC3Statement.getMoreResults(JDBC3Statement.java:365)
+	at org.eclipse.datatools.sqltools.editor.core.result.ResultSupportRunnable.handleSQLException(ResultSupportRunnable.java:451)
+	at org.eclipse.datatools.sqltools.editor.core.result.ResultSupportRunnable.run(ResultSupportRunnable.java:172)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+!SESSION 2024-10-07 17:15:57.146 -----------------------------------------------
+eclipse.buildId=4.32.0.20240606-1231
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=es_ES
+Framework arguments:  -product org.eclipse.epp.package.jee.product
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 -product org.eclipse.epp.package.jee.product
+
+!ENTRY ch.qos.logback.classic 1 0 2024-10-07 17:15:59.183
+!MESSAGE Activated before the state location was initialized. Retry after the state location is initialized.
+
+!ENTRY ch.qos.logback.classic 1 0 2024-10-07 17:16:02.035
+!MESSAGE Logback config file: D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2\.metadata\.plugins\org.eclipse.m2e.logback\logback.2.6.1.20240411-1122.xml
+
+!ENTRY org.eclipse.egit.ui 2 0 2024-10-07 17:16:06.139
+!MESSAGE Warning: The environment variable HOME is not set. The following directory will be used to store the Git
+user global configuration and to define the default location to store repositories: 'C:\Users\josec'. If this is
+not correct please set the HOME environment variable and restart Eclipse. Otherwise Git for Windows and
+EGit might behave differently since they see different configuration options.
+This warning can be switched off on the Team > Git > Confirmations and Warnings preference page.
