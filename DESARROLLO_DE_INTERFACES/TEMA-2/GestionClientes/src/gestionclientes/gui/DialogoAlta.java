@@ -6,6 +6,7 @@
 package gestionclientes.gui;
 
 import gestionclientes.dto.Cliente;
+import gestionclientes.logica.LogicaNegocio;
 import java.util.Date;
 
 /**
@@ -139,7 +140,7 @@ public class DialogoAlta extends javax.swing.JDialog {
         Date fecha = (Date)jSpinnerFecha.getValue();
         String provincia = (String)jComboBoxProvincia.getSelectedItem();
         Cliente cliente = new Cliente(nombre, apellidos, fecha, provincia);
-        pantallaPrincipal.anadirCliente(cliente);
+        LogicaNegocio.anadirCliente(cliente);
         dispose();     
     }//GEN-LAST:event_jButtonAltaActionPerformed
 

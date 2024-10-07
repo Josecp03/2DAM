@@ -6,7 +6,9 @@
 package gestionclientes.gui;
 
 import gestionclientes.dto.Cliente;
+import gestionclientes.logica.LogicaNegocio;
 import javax.swing.table.DefaultTableModel;
+import java.util.List;
 
 /**
  *
@@ -19,24 +21,23 @@ public class PantallaPrincipal extends javax.swing.JFrame {
      */
     public PantallaPrincipal() {
         initComponents();
-        inicializarTabla();
+        refrescarTabla();
     }
 
-    private void inicializarTabla() {
+    private void refrescarTabla() {
         
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.setColumnIdentifiers(new String[]{"Nombre", "Apellidos", "Fecha Alta", "Provincia"});
+        
+        List<Cliente>listaClientes = LogicaNegocio.getListaClientes();
+        for (Cliente cliente : listaClientes) {
+            dtm.addRow(cliente.toArrayString());
+        }
+        
         jTableClientes.setModel(dtm);
         
     }
-    
-    public void anadirCliente (Cliente cliente) {
         
-        DefaultTableModel dtm = (DefaultTableModel) jTableClientes.getModel();
-        dtm.addRow(cliente.toArrayString());
-    }
-    
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -100,6 +101,7 @@ public class PantallaPrincipal extends javax.swing.JFrame {
     private void jMenuItemAltaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAltaActionPerformed
         DialogoAlta dialogoAlta = new DialogoAlta(this,true);
         dialogoAlta.setVisible(true);
+        refrescarTabla();
     }//GEN-LAST:event_jMenuItemAltaActionPerformed
 
     /**
