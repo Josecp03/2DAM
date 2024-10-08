@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">PRC1_JoseCorrochano</string>
+    <string name="play_button_description">Play Button</string>
+    <string name="work">Work</string>
+    <string name="rest">Rest</string>
+    <string name="sets">Sets</string>
+    <string name="work_rest">WORK/REST</string>
+    <string name="series_left">SERIES LEFT:</string>
+</resources>
