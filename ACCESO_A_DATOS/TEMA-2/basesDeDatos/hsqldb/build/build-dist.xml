@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-$Id: build-dist.xml 6764 2024-05-26 15:05:10Z fredt $
+$Id: build-dist.xml 6365 2021-07-19 09:10:13Z fredt $
 -->
 
 <!-- N.b. the clean targets, even 'clean-all', do not clean the "dist"
@@ -29,6 +29,13 @@ $Id: build-dist.xml 6764 2024-05-26 15:05:10Z fredt $
     <fail unless="_label.ok">Ant properties 'build.label' and 'hsqldb.version' must be equal.
 (${build.label}) vs. (${hsqldb.version})
 I suggest setting the value(s) in a "build.properties" file.</fail>
+    <condition property="_vendor.ok">
+      <equals arg1="${hsqldb.vendor}" arg2="${build.vendor}"/>
+    </condition>
+    <fail unless="_vendor.ok">Ant properties 'build.vendor' and 'hsqldb.vendor' must be equal.
+(${build.vendor}) vs. (${hsqldb.vendor})
+I suggest setting the value(s) in an external properties file and using the Ant
+"-propertyfile" switch.</fail>
 
     <copy file="doc-src/readme-template.txt" tofile="tmp/readme-generated.txt"
           overwrite="true">
@@ -61,12 +68,8 @@ and re-export.</fail>
   </target>
 
   <target name="dist"
-          depends="state-check, clean-all, gen-docs"
+          depends="state-check, clean-all, gen-docs, sqltool, osgi, javadoc"
           description="Build joint binary + source distribution zip package">
-    <antcall target="javadoc" inheritrefs="true"/>
-    <antcall target="osgi" inheritrefs="true"/>
-    <antcall target="javadocsqltool" inheritrefs="true"/>
-    <antcall target="sqltool" inheritrefs="true"/>
     <mkdir dir="dist"/>
     <property name="app.basedir" value="hsqldb-${hsqldb.version}"/>
 
@@ -153,7 +156,7 @@ and re-export.</fail>
       <zipfileset prefix="${app.basedir}/hsqldb/doc-src" dir="doc-src"
                   includes="changelist_2_0.txt,hsqldb_lic.txt,hypersonic_lic.txt"/>
       <zipfileset prefix="${app.basedir}/hsqldb/lib" dir="lib"
-                  includes="sqltool*.jar, javax.servlet-api*.jar"/>
+                  includes="sqltool*.jar, servlet*.zip"/>
       <zipfileset prefix="${app.basedir}/hsqldb/lib" dir="lib"
                   includes="hsqldb*.jar"/>
     </zip>

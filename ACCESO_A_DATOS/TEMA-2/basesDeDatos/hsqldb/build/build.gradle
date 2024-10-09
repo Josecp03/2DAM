@@ -626,18 +626,18 @@ installDbImages.description = 'Install DocBook resources (minimal by default)'
     tasks[it].group = 'Help'
 }
 ['hsqldb', 'hsqldbmin', 'hsqldbmain', 'hsqldbsources',
- 'hsqldbutil', 'osgi', 'preprocessor', 'sqltool', 'sqltoolsources',
+ 'hsqldbutil', 'osgi', 'preprocessor', 'sqltool', 'hsqldbtest',
  'dbmanswing'].each {
     tasks[it].group = 'HyperSQL Jar Generation'
 }
 ['checkTabs', 'serialver', 'standaloneValidation'].each {
     tasks[it].group = 'Utilities'
 }
-['gen-docs', 'regen-docs', 'installDbImages', 'javadoc', 'javadocsqltool', 'javadocdev',
- 'validate-doc', 'validate-docs', 'javadochsqldbjar', 'javadocsqltooljar'].each {
+['gen-docs', 'regen-docs', 'installDbImages', 'javadoc', 'javadocdev',
+ 'validate-doc', 'validate-docs'].each {
     tasks[it].group = 'Documentation System'
 }
-['classes', 'clean', 'clean-all', 'clean-docs'].each {
+['classes', 'test', 'clean', 'clean-all', 'clean-docs'].each {
     tasks[it].group = 'Lifecycle'
 }
 

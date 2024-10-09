@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
      * @return the value stored in the entry
      */
     public K getKeyAt(int index) throws IndexOutOfBoundsException {
+
         checkRange(index);
 
         return (K) objectKeyTable[index];
@@ -74,6 +75,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
      * @return the value stored in the entry
      */
     public V getValueAt(int index) throws IndexOutOfBoundsException {
+
         checkRange(index);
 
         return (V) objectValueTable[index];
@@ -87,6 +89,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
      * @return the value stored in the entry
      */
     public V get(int index) throws IndexOutOfBoundsException {
+
         checkRange(index);
 
         return (V) objectValueTable[index];
@@ -98,7 +101,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
             throw new NullPointerException();
         }
 
-        return (V) super.removeObject(key, true);
+        return (V) super.remove(0, 0, key, null, false, true);
     }
 
     public void removeEntry(int index) throws IndexOutOfBoundsException {
@@ -138,11 +141,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
         return returnValue;
     }
 
-    public boolean insert(
-            int index,
-            K key,
-            V value)
-            throws IndexOutOfBoundsException {
+    public boolean insert(int index, K key, V value) throws IndexOutOfBoundsException {
 
         if (key == null) {
             throw new NullPointerException();
@@ -151,6 +150,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
         if (index < 0 || index > size()) {
             throw new IndexOutOfBoundsException();
         }
+
 
         int lookup = getLookup(key);
 
@@ -167,11 +167,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
         return true;
     }
 
-    public boolean set(
-            int index,
-            K key,
-            V value)
-            throws IndexOutOfBoundsException {
+    public boolean set(int index, K key, V value) throws IndexOutOfBoundsException {
 
         if (key == null) {
             throw new NullPointerException();
@@ -179,7 +175,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
 
         checkRange(index);
 
-        if (containsKey(key) && getIndex(key) != index) {
+        if (keySet().contains(key) && getIndex(key) != index) {
             return false;
         }
 
@@ -207,6 +203,7 @@ public class OrderedHashMap<K, V> extends HashMap<K, V> {
     }
 
     private void checkRange(int i) {
+
         if (i < 0 || i >= size()) {
             throw new IndexOutOfBoundsException();
         }

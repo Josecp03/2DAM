@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,10 +85,8 @@ public class RowStoreAVLMemory extends RowStoreAVL {
         throw Error.runtimeError(ErrorCode.U_S0500, "RowStoreAVLMemory");
     }
 
-    public CachedObject getNewCachedObject(
-            Session session,
-            Object object,
-            boolean tx) {
+    public CachedObject getNewCachedObject(Session session, Object object,
+                                           boolean tx) {
 
         long id  = rowIdSequence.getAndIncrement();
         Row  row = new RowAVL(table, (Object[]) object, id, this);
@@ -126,11 +124,8 @@ public class RowStoreAVLMemory extends RowStoreAVL {
         }
     }
 
-    public void commitRow(
-            Session session,
-            Row row,
-            int changeAction,
-            int txModel) {
+    public void commitRow(Session session, Row row, int changeAction,
+                          int txModel) {
 
         if (!database.logger.isCurrentlyLogged()) {
             return;
@@ -141,17 +136,13 @@ public class RowStoreAVLMemory extends RowStoreAVL {
         switch (changeAction) {
 
             case RowAction.ACTION_DELETE :
-                database.logger.writeDeleteStatement(
-                    session,
-                    (Table) table,
-                    data);
+                database.logger.writeDeleteStatement(session, (Table) table,
+                                                     data);
                 break;
 
             case RowAction.ACTION_INSERT :
-                database.logger.writeInsertStatement(
-                    session,
-                    row,
-                    (Table) table);
+                database.logger.writeInsertStatement(session, row,
+                                                     (Table) table);
                 break;
 
             case RowAction.ACTION_INSERT_DELETE :
@@ -164,11 +155,8 @@ public class RowStoreAVLMemory extends RowStoreAVL {
         }
     }
 
-    public void rollbackRow(
-            Session session,
-            Row row,
-            int changeAction,
-            int txModel) {
+    public void rollbackRow(Session session, Row row, int changeAction,
+                            int txModel) {
 
         switch (changeAction) {
 
@@ -177,7 +165,6 @@ public class RowStoreAVLMemory extends RowStoreAVL {
                     ((RowAVL) row).setNewNodes(this);
                     indexRow(session, row);
                 }
-
                 break;
 
             case RowAction.ACTION_INSERT :
@@ -194,7 +181,6 @@ public class RowStoreAVLMemory extends RowStoreAVL {
                     delete(session, row);
                     remove(row);
                 }
-
                 break;
         }
     }

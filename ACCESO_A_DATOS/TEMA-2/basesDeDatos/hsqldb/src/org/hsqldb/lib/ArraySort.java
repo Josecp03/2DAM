@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import java.util.Comparator;
  * FastQSorts the [l,r] partition (inclusive) of the specified array of
  * Rows, using the comparator.<p>
  *
- * Searches an ordered array.
+ * Searches an ordered array.<p>
  *
  * @author Tony Lai (tony_lai@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
@@ -57,12 +57,8 @@ public final class ArraySort {
      * @param value Object
      * @param c Comparator
      */
-    public static int searchFirst(
-            Object[] array,
-            int start,
-            int limit,
-            Object value,
-            Comparator c) {
+    public static int searchFirst(Object[] array, int start, int limit,
+                                  Object value, Comparator c) {
 
         int low   = start;
         int high  = limit;
@@ -84,15 +80,12 @@ public final class ArraySort {
             }
         }
 
-        return found == limit
-               ? -low - 1
-               : found;
+        return found == limit ? -low - 1
+                              : found;
     }
 
-    public static int deDuplicate(
-            Object[] array,
-            int limit,
-            Comparator comparator) {
+    public static int deDuplicate(Object[] array, int limit,
+                                  Comparator comparator) {
 
         int baseIndex    = 0;
         int currentIndex = 1;
@@ -102,9 +95,8 @@ public final class ArraySort {
         }
 
         for (; currentIndex < limit; currentIndex++) {
-            int compare = comparator.compare(
-                array[baseIndex],
-                array[currentIndex]);
+            int compare = comparator.compare(array[baseIndex],
+                                             array[currentIndex]);
 
             if (compare == 0) {
                 continue;
@@ -128,7 +120,8 @@ public final class ArraySort {
         insertionSort(array, comparator, 0, limit - 1);
     }
 
-    static void quickSort(Object[] array, Comparator comparator, int l, int r) {
+    static void quickSort(Object[] array, Comparator comparator, int l,
+                          int r) {
 
         int M = 16;
         int i;
@@ -175,11 +168,8 @@ public final class ArraySort {
         }
     }
 
-    public static void insertionSort(
-            Object[] array,
-            Comparator comparator,
-            int lo0,
-            int hi0) {
+    public static void insertionSort(Object[] array, Comparator comparator,
+                                     int lo0, int hi0) {
 
         int i;
         int j;
@@ -215,11 +205,8 @@ public final class ArraySort {
         array[j] = val;
     }
 
-    private static void moveRows(
-            Object[] array,
-            int fromIndex,
-            int toIndex,
-            int rows) {
+    private static void moveRows(Object[] array, int fromIndex, int toIndex,
+                                 int rows) {
         System.arraycopy(array, fromIndex, array, toIndex, rows);
     }
 }

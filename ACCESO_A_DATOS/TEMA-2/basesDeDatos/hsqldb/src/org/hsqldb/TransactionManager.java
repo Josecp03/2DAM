@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.hsqldb.persist.PersistentStore;
  * Manages rows involved in transactions
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.5.1
  * @since 2.0.0
  */
 public interface TransactionManager {
@@ -60,25 +60,18 @@ public interface TransactionManager {
     int resetSessionStatement = 5;
     int resetSessionClose     = 6;
 
-    long getSystemChangeNumber();
+    long getGlobalChangeTimestamp();
 
-    long getNextSystemChangeNumber();
+    long getNextGlobalChangeTimestamp();
 
-    void setSystemChangeNumber(long ts);
+    void setGlobalChangeTimestamp(long ts);
 
-    RowAction addDeleteAction(
-            Session session,
-            Table table,
-            PersistentStore store,
-            Row row,
-            int[] changedColumns);
+    RowAction addDeleteAction(Session session, Table table,
+                              PersistentStore store, Row row,
+                              int[] changedColumns);
 
-    void addInsertAction(
-            Session session,
-            Table table,
-            PersistentStore store,
-            Row row,
-            int[] changedColumns);
+    void addInsertAction(Session session, Table table, PersistentStore store,
+                         Row row, int[] changedColumns);
 
     /**
      * add session to the end of queue when a transaction starts
@@ -114,9 +107,6 @@ public interface TransactionManager {
 
     void setTransactionControl(Session session, int mode);
 
-    void resetSession(
-            Session session,
-            Session targetSession,
-            long statementTimestamp,
-            int mode);
+    void resetSession(Session session, Session targetSession,
+                      long statementTimestamp, int mode);
 }

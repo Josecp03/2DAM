@@ -51,12 +51,12 @@
 </div>
 </div>
 <div>
-<p class="releaseinfo">$Revision: 6692 $</p>
+<p class="releaseinfo">$Revision: 6271 $</p>
 </div>
 <div>
 <div class="legalnotice">
-<a name="N173B8"></a>
-<p>Copyright 2002-2024 Fred Toussi. Permission is granted to
+<a name="N16EF9"></a>
+<p>Copyright 2002-2021 Fred Toussi. Permission is granted to
       distribute this document without any alteration under the terms of the
       HSQLDB license. Additional permission is granted to the HSQL Development
       Group to distribute this document with or without alterations under the
@@ -64,7 +64,7 @@
 </div>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -249,7 +249,7 @@
     will work). Supported properties and their default values (if any) are as
     follows:</p>
 <div class="table">
-<a name="N1742F"></a>
+<a name="N16F70"></a>
 <p class="title">
 <b>Table&nbsp;15.1.&nbsp;common server and webserver properties</b>
 </p>
@@ -327,7 +327,7 @@
 <p>Properties or default values specific to
     <code class="filename">server.properties</code> are:</p>
 <div class="table">
-<a name="N174CC"></a>
+<a name="N1700D"></a>
 <p class="title">
 <b>Table&nbsp;15.2.&nbsp;server properties</b>
 </p>
@@ -361,7 +361,7 @@
 <p>Properties or default values specific to
     <code class="filename">webserver.properties</code> are:</p>
 <div class="table">
-<a name="N174FE"></a>
+<a name="N1703F"></a>
 <p class="title">
 <b>Table&nbsp;15.3.&nbsp;webserver properties</b>
 </p>
@@ -481,7 +481,7 @@
     shut it down programatically. Calling the <code class="literal">shutdownCatalogs(int
     shutdownMode)</code> method of
     <code class="classname">org.hsqldb.server.Server</code> closes all the open
-    databases, which results in server shutdown. The parameter value is
+    databases, which results in server shtudown. The parameter value is
     normally 1, which indicates normal shutdown. Other modes of shutdown, such
     as SHUTDOWN IMMEDIATELY are also supported. See the javadoc for
     <code class="classname">org.hsqldb.server.Server</code>. See the example
@@ -578,14 +578,14 @@ Connection c = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/xdb;fil
 </div>
 </div>
 <div>
-<p class="releaseinfo">$Revision: 6692 $</p>
+<p class="releaseinfo">$Revision: 6271 $</p>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
-<a name="N175E3" class="indexterm"></a>
+<a name="N17124" class="indexterm"></a>
 <p>This section explains how to encrypt the stream between JDBC network
     clients and HyperSQL Listeners. If you are running an
     <em class="glossterm">in-process</em> (non-Listener) setup, this chapter does
@@ -684,7 +684,7 @@ Connection c = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/xdb;fil
 <p>You may already have an X509 cert for your server. If you have a
         server keystore, then you can generate a X509 cert like this. </p>
 <div class="example">
-<a name="N17624"></a>
+<a name="N17165"></a>
 <p class="title">
 <b>Example&nbsp;15.1.&nbsp;Exporting certificate from the server's keystore</b>
 </p>
@@ -703,7 +703,7 @@ Connection c = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/xdb;fil
         existing keystore, or create a new keystore if
         <code class="filename">client.store</code> doesn't exist.</p>
 <div class="example">
-<a name="N17636"></a>
+<a name="N17177"></a>
 <p class="title">
 <b>Example&nbsp;15.2.&nbsp;Adding a certificate to the client keystore</b>
 </p>
@@ -727,7 +727,7 @@ Connection c = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/xdb;fil
         <code class="classname">javax.net.ssl.trustStore</code> every time that you
         run your client program. For example </p>
 <div class="example">
-<a name="N1764A"></a>
+<a name="N1718B"></a>
 <p class="title">
 <b>Example&nbsp;15.3.&nbsp;Specifying your own trust store to a JDBC client</b>
 </p>
@@ -845,7 +845,7 @@ Connection c = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/xdb;fil
 <p>Because I have spent a lot of time on this document already, I
         am just giving you an example.</p>
 <div class="example">
-<a name="N176C5"></a>
+<a name="N17206"></a>
 <p class="title">
 <b>Example&nbsp;15.4.&nbsp;Getting a pem-style private key into a JKS keystore</b>
 </p>
@@ -909,7 +909,7 @@ Connection c = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/xdb;fil
       file.</p>
 <p>If you are using a private server certificate, make sure to also
       set the trust store filepath for relevant urlids in your RC file, as
-      explained in the sample <a class="link" href="filelinks-app.html#hsqldb.conf-link">config
+      explained in the sample <a class="link" href="filelinks-app.html#hsqldb.cfg-link">config
       file</a>.</p>
 </div>
 </div>
@@ -925,7 +925,7 @@ Connection c = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/xdb;fil
 </div>
 </div>
 </div>
-<a name="N17704" class="indexterm"></a><a name="N17707" class="indexterm"></a>
+<a name="N17245" class="indexterm"></a><a name="N17248" class="indexterm"></a>
 <p>JDBC connections will always be denied if the supplied user and
     password are not found in the target catalog. But an HyperSQL listener can
     also restrict access at the listener level, even protecting private
@@ -1021,7 +1021,7 @@ allow 192.168.101.0/24
     copy it to a temporary file and edit the temporary file). Then use the
     <code class="classname">ServerAcl</code> class to test it. </p>
 <div class="example">
-<a name="N1774E"></a>
+<a name="N1728F"></a>
 <p class="title">
 <b>Example&nbsp;15.5.&nbsp;Validating and Testing an ACL file</b>
 </p>
@@ -1051,7 +1051,7 @@ allow 192.168.101.0/24
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

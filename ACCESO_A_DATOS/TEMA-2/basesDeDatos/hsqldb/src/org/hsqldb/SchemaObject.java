@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import org.hsqldb.rights.Grantee;
  * SQL schema object interface
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.9.0
  */
 public interface SchemaObject {
@@ -91,15 +91,11 @@ public interface SchemaObject {
 
     Grantee getOwner();
 
-    default OrderedHashSet<HsqlName> getReferences() {
-        return new OrderedHashSet<>();
-    }
+    OrderedHashSet getReferences();
 
-    default OrderedHashSet<SchemaObject> getComponents() {
-        return new OrderedHashSet<>();
-    }
+    OrderedHashSet getComponents();
 
-    default void compile(Session session, SchemaObject parentObject) {}
+    void compile(Session session, SchemaObject parentObject);
 
     String getSQL();
 
@@ -157,8 +153,8 @@ public interface SchemaObject {
 
     interface Nullability {
 
-        byte NO_NULLS = 0;            // java.sql.ResultSetMetaData.columnNoNulls
-        byte NULLABLE = 1;            // java.sql.ResultSetMetaData.columnNullable
+        byte NO_NULLS         = 0;    // java.sql.ResultSetMetaData.columnNoNulls
+        byte NULLABLE         = 1;    // java.sql.ResultSetMetaData.columnNullable
         byte NULLABLE_UNKNOWN = 2;    // java.sql.ResultSetMetaData.columnNullableUnknown
     }
 

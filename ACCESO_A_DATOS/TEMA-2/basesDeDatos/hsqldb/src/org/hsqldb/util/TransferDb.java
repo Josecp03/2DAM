@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-
 import java.util.Vector;
 
 // fredt@users 20020215 - patch 516309 by Nicolas Bazin - enhancements
@@ -168,9 +167,8 @@ class TransferDb extends DataAccessPoint {
         return result;
     }
 
-    TransferResultSet getData(
-            String statement)
-            throws DataAccessPointException {
+    TransferResultSet getData(String statement)
+    throws DataAccessPointException {
 
         ResultSet rsData = null;
 
@@ -195,13 +193,10 @@ class TransferDb extends DataAccessPoint {
         return new TransferResultSet(rsData);
     }
 
-    void putData(
-            String statement,
-            TransferResultSet r,
-            int iMaxRows)
-            throws DataAccessPointException {
+    void putData(String statement, TransferResultSet r,
+                 int iMaxRows) throws DataAccessPointException {
 
-        if (statement == null || statement.isEmpty() || r == null) {
+        if ((statement == null) || statement.equals("") || (r == null)) {
             return;
         }
 
@@ -362,10 +357,8 @@ class TransferDb extends DataAccessPoint {
         }
     }
 
-    Vector getTables(
-            String sCatalog,
-            String[] sSchemas)
-            throws DataAccessPointException {
+    Vector getTables(String sCatalog,
+                     String[] sSchemas) throws DataAccessPointException {
 
         Vector    tTable = new Vector();
         ResultSet result = null;
@@ -383,11 +376,8 @@ class TransferDb extends DataAccessPoint {
 // variations return null or emtpy result sets with informix JDBC driver 2.2
             for (int SchemaIdx = 0; SchemaIdx < nbloops; SchemaIdx++) {
                 if (sSchemas != null && sSchemas[SchemaIdx] != null) {
-                    result = meta.getTables(
-                        sCatalog,
-                        sSchemas[SchemaIdx],
-                        null,
-                        null);
+                    result = meta.getTables(sCatalog, sSchemas[SchemaIdx],
+                                            null, null);
                 } else {
                     try {
                         result = meta.getTables(sCatalog, "", null, null);
@@ -412,18 +402,14 @@ class TransferDb extends DataAccessPoint {
                     */
                     if ((type.compareTo("TABLE") == 0)
                             || (type.compareTo("VIEW") == 0)) {
-                        TransferTable t = new TransferTable(
-                            this,
-                            name,
-                            schema,
-                            type,
-                            tracer);
+                        TransferTable t = new TransferTable(this, name,
+                                                            schema, type,
+                                                            tracer);
 
                         tTable.addElement(t);
                     } else {
-                        tracer.trace(
-                            "Found table of type :" + type
-                            + " - this type is ignored");
+                        tracer.trace("Found table of type :" + type
+                                     + " - this type is ignored");
                     }
                 }
             }
@@ -440,14 +426,12 @@ class TransferDb extends DataAccessPoint {
         return (tTable);
     }
 
-    void getTableStructure(
-            TransferTable TTable,
-            DataAccessPoint Dest)
-            throws DataAccessPointException {
+    void getTableStructure(TransferTable TTable,
+                           DataAccessPoint Dest)
+                           throws DataAccessPointException {
 
         String create = "CREATE " + TTable.Stmts.sType + " "
-                        + Dest.helper.formatName(
-                            TTable.Stmts.sDestTable);
+                        + Dest.helper.formatName(TTable.Stmts.sDestTable);
         String    insert         = "";
         ResultSet ImportedKeys   = null;
         boolean   importedkeys   = false;
@@ -460,13 +444,14 @@ class TransferDb extends DataAccessPoint {
 
         Dest.helper.setSchema(TTable.Stmts.sSchema);
 
-        TTable.Stmts.sDestDrop = "DROP " + TTable.Stmts.sType + " "
-                                 + Dest.helper.formatName(
-                                     TTable.Stmts.sDestTable) + ";";
+        TTable.Stmts.sDestDrop =
+            "DROP " + TTable.Stmts.sType + " "
+            + Dest.helper.formatName(TTable.Stmts.sDestTable) + ";";
 
         if (TTable.Stmts.sType.compareTo("TABLE") == 0) {
-            TTable.Stmts.sDestDelete = "DELETE FROM " + Dest.helper.formatName(
-                TTable.Stmts.sDestTable) + ";";
+            TTable.Stmts.sDestDelete =
+                "DELETE FROM "
+                + Dest.helper.formatName(TTable.Stmts.sDestTable) + ";";
             create += "(";
         } else if (TTable.Stmts.sType.compareTo("VIEW") == 0) {
             TTable.Stmts.bDelete     = false;
@@ -475,15 +460,15 @@ class TransferDb extends DataAccessPoint {
         }
 
         if (TTable.Stmts.sType.compareTo("TABLE") == 0) {
-            insert = "INSERT INTO " + Dest.helper.formatName(
-                TTable.Stmts.sDestTable) + " VALUES(";
+            insert = "INSERT INTO "
+                     + Dest.helper.formatName(TTable.Stmts.sDestTable)
+                     + " VALUES(";
         } else if (TTable.Stmts.sType.compareTo("VIEW") == 0) {
             TTable.Stmts.bInsert = false;
             insert               = "";
         }
 
         if (TTable.Stmts.sType.compareTo("VIEW") == 0) {
-
             /*
             ** Don't know how to retrieve the underlying select so we leave here.
             ** The user will have to edit the rest of the create statement.
@@ -503,10 +488,10 @@ class TransferDb extends DataAccessPoint {
         ImportedKeys = null;
 
         try {
-            ImportedKeys = meta.getImportedKeys(
-                TTable.Stmts.sDatabaseToConvert,
-                TTable.Stmts.sSchema,
-                TTable.Stmts.sSourceTable);
+            ImportedKeys =
+                meta.getImportedKeys(TTable.Stmts.sDatabaseToConvert,
+                                     TTable.Stmts.sSchema,
+                                     TTable.Stmts.sSourceTable);
         } catch (SQLException e) {
             ImportedKeys = null;
         }
@@ -517,55 +502,65 @@ class TransferDb extends DataAccessPoint {
                     importedkeys = true;
 
                     if (!ImportedKeys.getString(12).equals(ConstraintName)) {
-                        if (!ConstraintName.isEmpty()) {
-                            alterCreate += Dest.helper.formatIdentifier(
-                                columnName.substring(
-                                    0, columnName.length()
-                                    - 1)) + ") REFERENCES "
-                                          + Dest.helper.formatName(
-                                              RefTableName);
+                        if (!ConstraintName.equals("")) {
+                            alterCreate +=
+                                Dest.helper
+                                    .formatIdentifier(columnName
+                                        .substring(0, columnName
+                                            .length() - 1)) + ") REFERENCES "
+                                                            + Dest.helper
+                                                                .formatName(RefTableName);
 
                             if (foreignKeyName.length() > 0) {
-                                alterCreate += " ("
-                                               + Dest.helper.formatIdentifier(
-                                                   foreignKeyName.substring(
-                                                   0, foreignKeyName.length()
-                                                       - 1)) + ")";
+                                alterCreate +=
+                                    " ("
+                                    + Dest.helper.formatIdentifier(
+                                        foreignKeyName.substring(
+                                            0, foreignKeyName.length()
+                                            - 1)) + ")";
                             }
 
-                            alterCreate    += ";";
-                            alterDrop = alterDrop.substring(
-                                0,
-                                alterDrop.length() - 1) + ";";
+                            alterCreate += ";";
+                            alterDrop =
+                                alterDrop.substring(0, alterDrop.length() - 1)
+                                + ";";
                             foreignKeyName = "";
                             columnName     = "";
                         }
 
                         RefTableName   = ImportedKeys.getString(3);
                         ConstraintName = ImportedKeys.getString(12);
-                        alterCreate += "ALTER TABLE " + Dest.helper.formatName(
-                            TTable.Stmts.sDestTable) + " ADD CONSTRAINT ";
+                        alterCreate +=
+                            "ALTER TABLE "
+                            + Dest.helper.formatName(TTable.Stmts.sDestTable)
+                            + " ADD CONSTRAINT ";
 
                         if ((TTable.Stmts.bFKForced)
                                 && (!ConstraintName.startsWith("FK_"))) {
-                            alterCreate += Dest.helper.formatIdentifier(
-                                "FK_" + ConstraintName) + " ";
+                            alterCreate +=
+                                Dest.helper.formatIdentifier(
+                                    "FK_" + ConstraintName) + " ";
                         } else {
-                            alterCreate += Dest.helper.formatIdentifier(
-                                ConstraintName) + " ";
+                            alterCreate +=
+                                Dest.helper.formatIdentifier(ConstraintName)
+                                + " ";
                         }
 
                         alterCreate += "FOREIGN KEY (";
-                        alterDrop += "ALTER TABLE " + Dest.helper.formatName(
-                            TTable.Stmts.sDestTable) + " DROP CONSTRAINT ";
+                        alterDrop +=
+                            "ALTER TABLE "
+                            + Dest.helper.formatName(TTable.Stmts.sDestTable)
+                            + " DROP CONSTRAINT ";
 
                         if ((TTable.Stmts.bFKForced)
                                 && (!ConstraintName.startsWith("FK_"))) {
-                            alterDrop += Dest.helper.formatIdentifier(
-                                "FK_" + ConstraintName) + " ";
+                            alterDrop +=
+                                Dest.helper.formatIdentifier(
+                                    "FK_" + ConstraintName) + " ";
                         } else {
-                            alterDrop += Dest.helper.formatIdentifier(
-                                ConstraintName) + " ";
+                            alterDrop +=
+                                Dest.helper.formatIdentifier(ConstraintName)
+                                + " ";
                         }
                     }
 
@@ -577,22 +572,21 @@ class TransferDb extends DataAccessPoint {
             }
 
             if (importedkeys) {
-                alterCreate += columnName.substring(
-                    0,
-                    columnName.length() - 1) + ") REFERENCES "
-                                             + Dest.helper.formatName(
-                                                 RefTableName);
+                alterCreate += columnName.substring(0, columnName.length() - 1)
+                               + ") REFERENCES "
+                               + Dest.helper.formatName(RefTableName);
 
                 if (foreignKeyName.length() > 0) {
-                    alterCreate += " (" + Dest.helper.formatIdentifier(
-                        foreignKeyName.substring(0, foreignKeyName.length()
-                                                 - 1)) + ")";
+                    alterCreate +=
+                        " ("
+                        + Dest.helper.formatIdentifier(
+                            foreignKeyName.substring(
+                                0, foreignKeyName.length() - 1)) + ")";
                 }
 
-                alterCreate            += ";";
-                alterDrop = alterDrop.substring(
-                    0,
-                    alterDrop.length() - 1) + ";";
+                alterCreate += ";";
+                alterDrop = alterDrop.substring(0, alterDrop.length() - 1)
+                            + ";";
                 TTable.Stmts.sDestDrop = alterDrop + TTable.Stmts.sDestDrop;
             }
         } catch (SQLException e) {
@@ -604,10 +598,9 @@ class TransferDb extends DataAccessPoint {
         ResultSet PrimaryKeys           = null;
 
         try {
-            PrimaryKeys = meta.getPrimaryKeys(
-                TTable.Stmts.sDatabaseToConvert,
-                TTable.Stmts.sSchema,
-                TTable.Stmts.sSourceTable);
+            PrimaryKeys = meta.getPrimaryKeys(TTable.Stmts.sDatabaseToConvert,
+                                              TTable.Stmts.sSchema,
+                                              TTable.Stmts.sSourceTable);
         } catch (SQLException e) {
             PrimaryKeys = null;
         }
@@ -620,15 +613,16 @@ class TransferDb extends DataAccessPoint {
                     } else {
                         if (PrimaryKeys.getString(6) != null) {
                             PrimaryKeysConstraint =
-                                " CONSTRAINT " + Dest.helper.formatIdentifier(
+                                " CONSTRAINT "
+                                + Dest.helper.formatIdentifier(
                                     PrimaryKeys.getString(6));
                         }
 
                         PrimaryKeysConstraint += " PRIMARY KEY (";
                     }
 
-                    PrimaryKeysConstraint += Dest.helper.formatIdentifier(
-                        PrimaryKeys.getString(4));
+                    PrimaryKeysConstraint +=
+                        Dest.helper.formatIdentifier(PrimaryKeys.getString(4));
                     primarykeys = true;
                 }
 
@@ -649,12 +643,10 @@ class TransferDb extends DataAccessPoint {
         String    DropIndex   = "";
 
         try {
-            Indices = meta.getIndexInfo(
-                TTable.Stmts.sDatabaseToConvert,
-                TTable.Stmts.sSchema,
-                TTable.Stmts.sSourceTable,
-                false,
-                false);
+            Indices = meta.getIndexInfo(TTable.Stmts.sDatabaseToConvert,
+                                        TTable.Stmts.sSchema,
+                                        TTable.Stmts.sSourceTable, false,
+                                        false);
         } catch (SQLException e) {
             Indices = null;
         }
@@ -675,10 +667,10 @@ class TransferDb extends DataAccessPoint {
                     }
 
                     if (!tmpIndexName.equals(IndiceName)) {
-                        if (!IndiceName.isEmpty()) {
-                            CreateIndex = CreateIndex.substring(
-                                0,
-                                CreateIndex.length() - 1) + ");";
+                        if (!IndiceName.equals("")) {
+                            CreateIndex =
+                                CreateIndex.substring(
+                                    0, CreateIndex.length() - 1) + ");";
                             DropIndex += ";";
                         }
 
@@ -687,11 +679,11 @@ class TransferDb extends DataAccessPoint {
 
                         if ((TTable.Stmts.bIdxForced)
                                 && (!IndiceName.startsWith("Idx_"))) {
-                            DropIndex += Dest.helper.formatIdentifier(
-                                "Idx_" + IndiceName);
+                            DropIndex += Dest.helper.formatIdentifier("Idx_"
+                                    + IndiceName);
                         } else {
-                            DropIndex += Dest.helper.formatIdentifier(
-                                IndiceName);
+                            DropIndex +=
+                                Dest.helper.formatIdentifier(IndiceName);
                         }
 
                         CreateIndex += "CREATE ";
@@ -704,28 +696,31 @@ class TransferDb extends DataAccessPoint {
 
                         if ((TTable.Stmts.bIdxForced)
                                 && (!IndiceName.startsWith("Idx_"))) {
-                            CreateIndex += Dest.helper.formatIdentifier(
-                                "Idx_" + IndiceName);
+                            CreateIndex += Dest.helper.formatIdentifier("Idx_"
+                                    + IndiceName);
                         } else {
-                            CreateIndex += Dest.helper.formatIdentifier(
-                                IndiceName);
+                            CreateIndex +=
+                                Dest.helper.formatIdentifier(IndiceName);
                         }
 
-                        CreateIndex += " ON " + Dest.helper.formatName(
-                            TTable.Stmts.sDestTable) + "(";
+                        CreateIndex +=
+                            " ON "
+                            + Dest.helper.formatName(TTable.Stmts.sDestTable)
+                            + "(";
                     }
 
-                    CreateIndex += Dest.helper.formatIdentifier(
-                        Indices.getString(9)) + ",";
+                    CreateIndex +=
+                        Dest.helper.formatIdentifier(Indices.getString(9))
+                        + ",";
                     indices = true;
                 }
 
                 Indices.close();
 
                 if (indices) {
-                    CreateIndex = CreateIndex.substring(
-                        0,
-                        CreateIndex.length() - 1) + ");";
+                    CreateIndex =
+                        CreateIndex.substring(0, CreateIndex.length() - 1)
+                        + ");";
                     DropIndex += ";";
                 }
             }
@@ -735,8 +730,8 @@ class TransferDb extends DataAccessPoint {
 
         Vector v = new Vector();
 
-        tracer.trace(
-            "Reading source columns for table " + TTable.Stmts.sSourceTable);
+        tracer.trace("Reading source columns for table "
+                     + TTable.Stmts.sSourceTable);
 
         ResultSet         col            = null;
         int               colnum         = 1;
@@ -745,25 +740,21 @@ class TransferDb extends DataAccessPoint {
         ResultSetMetaData select_rsmdata = null;
 
         try {
-            stmt           = conn.createStatement();
-            select_rs = stmt.executeQuery(
-                TTable.Stmts.sSourceSelect + " WHERE 1 = 2");
+            stmt = conn.createStatement();
+            select_rs = stmt.executeQuery(TTable.Stmts.sSourceSelect
+                                          + " WHERE 1 = 2");
             select_rsmdata = select_rs.getMetaData();
-            col = meta.getColumns(
-                TTable.Stmts.sDatabaseToConvert,
-                TTable.Stmts.sSchema,
-                TTable.Stmts.sSourceTable,
-                null);
+            col = meta.getColumns(TTable.Stmts.sDatabaseToConvert,
+                                  TTable.Stmts.sSchema,
+                                  TTable.Stmts.sSourceTable, null);
         } catch (SQLException eSchema) {
 
             // fredt - second try with null schema
-            if (TTable.Stmts.sSchema.isEmpty()) {
+            if (TTable.Stmts.sSchema.equals("")) {
                 try {
-                    col = meta.getColumns(
-                        TTable.Stmts.sDatabaseToConvert,
-                        null,
-                        TTable.Stmts.sSourceTable,
-                        null);
+                    col = meta.getColumns(TTable.Stmts.sDatabaseToConvert,
+                                          null, TTable.Stmts.sSourceTable,
+                                          null);
                 } catch (SQLException eSchema1) {
                     eSchema1.printStackTrace();
                 }
@@ -772,18 +763,19 @@ class TransferDb extends DataAccessPoint {
 
         try {
             while (col.next()) {
-                String  name = Dest.helper.formatIdentifier(col.getString(4));
-                int     type                    = col.getShort(5);
-                String  source                  = col.getString(6);
-                int     column_size             = col.getInt(7);
-                String  DefaultVal              = col.getString(13);
-                boolean rsmdata_NoNulls = (select_rsmdata.isNullable(
-                    colnum) == java.sql.DatabaseMetaData.columnNoNulls);
+                String name = Dest.helper.formatIdentifier(col.getString(4));
+                int    type        = col.getShort(5);
+                String source      = col.getString(6);
+                int    column_size = col.getInt(7);
+                String DefaultVal  = col.getString(13);
+                boolean rsmdata_NoNulls =
+                    (select_rsmdata.isNullable(colnum)
+                     == java.sql.DatabaseMetaData.columnNoNulls);
                 boolean rsmdata_isAutoIncrement = false;
 
                 try {
-                    rsmdata_isAutoIncrement = select_rsmdata.isAutoIncrement(
-                        colnum);
+                    rsmdata_isAutoIncrement =
+                        select_rsmdata.isAutoIncrement(colnum);
                 } catch (SQLException e) {
                     rsmdata_isAutoIncrement = false;
                 }
@@ -800,9 +792,8 @@ class TransferDb extends DataAccessPoint {
                 if (datatype == null) {
                     datatype = source;
 
-                    tracer.trace(
-                        "No mapping for type: " + name + " type: " + type
-                        + " source: " + source);
+                    tracer.trace("No mapping for type: " + name + " type: "
+                                 + type + " source: " + source);
                 }
 
                 if (type == Types.NUMERIC || type == Types.DECIMAL) {
@@ -813,8 +804,7 @@ class TransferDb extends DataAccessPoint {
                     }
 
                     datatype += ")";
-                } else if (type == Types.CHAR
-                           || type == Types.VARCHAR
+                } else if (type == Types.CHAR || type == Types.VARCHAR
                            || type == Types.BINARY
                            || type == Types.VARBINARY) {
                     datatype += "(" + Integer.toString(column_size) + ")";
@@ -823,13 +813,10 @@ class TransferDb extends DataAccessPoint {
                 }
 
                 if (DefaultVal != null) {
-                    if (type == Types.CHAR
-                            || type == Types.VARCHAR
+                    if (type == Types.CHAR || type == Types.VARCHAR
                             || type == Types.LONGVARCHAR
-                            || type == Types.BINARY
-                            || type == Types.DATE
-                            || type == Types.TIME
-                            || type == Types.TIMESTAMP) {
+                            || type == Types.BINARY || type == Types.DATE
+                            || type == Types.TIME || type == Types.TIMESTAMP) {
                         if (!DefaultVal.startsWith("'")) {
 
 //                            DefaultVal = "\'" + DefaultVal + "\'";
@@ -845,18 +832,10 @@ class TransferDb extends DataAccessPoint {
 
                 v.addElement(inttype);
 
-                datatype = helper.fixupColumnDefRead(
-                    TTable,
-                    select_rsmdata,
-                    datatype,
-                    col,
-                    colnum);
-                datatype = Dest.helper.fixupColumnDefWrite(
-                    TTable,
-                    select_rsmdata,
-                    datatype,
-                    col,
-                    colnum);
+                datatype = helper.fixupColumnDefRead(TTable, select_rsmdata,
+                                                     datatype, col, colnum);
+                datatype = Dest.helper.fixupColumnDefWrite(TTable,
+                        select_rsmdata, datatype, col, colnum);
                 create += name + " " + datatype + ",";
                 insert += "?,";
 
@@ -874,12 +853,10 @@ class TransferDb extends DataAccessPoint {
             create += PrimaryKeysConstraint + ",";
         }
 
-        TTable.Stmts.sDestCreate = create.substring(
-            0,
-            create.length() - 1) + ")";
-        TTable.Stmts.sDestInsert = insert.substring(
-            0,
-            insert.length() - 1) + ")";
+        TTable.Stmts.sDestCreate = create.substring(0, create.length() - 1)
+                                   + ")";
+        TTable.Stmts.sDestInsert = insert.substring(0, insert.length() - 1)
+                                   + ")";
 
         if (importedkeys) {
             TTable.Stmts.bAlter     = true;
@@ -923,12 +900,8 @@ class TransferDb extends DataAccessPoint {
         }
     }
 
-    private void transferRow(
-            TransferResultSet r,
-            PreparedStatement p,
-            int len,
-            int[] types)
-            throws SQLException {
+    private void transferRow(TransferResultSet r, PreparedStatement p,
+                             int len, int[] types) throws SQLException {
 
         for (int i = 1; i <= len; i++) {
             int    t = types[i];

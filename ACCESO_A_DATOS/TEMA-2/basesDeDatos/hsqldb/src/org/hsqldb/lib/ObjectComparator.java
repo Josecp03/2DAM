@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ package org.hsqldb.lib;
  * Updated for generics fredt@users.
  *
  * @author fredt@users
- * @version 2.7.3
+ * @version 2.6.0
  * @since 2.0
  */
 public interface ObjectComparator<T> {
@@ -56,25 +56,25 @@ public interface ObjectComparator<T> {
 
     long longKey(T a);
 
-    ObjectComparator defaultComparator  = new DefaultComparator();
+    ObjectComparator defaultComparator = new DefaultComparator();
+
     ObjectComparator identityComparator = new IdentityComparator();
 
     /**
      * Comparator that uses identity for Object equality.
      */
-    class IdentityComparator<T> implements ObjectComparator<T> {
+    class IdentityComparator implements ObjectComparator {
 
-        public boolean equals(T a, T b) {
+        public boolean equals(Object a, Object b) {
             return a == b;
         }
 
-        public int hashCode(T a) {
-            return a == null
-                   ? 0
-                   : a.hashCode();
+        public int hashCode(Object a) {
+            return a == null ? 0 :
+                               a.hashCode();
         }
 
-        public long longKey(T a) {
+        public long longKey(Object a) {
             return 0L;
         }
     }
@@ -82,20 +82,20 @@ public interface ObjectComparator<T> {
     /**
      * Comparator that uses the equals and hash code methods of Objects.
      */
-    class DefaultComparator<T> implements ObjectComparator<T> {
+    class DefaultComparator implements ObjectComparator {
 
-        public boolean equals(T a, T b) {
+        public boolean equals(Object a, Object b) {
             return a == b || (a != null && a.equals(b));
         }
 
-        public int hashCode(T a) {
-            return a == null
-                   ? 0
-                   : a.hashCode();
+        public int hashCode(Object a) {
+            return a == null ? 0 :
+                               a.hashCode();
         }
 
-        public long longKey(T a) {
+        public long longKey(Object a) {
             return 0L;
         }
     }
+
 }

@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,11 +104,8 @@ public class RowAVL extends Row {
      *  Constructor for MEMORY table Row. The result is a Row with Nodes that
      *  are not yet linked with other Nodes in the AVL indexes.
      */
-    public RowAVL(
-            TableBase table,
-            Object[] data,
-            long position,
-            PersistentStore store) {
+    public RowAVL(TableBase table, Object[] data, long position,
+                  PersistentStore store) {
 
         super(table, data);
 

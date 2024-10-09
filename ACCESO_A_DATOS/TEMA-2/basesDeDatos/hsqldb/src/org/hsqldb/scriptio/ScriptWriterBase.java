@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ import org.hsqldb.types.TimestampData;
  * DatabaseScriptReader and its subclasses read back the data at startup time.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.7.2
  */
 public abstract class ScriptWriterBase implements Runnable {
@@ -120,16 +120,14 @@ public abstract class ScriptWriterBase implements Runnable {
     static final int INSERT_WITH_SCHEMA = 1;
 
     /** the last schema for last sessionId */
-    Session currentSession;
-    public static final String[] LIST_SCRIPT_FORMATS = new String[]{
-        Tokens.T_TEXT,
-        Tokens.T_BINARY, null, Tokens.T_COMPRESSED };
+    Session                      currentSession;
+    public static final String[] LIST_SCRIPT_FORMATS = new String[] {
+        Tokens.T_TEXT, Tokens.T_BINARY, null, Tokens.T_COMPRESSED
+    };
 
-    ScriptWriterBase(
-            Database db,
-            OutputStream outputStream,
-            FileAccess.FileSync descriptor,
-            boolean includeCachedData) {
+    ScriptWriterBase(Database db, OutputStream outputStream,
+                     FileAccess.FileSync descriptor,
+                     boolean includeCachedData) {
 
         initBuffers();
 
@@ -145,12 +143,8 @@ public abstract class ScriptWriterBase implements Runnable {
         outDescriptor = descriptor;
     }
 
-    ScriptWriterBase(
-            Database db,
-            String file,
-            boolean includeCachedData,
-            boolean isNewFile,
-            boolean isUserScript) {
+    ScriptWriterBase(Database db, String file, boolean includeCachedData,
+                     boolean isNewFile, boolean isUserScript) {
 
         initBuffers();
 
@@ -163,9 +157,8 @@ public abstract class ScriptWriterBase implements Runnable {
         }
 
         if (exists && isNewFile) {
-            throw Error.error(
-                ErrorCode.FILE_IO_ERROR,
-                file + " already exists");
+            throw Error.error(ErrorCode.FILE_IO_ERROR,
+                              file + " already exists");
         }
 
         this.database          = db;
@@ -224,16 +217,14 @@ public abstract class ScriptWriterBase implements Runnable {
                 outDescriptor.sync();
 
                 syncCount++;
-
 /*
                 System.out.println(
                     this.outFile + " FD.sync done at "
                     + new java.sql.Timestamp(System.currentTimeMillis()));
 */
             } catch (IOException e) {
-                database.logger.logWarningEvent(
-                    "ScriptWriter synch error: ",
-                    e);
+                database.logger.logWarningEvent("ScriptWriter synch error: ",
+                                                e);
             }
         }
     }
@@ -256,7 +247,7 @@ public abstract class ScriptWriterBase implements Runnable {
                 isClosed      = true;
             }
         } catch (IOException e) {
-            throw Error.error(ErrorCode.FILE_IO_ERROR, e);
+            throw Error.error(ErrorCode.FILE_IO_ERROR);
         }
 
         byteCount = 0;
@@ -279,20 +270,18 @@ public abstract class ScriptWriterBase implements Runnable {
     protected void openFile() {
 
         try {
-            FileAccess   fa  = isUserScript
-                               ? FileUtil.getFileUtil()
-                               : database.logger.getFileAccess();
+            FileAccess   fa  = isUserScript ? FileUtil.getFileUtil()
+                                            : database.logger.getFileAccess();
             OutputStream fos = fa.openOutputStreamElementAppend(outFile);
 
             outDescriptor = fa.getFileSync(fos);
             fileStreamOut = fos;
             fileStreamOut = new BufferedOutputStream(fos, 1 << 14);
         } catch (IOException e) {
-            throw Error.error(
-                e,
-                ErrorCode.FILE_IO_ERROR,
-                ErrorCode.M_Message_Pair,
-                new String[]{ e.toString(), outFile });
+            throw Error.error(e, ErrorCode.FILE_IO_ERROR,
+                              ErrorCode.M_Message_Pair, new String[] {
+                e.toString(), outFile
+            });
         }
     }
 
@@ -325,9 +314,8 @@ public abstract class ScriptWriterBase implements Runnable {
                 continue;
             }
 
-            Iterator<SchemaObject> tables =
-                database.schemaManager.databaseObjectIterator(
-                    schema,
+            Iterator tables =
+                database.schemaManager.databaseObjectIterator(schema,
                     SchemaObject.TABLE);
 
             while (tables.hasNext()) {
@@ -368,15 +356,20 @@ public abstract class ScriptWriterBase implements Runnable {
         // start with blank schema - SET SCHEMA to log
         currentSession.loggedSchema = null;
 
-        Iterator<SchemaObject> tables =
-            database.schemaManager.databaseObjectIterator(
-                SchemaObject.TABLE);
+        String[] schemas = database.schemaManager.getSchemaNamesArray();
 
-        while (tables.hasNext()) {
-            Table t = (Table) tables.next();
+        for (int i = 0; i < schemas.length; i++) {
+            String schema = schemas[i];
+            Iterator tables =
+                database.schemaManager.databaseObjectIterator(schema,
+                    SchemaObject.TABLE);
 
-            if (t.isSystemVersioned() && t.hasPrimaryKey()) {
-                writeTableVersionData(t, from);
+            while (tables.hasNext()) {
+                Table t = (Table) tables.next();
+
+                if (t.isSystemVersioned() && t.hasPrimaryKey()) {
+                    writeTableVersionData(t, from);
+                }
             }
         }
 
@@ -390,8 +383,8 @@ public abstract class ScriptWriterBase implements Runnable {
         try {
             writeTableInit(t);
 
-            RowIterator it = t.rowIteratorForScript(
-                t.getRowStore(currentSession));
+            RowIterator it =
+                t.rowIteratorForScript(t.getRowStore(currentSession));
 
             while (it.next()) {
                 Row row = it.getCurrentRow();
@@ -417,8 +410,8 @@ public abstract class ScriptWriterBase implements Runnable {
         try {
             writeTableInit(t);
 
-            RowIterator it = t.rowIteratorForScript(
-                t.getRowStore(currentSession));
+            RowIterator it =
+                t.rowIteratorForScript(t.getRowStore(currentSession));
 
             while (it.next()) {
                 Row           row   = it.getCurrentRow();
@@ -467,18 +460,13 @@ public abstract class ScriptWriterBase implements Runnable {
 
     public abstract void writeOtherStatement(Session session, String s);
 
-    public abstract void writeInsertStatement(
-            Session session,
-            Row row,
+    public abstract void writeInsertStatement(Session session, Row row,
             Table table);
 
-    public abstract void writeDeleteStatement(
-            Session session,
-            Table table,
+    public abstract void writeDeleteStatement(Session session, Table table,
             Object[] data);
 
-    public abstract void writeSequenceStatement(
-            Session session,
+    public abstract void writeSequenceStatement(Session session,
             NumberSequence seq);
 
     public abstract void writeCommitStatement(Session session);
@@ -511,12 +499,8 @@ public abstract class ScriptWriterBase implements Runnable {
     public void start() {
 
         if (writeDelay > 0) {
-            timerTask = DatabaseManager.getTimer()
-                                       .schedulePeriodicallyAfter(
-                                           0,
-                                           writeDelay,
-                                           this,
-                                           false);
+            timerTask = DatabaseManager.getTimer().schedulePeriodicallyAfter(0,
+                    writeDelay, this, false);
         }
     }
 

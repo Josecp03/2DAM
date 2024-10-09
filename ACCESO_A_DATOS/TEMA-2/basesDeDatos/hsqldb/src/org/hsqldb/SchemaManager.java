@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.FilteredIterator;
 import org.hsqldb.lib.HsqlArrayList;
 import org.hsqldb.lib.Iterator;
-import org.hsqldb.lib.List;
 import org.hsqldb.lib.MultiValueHashMap;
 import org.hsqldb.lib.OrderedHashMap;
 import org.hsqldb.lib.OrderedHashSet;
@@ -56,23 +55,19 @@ import org.hsqldb.types.Type;
  * Manages all SCHEMA related database objects
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.8.0
  */
 public class SchemaManager {
 
-    Database   database;
-    HsqlName   defaultSchemaHsqlName;
-    int        defaultTableType = TableBase.MEMORY_TABLE;
-    HsqlName[] catalogNameArray;
-    long       schemaChangeTimestamp;
-    Table      dualTable;
-
-    //
-    OrderedHashMap<String, Schema> schemaMap        = new OrderedHashMap<>();
-    MultiValueHashMap<HsqlName, HsqlName> referenceMap =
-        new MultiValueHashMap<>();
-    UserSchemaFilter               userSchemaFilter = new UserSchemaFilter();
+    Database          database;
+    HsqlName          defaultSchemaHsqlName;
+    OrderedHashMap    schemaMap        = new OrderedHashMap();
+    MultiValueHashMap referenceMap     = new MultiValueHashMap();
+    int               defaultTableType = TableBase.MEMORY_TABLE;
+    long              schemaChangeTimestamp;
+    HsqlName[]        catalogNameArray;
+    UserSchemaFilter  userSchemaFilter = new UserSchemaFilter();
 
     //
     ReadWriteLock lock      = new ReentrantReadWriteLock();
@@ -80,15 +75,18 @@ public class SchemaManager {
     Lock          writeLock = lock.writeLock();
 
     //
+    Table        dualTable;
+    public Table dataChangeTable;
+
     public SchemaManager(Database database) {
 
         this.database         = database;
         defaultSchemaHsqlName = SqlInvariants.INFORMATION_SCHEMA_HSQLNAME;
         catalogNameArray      = new HsqlName[]{ database.getCatalogName() };
 
-        Schema schema = new Schema(
-            SqlInvariants.INFORMATION_SCHEMA_HSQLNAME,
-            SqlInvariants.INFORMATION_SCHEMA_HSQLNAME.owner);
+        Schema schema =
+            new Schema(SqlInvariants.INFORMATION_SCHEMA_HSQLNAME,
+                       SqlInvariants.INFORMATION_SCHEMA_HSQLNAME.owner);
 
         schemaMap.put(schema.getName().name, schema);
 
@@ -98,8 +96,7 @@ public class SchemaManager {
             schema.charsetLookup.add(Charset.SQL_CHARACTER, false);
             schema.collationLookup.add(Collation.getDefaultInstance(), false);
             schema.collationLookup.add(
-                Collation.getDefaultIgnoreCaseInstance(),
-                false);
+                Collation.getDefaultIgnoreCaseInstance(), false);
             schema.typeLookup.add(TypeInvariants.CARDINAL_NUMBER, false);
             schema.typeLookup.add(TypeInvariants.YES_OR_NO, false);
             schema.typeLookup.add(TypeInvariants.CHARACTER_DATA, false);
@@ -111,7 +108,7 @@ public class SchemaManager {
     }
 
     public void setSchemaChangeTimestamp() {
-        schemaChangeTimestamp = database.txManager.getSystemChangeNumber();
+        schemaChangeTimestamp = database.txManager.getGlobalChangeTimestamp();
     }
 
     public long getSchemaChangeTimestamp() {
@@ -129,13 +126,10 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            HsqlName name = database.nameManager.newHsqlName(
-                null,
-                SqlInvariants.PUBLIC_SCHEMA,
-                SchemaObject.SCHEMA);
-            Schema schema = new Schema(
-                name,
-                database.getGranteeManager().getDBARole());
+            HsqlName name = database.nameManager.newHsqlName(null,
+                SqlInvariants.PUBLIC_SCHEMA, SchemaObject.SCHEMA);
+            Schema schema =
+                new Schema(name, database.getGranteeManager().getDBARole());
 
             defaultSchemaHsqlName = schema.getName();
 
@@ -168,7 +162,7 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            Schema schema = schemaMap.get(name);
+            Schema schema = (Schema) schemaMap.get(name);
 
             if (schema == null) {
                 throw Error.error(ErrorCode.X_42501, name);
@@ -182,16 +176,14 @@ public class SchemaManager {
                 throw Error.error(ErrorCode.X_2B000);
             }
 
-            OrderedHashSet<HsqlName> externalReferences =
-                new OrderedHashSet<>();
+            OrderedHashSet externalReferences = new OrderedHashSet();
 
-            getCascadingReferencesToSchema(
-                schema.getName(),
-                externalReferences);
+            getCascadingReferencesToSchema(schema.getName(),
+                                           externalReferences);
             removeSchemaObjects(externalReferences);
 
-            Iterator<SchemaObject> tableIterator = schema.schemaObjectIterator(
-                SchemaObject.TABLE);
+            Iterator tableIterator =
+                schema.schemaObjectIterator(SchemaObject.TABLE);
 
             while (tableIterator.hasNext()) {
                 Table        table = ((Table) tableIterator.next());
@@ -202,9 +194,8 @@ public class SchemaManager {
 
                     if (constraint.getMain().getSchemaName()
                             != schema.getName()) {
-                        constraint.getMain()
-                                  .removeConstraint(
-                                      constraint.getMainName().name);
+                        constraint.getMain().removeConstraint(
+                            constraint.getMainName().name);
                         removeReferencesFrom(constraint);
                     }
                 }
@@ -212,24 +203,23 @@ public class SchemaManager {
                 removeTable(session, table);
             }
 
-            Iterator<SchemaObject> sequenceIterator =
-                schema.schemaObjectIterator(
-                    SchemaObject.SEQUENCE);
+            Iterator sequenceIterator =
+                schema.schemaObjectIterator(SchemaObject.SEQUENCE);
 
             while (sequenceIterator.hasNext()) {
                 NumberSequence sequence =
                     ((NumberSequence) sequenceIterator.next());
 
-                database.getGranteeManager().removeDbObject(sequence.getName());
+                database.getGranteeManager().removeDbObject(
+                    sequence.getName());
             }
 
             schema.release();
             schemaMap.remove(name);
 
             if (defaultSchemaHsqlName.name.equals(name)) {
-                schema = new Schema(
-                    defaultSchemaHsqlName,
-                    database.getGranteeManager().getDBARole());
+                schema = new Schema(defaultSchemaHsqlName,
+                                    database.getGranteeManager().getDBARole());
                 defaultSchemaHsqlName = schema.getName();
 
                 schemaMap.put(schema.getName().name, schema);
@@ -250,8 +240,8 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            Schema schema = schemaMap.get(name.name);
-            Schema exists = schemaMap.get(newName.name);
+            Schema schema = (Schema) schemaMap.get(name.name);
+            Schema exists = (Schema) schemaMap.get(newName.name);
 
             if (schema == null) {
                 throw Error.error(ErrorCode.X_42501, name.name);
@@ -278,10 +268,10 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            Iterator<Schema> it = schemaMap.values().iterator();
+            Iterator it = schemaMap.values().iterator();
 
             while (it.hasNext()) {
-                Schema schema = it.next();
+                Schema schema = (Schema) it.next();
 
                 schema.release();
             }
@@ -320,10 +310,9 @@ public class SchemaManager {
         }
     }
 
-    public Iterator<Schema> getUserSchemaIterator() {
-        return new FilteredIterator<>(
-            schemaMap.values().iterator(),
-            userSchemaFilter);
+    public Iterator getUserSchemaIterator() {
+        return new FilteredIterator(schemaMap.values().iterator(),
+                                    userSchemaFilter);
     }
 
     public HsqlName getUserSchemaHsqlName(String name) {
@@ -331,13 +320,14 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(name);
+            Schema schema = (Schema) schemaMap.get(name);
 
             if (schema == null) {
                 throw Error.error(ErrorCode.X_3F000, name);
             }
 
-            if (schema.getName() == SqlInvariants.INFORMATION_SCHEMA_HSQLNAME) {
+            if (schema.getName()
+                    == SqlInvariants.INFORMATION_SCHEMA_HSQLNAME) {
                 throw Error.error(ErrorCode.X_3F000, name);
             }
 
@@ -352,11 +342,10 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(name);
+            Schema schema = (Schema) schemaMap.get(name);
 
-            return schema == null
-                   ? null
-                   : schema.getOwner();
+            return schema == null ? null
+                                  : schema.getOwner();
         } finally {
             readLock.unlock();
         }
@@ -386,7 +375,7 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(name);
+            Schema schema = ((Schema) schemaMap.get(name));
 
             if (schema == null) {
                 return null;
@@ -430,7 +419,7 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            return schemaMap.get(name);
+            return ((Schema) schemaMap.get(name));
         } finally {
             readLock.unlock();
         }
@@ -439,16 +428,17 @@ public class SchemaManager {
     /**
      * drop all schemas with the given authorisation
      */
-    public void dropSchemas(Session session, Grantee grantee, boolean cascade) {
+    public void dropSchemas(Session session, Grantee grantee,
+                            boolean cascade) {
 
         writeLock.lock();
 
         try {
-            HsqlArrayList<Schema> list = getSchemas(grantee);
-            Iterator<Schema>      it   = list.iterator();
+            HsqlArrayList list = getSchemas(grantee);
+            Iterator      it   = list.iterator();
 
             while (it.hasNext()) {
-                Schema schema = it.next();
+                Schema schema = (Schema) it.next();
 
                 dropSchema(session, schema.getName().name, cascade);
             }
@@ -457,16 +447,16 @@ public class SchemaManager {
         }
     }
 
-    public HsqlArrayList<Schema> getSchemas(Grantee grantee) {
+    public HsqlArrayList getSchemas(Grantee grantee) {
 
         readLock.lock();
 
         try {
-            HsqlArrayList<Schema> list = new HsqlArrayList<>();
-            Iterator<Schema>      it   = schemaMap.values().iterator();
+            HsqlArrayList list = new HsqlArrayList();
+            Iterator      it   = schemaMap.values().iterator();
 
             while (it.hasNext()) {
-                Schema schema = it.next();
+                Schema schema = (Schema) it.next();
 
                 if (grantee.equals(schema.getOwner())) {
                     list.add(schema);
@@ -484,10 +474,10 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            Iterator<Schema> it = schemaMap.values().iterator();
+            Iterator it = schemaMap.values().iterator();
 
             while (it.hasNext()) {
-                Schema schema = it.next();
+                Schema schema = (Schema) it.next();
 
                 if (grantee.equals(schema.getOwner())) {
                     return true;
@@ -504,13 +494,13 @@ public class SchemaManager {
      *  Returns an HsqlArrayList containing references to all non-system
      *  tables and views of the given type.
      */
-    public HsqlArrayList<Table> getAllTables(boolean withLobTables) {
+    public HsqlArrayList getAllTables(boolean withLobTables) {
 
         readLock.lock();
 
         try {
-            HsqlArrayList<Table> allTables = new HsqlArrayList<>();
-            String[]             schemas   = getSchemaNamesArray();
+            HsqlArrayList alltables = new HsqlArrayList();
+            String[]      schemas   = getSchemaNamesArray();
 
             for (int i = 0; i < schemas.length; i++) {
                 String name = schemas[i];
@@ -523,23 +513,23 @@ public class SchemaManager {
                     continue;
                 }
 
-                OrderedHashMap<String, Table> current = getTables(name);
+                OrderedHashMap current = getTables(name);
 
-                allTables.addAll(current.values());
+                alltables.addAll(current.values());
             }
 
-            return allTables;
+            return alltables;
         } finally {
             readLock.unlock();
         }
     }
 
-    public OrderedHashMap<String, Table> getTables(String schema) {
+    public OrderedHashMap getTables(String schema) {
 
         readLock.lock();
 
         try {
-            Schema temp = schemaMap.get(schema);
+            Schema temp = (Schema) schemaMap.get(schema);
 
             return temp.tableList;
         } finally {
@@ -556,11 +546,11 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            OrderedHashSet<HsqlName> names  = new OrderedHashSet<>();
-            HsqlArrayList<Table>     tables = getAllTables(false);
+            OrderedHashSet names  = new OrderedHashSet();
+            HsqlArrayList  tables = getAllTables(false);
 
             for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+                Table table = (Table) tables.get(i);
 
                 if (!table.isTemp()) {
                     names.add(table.getName());
@@ -595,14 +585,14 @@ public class SchemaManager {
                         return catalogNameArray;
                     }
 
-                    OrderedHashSet<HsqlName> names = new OrderedHashSet<>();
+                    OrderedHashSet names = new OrderedHashSet();
 
                     names.add(database.getCatalogName());
 
-                    OrderedHashMap<String, Table> list = getTables(name.name);
+                    OrderedHashMap list = getTables(name.name);
 
                     for (int i = 0; i < list.size(); i++) {
-                        names.add(list.get(i).getName());
+                        names.add(((SchemaObject) list.get(i)).getName());
                     }
 
                     HsqlName[] array = new HsqlName[names.size()];
@@ -611,37 +601,31 @@ public class SchemaManager {
 
                     return array;
                 }
-
                 case SchemaObject.GRANTEE : {
                     return catalogNameArray;
                 }
-
                 case SchemaObject.INDEX :
                 case SchemaObject.CONSTRAINT :
                 default :
             }
 
-            SchemaObject object = findSchemaObject(
-                name.name,
-                name.schema.name,
-                name.type);
+            SchemaObject object = findSchemaObject(name.name,
+                                                   name.schema.name,
+                                                   name.type);
 
             if (object == null) {
                 return catalogNameArray;
             }
 
-            HsqlName                 parent = object.getName().parent;
-            OrderedHashSet<HsqlName> references = getReferencesTo(
-                object.getName());
-            OrderedHashSet<HsqlName> names  = new OrderedHashSet<>();
+            HsqlName       parent     = object.getName().parent;
+            OrderedHashSet references = getReferencesTo(object.getName());
+            OrderedHashSet names      = new OrderedHashSet();
 
             names.add(database.getCatalogName());
 
             if (parent != null) {
-                SchemaObject parentObject = findSchemaObject(
-                    parent.name,
-                    parent.schema.name,
-                    parent.type);
+                SchemaObject parentObject = findSchemaObject(parent.name,
+                    parent.schema.name, parent.type);
 
                 if (parentObject != null
                         && parentObject.getName().type == SchemaObject.TABLE) {
@@ -654,12 +638,11 @@ public class SchemaManager {
             }
 
             for (int i = 0; i < references.size(); i++) {
-                HsqlName reference = references.get(i);
+                HsqlName reference = (HsqlName) references.get(i);
 
                 if (reference.type == SchemaObject.TABLE) {
-                    Table table = findUserTable(
-                        reference.name,
-                        reference.schema.name);
+                    Table table = findUserTable(reference.name,
+                                                reference.schema.name);
 
                     if (table != null && !table.isTemp()) {
                         names.add(reference);
@@ -677,14 +660,82 @@ public class SchemaManager {
         }
     }
 
+    private SchemaObjectSet getSchemaObjectSet(Schema schema, int type) {
+
+        SchemaObjectSet set = null;
+
+        switch (type) {
+
+            case SchemaObject.SEQUENCE :
+                set = schema.sequenceLookup;
+                break;
+
+            case SchemaObject.TABLE :
+            case SchemaObject.VIEW :
+                set = schema.tableLookup;
+                break;
+
+            case SchemaObject.CHARSET :
+                set = schema.charsetLookup;
+                break;
+
+            case SchemaObject.COLLATION :
+                set = schema.collationLookup;
+                break;
+
+            case SchemaObject.PROCEDURE :
+                set = schema.procedureLookup;
+                break;
+
+            case SchemaObject.FUNCTION :
+                set = schema.functionLookup;
+                break;
+
+            case SchemaObject.DOMAIN :
+            case SchemaObject.TYPE :
+                set = schema.typeLookup;
+                break;
+
+            case SchemaObject.INDEX :
+                set = schema.indexLookup;
+                break;
+
+            case SchemaObject.CONSTRAINT :
+                set = schema.constraintLookup;
+                break;
+
+            case SchemaObject.TRIGGER :
+                set = schema.triggerLookup;
+                break;
+
+            case SchemaObject.SPECIFIC_ROUTINE :
+                set = schema.specificRoutineLookup;
+                break;
+
+            case SchemaObject.REFERENCE :
+                set = schema.referenceLookup;
+                break;
+
+            case SchemaObject.MODULE :
+                set = schema.moduleLookup;
+                break;
+
+            default :
+                throw Error.runtimeError(ErrorCode.U_S0500, "SchemaObjectSet");
+        }
+
+        return set;
+    }
+
     public void checkSchemaObjectNotExists(HsqlName name) {
 
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(name.schema.name);
+            Schema          schema = (Schema) schemaMap.get(name.schema.name);
+            SchemaObjectSet set    = getSchemaObjectSet(schema, name.type);
 
-            schema.checkObjectNotExists(name);
+            set.checkAdd(name);
         } finally {
             readLock.unlock();
         }
@@ -704,9 +755,8 @@ public class SchemaManager {
         Table t = findUserTable(name, schema);
 
         if (t == null) {
-            String longName = schema == null
-                              ? name
-                              : schema + '.' + name;
+            String longName = schema == null ? name
+                                             : schema + '.' + name;
 
             throw Error.error(ErrorCode.X_42501, longName);
         }
@@ -724,7 +774,7 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(schemaName);
+            Schema schema = (Schema) schemaMap.get(schemaName);
 
             if (schema == null) {
                 return null;
@@ -736,7 +786,7 @@ public class SchemaManager {
                 return null;
             }
 
-            return schema.tableList.get(i);
+            return (Table) schema.tableList.get(i);
         } finally {
             readLock.unlock();
         }
@@ -775,7 +825,8 @@ public class SchemaManager {
      *   silently, else throw
      * @param cascade true if the name argument refers to a View
      */
-    public void dropTableOrView(Session session, Table table, boolean cascade) {
+    public void dropTableOrView(Session session, Table table,
+                                boolean cascade) {
 
         writeLock.lock();
 
@@ -792,7 +843,7 @@ public class SchemaManager {
 
     private void dropView(Table table, boolean cascade) {
 
-        Schema schema = schemaMap.get(table.getSchemaName().name);
+        Schema schema = (Schema) schemaMap.get(table.getSchemaName().name);
 
         removeSchemaObject(table.getName(), cascade);
         removeTableDependentReferences(table);
@@ -801,23 +852,23 @@ public class SchemaManager {
 
     private void dropTable(Session session, Table table, boolean cascade) {
 
-        Schema schema = schemaMap.get(table.getSchemaName().name);
-        OrderedHashSet<Constraint> externalConstraints =
+        Schema schema = (Schema) schemaMap.get(table.getSchemaName().name);
+        OrderedHashSet externalConstraints =
             table.getDependentExternalConstraints();
-        OrderedHashSet<HsqlName> externalReferences = new OrderedHashSet<>();
+        OrderedHashSet externalReferences = new OrderedHashSet();
 
         getCascadingReferencesTo(table.getName(), externalReferences);
 
         if (!cascade) {
             for (int i = 0; i < externalConstraints.size(); i++) {
-                Constraint c       = externalConstraints.get(i);
-                HsqlName   refName = c.getRefName();
+                Constraint c       = (Constraint) externalConstraints.get(i);
+                HsqlName   refname = c.getRefName();
 
                 if (c.getConstraintType()
                         == SchemaObject.ConstraintTypes.MAIN) {
                     throw Error.error(
                         ErrorCode.X_42533,
-                        refName.getSchemaQualifiedStatementName());
+                        refname.getSchemaQualifiedStatementName());
                 }
             }
 
@@ -825,25 +876,24 @@ public class SchemaManager {
                 int i = 0;
 
                 for (; i < externalReferences.size(); i++) {
-                    HsqlName name = externalReferences.get(i);
+                    HsqlName name = (HsqlName) externalReferences.get(i);
 
                     if (name.parent == table.getName()) {
                         continue;
                     }
 
-                    throw Error.error(
-                        ErrorCode.X_42502,
-                        name.getSchemaQualifiedStatementName());
+                    throw Error.error(ErrorCode.X_42502,
+                                      name.getSchemaQualifiedStatementName());
                 }
             }
         }
 
-        OrderedHashSet<Table>    tableSet          = new OrderedHashSet<>();
-        OrderedHashSet<HsqlName> constraintNameSet = new OrderedHashSet<>();
-        OrderedHashSet<HsqlName> indexNameSet      = new OrderedHashSet<>();
+        OrderedHashSet tableSet          = new OrderedHashSet();
+        OrderedHashSet constraintNameSet = new OrderedHashSet();
+        OrderedHashSet indexNameSet      = new OrderedHashSet();
 
         for (int i = 0; i < externalConstraints.size(); i++) {
-            Constraint c = externalConstraints.get(i);
+            Constraint c = (Constraint) externalConstraints.get(i);
             Table      t = c.getMain();
 
             if (t != table) {
@@ -861,14 +911,12 @@ public class SchemaManager {
             indexNameSet.add(c.getRefIndex().getName());
         }
 
-        OrderedHashSet<HsqlName> uniqueConstraintNames =
+        OrderedHashSet uniqueConstraintNames =
             table.getUniquePKConstraintNames();
         TableWorks tw = new TableWorks(session, table);
 
-        tableSet = tw.dropConstraintsAndIndexes(
-            tableSet,
-            constraintNameSet,
-            indexNameSet);
+        tableSet = tw.dropConstraintsAndIndexes(tableSet, constraintNameSet,
+                indexNameSet);
 
         tw.setNewTablesInSchema(tableSet);
         tw.updateConstraints(tableSet, constraintNameSet);
@@ -917,7 +965,7 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            Schema schema = schemaMap.get(table.getSchemaName().name);
+            Schema schema = (Schema) schemaMap.get(table.getSchemaName().name);
 
             schema.tableList.set(index, table.getName().name, table);
         } finally {
@@ -937,7 +985,7 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(table.getSchemaName().name);
+            Schema schema = (Schema) schemaMap.get(table.getSchemaName().name);
 
             if (schema == null) {
                 return -1;
@@ -951,15 +999,15 @@ public class SchemaManager {
         }
     }
 
-    public void recompileDependentObjects(OrderedHashSet<Table> tableSet) {
+    public void recompileDependentObjects(OrderedHashSet tableSet) {
 
         writeLock.lock();
 
         try {
-            OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
+            OrderedHashSet set = new OrderedHashSet();
 
             for (int i = 0; i < tableSet.size(); i++) {
-                Table table = tableSet.get(i);
+                Table table = (Table) tableSet.get(i);
 
                 set.addAll(getReferencesTo(table.getName()));
             }
@@ -967,19 +1015,19 @@ public class SchemaManager {
             Session session = database.sessionManager.getSysSession();
 
             for (int i = 0; i < set.size(); i++) {
-                HsqlName name = set.get(i);
+                HsqlName name = (HsqlName) set.get(i);
 
                 switch (name.type) {
 
-                    case SchemaObject.ASSERTION :
+                    case SchemaObject.VIEW :
                     case SchemaObject.CONSTRAINT :
-                    case SchemaObject.FUNCTION :
-                    case SchemaObject.PROCEDURE :
+                    case SchemaObject.ASSERTION :
                     case SchemaObject.ROUTINE :
+                    case SchemaObject.PROCEDURE :
+                    case SchemaObject.FUNCTION :
                     case SchemaObject.SPECIFIC_ROUTINE :
                     case SchemaObject.TRIGGER :
-                    case SchemaObject.VIEW :
-                        SchemaObject object = findSchemaObject(name);
+                        SchemaObject object = getSchemaObject(name);
 
                         object.compile(session, null);
                         break;
@@ -989,10 +1037,10 @@ public class SchemaManager {
             }
 
             if (Error.TRACE) {
-                HsqlArrayList<Table> list = getAllTables(false);
+                HsqlArrayList list = getAllTables(false);
 
                 for (int i = 0; i < list.size(); i++) {
-                    Table t = list.get(i);
+                    Table t = (Table) list.get(i);
 
                     t.verifyConstraintsIntegrity();
                 }
@@ -1011,40 +1059,39 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
+            OrderedHashSet set = new OrderedHashSet();
 
             getCascadingReferencesTo(table.getName(), set);
 
             Session session = database.sessionManager.getSysSession();
 
             for (int i = 0; i < set.size(); i++) {
-                HsqlName name = set.get(i);
+                HsqlName name = (HsqlName) set.get(i);
 
                 switch (name.type) {
 
-                    case SchemaObject.ASSERTION :
+                    case SchemaObject.VIEW :
                     case SchemaObject.CONSTRAINT :
-                    case SchemaObject.FUNCTION :
-                    case SchemaObject.PROCEDURE :
+                    case SchemaObject.ASSERTION :
                     case SchemaObject.ROUTINE :
+                    case SchemaObject.PROCEDURE :
+                    case SchemaObject.FUNCTION :
                     case SchemaObject.SPECIFIC_ROUTINE :
                     case SchemaObject.TRIGGER :
-                    case SchemaObject.VIEW : {
-                        SchemaObject object = findSchemaObject(name);
+                        SchemaObject object = getSchemaObject(name);
 
                         object.compile(session, null);
                         break;
-                    }
 
                     default :
                 }
             }
 
             if (Error.TRACE) {
-                HsqlArrayList<Table> list = getAllTables(false);
+                HsqlArrayList list = getAllTables(false);
 
                 for (int i = 0; i < list.size(); i++) {
-                    Table t = list.get(i);
+                    Table t = (Table) list.get(i);
 
                     t.verifyConstraintsIntegrity();
                 }
@@ -1054,10 +1101,8 @@ public class SchemaManager {
         }
     }
 
-    public Collation getCollation(
-            Session session,
-            String name,
-            String schemaName) {
+    public Collation getCollation(Session session, String name,
+                                  String schemaName) {
 
         Collation collation = null;
 
@@ -1070,56 +1115,46 @@ public class SchemaManager {
 
         if (collation == null) {
             schemaName = session.getSchemaName(schemaName);
-            collation = (Collation) getSchemaObject(
-                name,
-                schemaName,
-                SchemaObject.COLLATION);
+            collation = (Collation) getSchemaObject(name, schemaName,
+                    SchemaObject.COLLATION);
         }
 
         return collation;
     }
 
-    public NumberSequence findSequence(
-            Session session,
-            String name,
-            String schemaName) {
+    public NumberSequence findSequence(Session session, String name,
+                                       String schemaName) {
 
-        NumberSequence seq = getSequence(
-            name,
-            session.getSchemaName(schemaName),
-            false);
+        NumberSequence seq = getSequence(name,
+                                         session.getSchemaName(schemaName),
+                                         false);
 
         if (seq == null && schemaName == null) {
             schemaName = session.getSchemaName(null);
 
-            ReferenceObject ref = findSynonym(
-                name,
-                schemaName,
-                SchemaObject.SEQUENCE);
+            ReferenceObject ref = findSynonym(name, schemaName,
+                                              SchemaObject.SEQUENCE);
 
             if (ref != null) {
-                seq = getSequence(
-                    ref.target.name,
-                    ref.target.schema.name,
-                    false);
+                seq = getSequence(ref.target.name, ref.target.schema.name,
+                                  false);
             }
         }
 
         return seq;
     }
 
-    public NumberSequence getSequence(
-            String name,
-            String schemaName,
-            boolean raise) {
+    public NumberSequence getSequence(String name, String schemaName,
+                                      boolean raise) {
 
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(schemaName);
+            Schema schema = (Schema) schemaMap.get(schemaName);
 
             if (schema != null) {
-                NumberSequence object = schema.sequenceList.get(name);
+                NumberSequence object =
+                    (NumberSequence) schema.sequenceList.get(name);
 
                 if (object != null) {
                     return object;
@@ -1136,15 +1171,13 @@ public class SchemaManager {
         }
     }
 
-    public Type getUserDefinedType(
-            String name,
-            String schemaName,
-            boolean raise) {
+    public Type getUserDefinedType(String name, String schemaName,
+                                   boolean raise) {
 
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(schemaName);
+            Schema schema = (Schema) schemaMap.get(schemaName);
 
             if (schema != null) {
                 SchemaObject object = schema.typeLookup.getObject(name);
@@ -1164,22 +1197,14 @@ public class SchemaManager {
         }
     }
 
-    public Type findDomainOrUDT(
-            Session session,
-            String name,
-            String prefix,
-            String prePrefix,
-            String prePrePrefix) {
+    public Type findDomainOrUDT(Session session, String name, String prefix,
+                                String prePrefix, String prePrePrefix) {
 
         readLock.lock();
 
         try {
-            Type type = (Type) findSchemaObject(
-                session,
-                name,
-                prefix,
-                prePrefix,
-                SchemaObject.TYPE);
+            Type type = (Type) findSchemaObject(session, name, prefix,
+                                                prePrefix, SchemaObject.TYPE);
 
             return type;
         } finally {
@@ -1192,7 +1217,7 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(schemaName);
+            Schema schema = (Schema) schemaMap.get(schemaName);
 
             if (schema != null) {
                 SchemaObject object = schema.typeLookup.getObject(name);
@@ -1212,12 +1237,13 @@ public class SchemaManager {
         }
     }
 
-    public Type getDistinctType(String name, String schemaName, boolean raise) {
+    public Type getDistinctType(String name, String schemaName,
+                                boolean raise) {
 
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(schemaName);
+            Schema schema = (Schema) schemaMap.get(schemaName);
 
             if (schema != null) {
                 SchemaObject object = schema.typeLookup.getObject(name);
@@ -1237,10 +1263,8 @@ public class SchemaManager {
         }
     }
 
-    public SchemaObject getSchemaObject(
-            String name,
-            String schemaName,
-            int type) {
+    public SchemaObject getSchemaObject(String name, String schemaName,
+                                        int type) {
 
         readLock.lock();
 
@@ -1248,7 +1272,7 @@ public class SchemaManager {
             SchemaObject object = findSchemaObject(name, schemaName, type);
 
             if (object == null) {
-                throw Error.error(SchemaObjectSet.getErrorCode, name);
+                throw Error.error(SchemaObjectSet.getGetErrorCode(type), name);
             }
 
             return object;
@@ -1257,10 +1281,8 @@ public class SchemaManager {
         }
     }
 
-    public SchemaObject getCharacterSet(
-            Session session,
-            String name,
-            String schemaName) {
+    public SchemaObject getCharacterSet(Session session, String name,
+                                        String schemaName) {
 
         if (schemaName == null
                 || SqlInvariants.INFORMATION_SCHEMA.equals(schemaName)) {
@@ -1288,26 +1310,15 @@ public class SchemaManager {
         return getSchemaObject(name, schemaName, SchemaObject.CHARSET);
     }
 
-    public Table findTable(
-            Session session,
-            String name,
-            String prefix,
-            String prePrefix) {
-
-        return (Table) findSchemaObject(
-            session,
-            name,
-            prefix,
-            prePrefix,
-            SchemaObject.TABLE);
+    public Table findTable(Session session, String name, String prefix,
+                           String prePrefix) {
+        return (Table) findSchemaObject(session, name, prefix, prePrefix,
+                                        SchemaObject.TABLE);
     }
 
-    public SchemaObject findSchemaObject(
-            Session session,
-            String name,
-            String prefix,
-            String prePrefix,
-            int type) {
+    public SchemaObject findSchemaObject(Session session, String name,
+                                         String prefix, String prePrefix,
+                                         int type) {
 
         // catalog resolution here
         if (prePrefix != null
@@ -1333,9 +1344,21 @@ public class SchemaManager {
                 if (t != null) {
                     return t;
                 }
+
+                if (prefix == null) {
+                    prefix = session.getSchemaName(null);
+                }
             } else if (prePrefix == null) {
 
                 // allow parsing in-routine table names in older .script files
+                if (Tokens.T_MODULE.equals(prefix)) {
+                    Table t = findSessionTable(session, name);
+
+                    if (t != null) {
+                        return t;
+                    }
+                }
+
                 if (Tokens.T_SESSION.equals(prefix)
                         || Tokens.T_MODULE.equals(prefix)) {
                     Table t = findSessionTable(session, name);
@@ -1345,31 +1368,27 @@ public class SchemaManager {
                     }
                 }
             }
+
+            if (SqlInvariants.INFORMATION_SCHEMA.equals(prefix)) {
+                if (database.dbInfo == null) {
+                    return null;
+                }
+
+                return database.dbInfo.getSystemTable(session, name);
+            }
         }
 
         if (prefix == null) {
             prefix = session.getSchemaName(null);
         }
 
-        if (type == SchemaObject.TABLE
-                && SqlInvariants.INFORMATION_SCHEMA.equals(prefix)
-                && database.dbInfo != null) {
-            Table t = database.dbInfo.getSystemTable(session, name);
-
-            if (t != null) {
-                return t;
-            }
-        }
-
         return findSchemaObject(name, prefix, type);
     }
 
-    public ReferenceObject findSynonym(
-            String name,
-            String schemaName,
-            int type) {
+    public ReferenceObject findSynonym(String name, String schemaName,
+                                       int type) {
 
-        Schema schema = schemaMap.get(schemaName);
+        Schema schema = (Schema) schemaMap.get(schemaName);
 
         if (schema == null) {
             return null;
@@ -1380,14 +1399,13 @@ public class SchemaManager {
         return reference;
     }
 
-    public SchemaObject findAnySchemaObjectForSynonym(
-            String name,
+    public SchemaObject findAnySchemaObjectForSynonym(String name,
             String schemaName) {
 
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(schemaName);
+            Schema schema = (Schema) schemaMap.get(schemaName);
 
             if (schema == null) {
                 return null;
@@ -1399,22 +1417,16 @@ public class SchemaManager {
         }
     }
 
-    public SchemaObject findSchemaObject(
-            String name,
-            String schemaName,
-            int type) {
+    public SchemaObject findSchemaObject(String name, String schemaName,
+                                         int type) {
 
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(schemaName);
+            Schema schema = (Schema) schemaMap.get(schemaName);
 
             if (schema == null) {
                 return null;
-            }
-
-            if (type == SchemaObject.SCHEMA) {
-                return schema;
             }
 
             return schema.findSchemaObject(name, type);
@@ -1428,15 +1440,13 @@ public class SchemaManager {
     /**
      * Returns the table that has an index with the given name and schema.
      */
-    Table findUserTableForIndex(
-            Session session,
-            String name,
-            String schemaName) {
+    Table findUserTableForIndex(Session session, String name,
+                                String schemaName) {
 
         readLock.lock();
 
         try {
-            Schema   schema    = schemaMap.get(schemaName);
+            Schema   schema    = (Schema) schemaMap.get(schemaName);
             HsqlName indexName = schema.indexLookup.getName(name);
 
             if (indexName == null) {
@@ -1488,7 +1498,7 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            Schema schema = schemaMap.get(name.schema.name);
+            Schema schema = (Schema) schemaMap.get(name.schema.name);
 
             schema.indexLookup.removeParent(name);
             schema.constraintLookup.removeParent(name);
@@ -1516,10 +1526,11 @@ public class SchemaManager {
         try {
 
             // toDrop.schema may be null because it is not registered
-            Schema schema = schemaMap.get(toDrop.getSchemaName().name);
+            Schema schema =
+                (Schema) schemaMap.get(toDrop.getSchemaName().name);
 
             for (int i = 0; i < schema.tableList.size(); i++) {
-                Table        table       = schema.tableList.get(i);
+                Table        table       = (Table) schema.tableList.get(i);
                 Constraint[] constraints = table.getConstraints();
 
                 for (int j = constraints.length - 1; j >= 0; j--) {
@@ -1535,14 +1546,12 @@ public class SchemaManager {
         }
     }
 
-    public Iterator<SchemaObject> databaseObjectIterator(
-            String schemaName,
-            int type) {
+    public Iterator databaseObjectIterator(String schemaName, int type) {
 
         readLock.lock();
 
         try {
-            Schema schema = schemaMap.get(schemaName);
+            Schema schema = (Schema) schemaMap.get(schemaName);
 
             return schema.schemaObjectIterator(type);
         } finally {
@@ -1550,95 +1559,60 @@ public class SchemaManager {
         }
     }
 
-    public Iterator<SchemaObject> databaseObjectIterator(int type) {
+    public Iterator databaseObjectIterator(int type) {
 
         readLock.lock();
 
         try {
-            Iterator<Schema>       schemas   = schemaMap.values().iterator();
-            Iterator<SchemaObject> dbObjects = new WrapperIterator<>();
+            Iterator it      = schemaMap.values().iterator();
+            Iterator objects = new WrapperIterator();
 
-            while (schemas.hasNext()) {
-                Schema schema = schemas.next();
-                Iterator<SchemaObject> iterator = schema.schemaObjectIterator(
-                    type);
+            while (it.hasNext()) {
+                int targetType = type;
 
-                if (iterator.hasNext()) {
-                    dbObjects = new WrapperIterator<>(dbObjects, iterator);
+                if (type == SchemaObject.ROUTINE) {
+                    targetType = SchemaObject.FUNCTION;
                 }
-            }
 
-            return dbObjects;
-        } finally {
-            readLock.unlock();
-        }
-    }
+                Schema          temp = (Schema) it.next();
+                SchemaObjectSet set  = temp.getObjectSet(targetType);
+                Object[]        values;
 
-    public Iterator<Table> databaseTableIterator() {
+                if (set.map.size() != 0) {
+                    values = new Object[set.map.size()];
 
-        readLock.lock();
+                    set.map.valuesToArray(values);
 
-        try {
-            Iterator<Schema> schemas = schemaMap.values().iterator();
-            Iterator<Table>  tables  = new WrapperIterator<>();
-
-            while (schemas.hasNext()) {
-                Schema          schema   = schemas.next();
-                Iterator<Table> iterator = schema.tableList.values().iterator();
-
-                if (iterator.hasNext()) {
-                    tables = new WrapperIterator<>(tables, iterator);
+                    objects = new WrapperIterator(objects,
+                                                  new WrapperIterator(values));
                 }
-            }
 
-            return tables;
-        } finally {
-            readLock.unlock();
-        }
-    }
+                if (type == SchemaObject.ROUTINE) {
+                    set = temp.getObjectSet(SchemaObject.PROCEDURE);
 
-    public Iterator<Constraint> databaseCheckConstraintIterator() {
+                    if (set.map.size() != 0) {
+                        values = new Object[set.map.size()];
 
-        return new Iterator<Constraint>() {
+                        set.map.valuesToArray(values);
 
-            Iterator<SchemaObject> constraints = databaseObjectIterator(
-                SchemaObject.CONSTRAINT);
-            Constraint current;
-            boolean    b = filterToNext();
-            public boolean hasNext() {
-                return current != null;
-            }
-            public Constraint next() {
-
-                Constraint value = current;
-
-                filterToNext();
-
-                return value;
-            }
-            private boolean filterToNext() {
-
-                while (constraints.hasNext()) {
-                    current = (Constraint) constraints.next();
-
-                    if (current.constType
-                            == SchemaObject.ConstraintTypes.CHECK) {
-                        return true;
+                        objects =
+                            new WrapperIterator(objects,
+                                                new WrapperIterator(values));
                     }
                 }
-
-                current = null;
-
-                return false;
             }
-        };
+
+            return objects;
+        } finally {
+            readLock.unlock();
+        }
     }
 
     // references
     private void addReferencesFrom(SchemaObject object) {
 
-        OrderedHashSet<HsqlName> set  = object.getReferences();
-        HsqlName                 name = object.getName();
+        OrderedHashSet set  = object.getReferences();
+        HsqlName       name = object.getName();
 
         if (object instanceof Routine) {
             name = ((Routine) object).getSpecificName();
@@ -1649,16 +1623,16 @@ public class SchemaManager {
         }
 
         for (int i = 0; i < set.size(); i++) {
-            HsqlName referenced = set.get(i);
+            HsqlName referenced = (HsqlName) set.get(i);
 
             referenceMap.put(referenced, name);
         }
     }
 
-    private void removeReferencesTo(OrderedHashSet<HsqlName> set) {
+    private void removeReferencesTo(OrderedHashSet set) {
 
         for (int i = 0; i < set.size(); i++) {
-            HsqlName referenced = set.get(i);
+            HsqlName referenced = (HsqlName) set.get(i);
 
             referenceMap.remove(referenced);
         }
@@ -1670,8 +1644,8 @@ public class SchemaManager {
 
     private void removeReferencesFrom(SchemaObject object) {
 
-        HsqlName                 name = object.getName();
-        OrderedHashSet<HsqlName> set  = object.getReferences();
+        HsqlName       name = object.getName();
+        OrderedHashSet set  = object.getReferences();
 
         if (object instanceof Routine) {
             name = ((Routine) object).getSpecificName();
@@ -1682,7 +1656,7 @@ public class SchemaManager {
         }
 
         for (int i = 0; i < set.size(); i++) {
-            HsqlName referenced = set.get(i);
+            HsqlName referenced = (HsqlName) set.get(i);
 
             referenceMap.remove(referenced, name);
         }
@@ -1690,11 +1664,11 @@ public class SchemaManager {
 
     private void removeTableDependentReferences(Table table) {
 
-        OrderedHashSet<HsqlName> mainSet = table.getReferencesForDependents();
+        OrderedHashSet mainSet = table.getReferencesForDependents();
 
         for (int i = 0; i < mainSet.size(); i++) {
-            HsqlName     name = mainSet.get(i);
-            SchemaObject object;
+            HsqlName     name   = (HsqlName) mainSet.get(i);
+            SchemaObject object = null;
 
             switch (name.type) {
 
@@ -1718,17 +1692,16 @@ public class SchemaManager {
         }
     }
 
-    public OrderedHashSet<HsqlName> getReferencesTo(HsqlName object) {
+    public OrderedHashSet getReferencesTo(HsqlName object) {
 
         readLock.lock();
 
         try {
-            OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
-            Iterator<HsqlName>       it = referenceMap.getValuesIterator(
-                object);
+            OrderedHashSet set = new OrderedHashSet();
+            Iterator       it  = referenceMap.getValuesIterator(object);
 
             while (it.hasNext()) {
-                HsqlName name = it.next();
+                HsqlName name = (HsqlName) it.next();
 
                 set.add(name);
             }
@@ -1739,21 +1712,18 @@ public class SchemaManager {
         }
     }
 
-    public OrderedHashSet<HsqlName> getReferencesTo(
-            HsqlName table,
-            HsqlName column) {
+    public OrderedHashSet getReferencesTo(HsqlName table, HsqlName column) {
 
         readLock.lock();
 
         try {
-            OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
-            Iterator<HsqlName>       it  = referenceMap.getValuesIterator(
-                table);
+            OrderedHashSet set = new OrderedHashSet();
+            Iterator       it  = referenceMap.getValuesIterator(table);
 
             while (it.hasNext()) {
-                HsqlName                 name       = it.next();
-                SchemaObject             object     = findSchemaObject(name);
-                OrderedHashSet<HsqlName> references = object.getReferences();
+                HsqlName       name       = (HsqlName) it.next();
+                SchemaObject   object     = getSchemaObject(name);
+                OrderedHashSet references = object.getReferences();
 
                 if (references.contains(column)) {
                     set.add(name);
@@ -1763,7 +1733,7 @@ public class SchemaManager {
             it = referenceMap.getValuesIterator(column);
 
             while (it.hasNext()) {
-                HsqlName name = it.next();
+                HsqlName name = (HsqlName) it.next();
 
                 set.add(name);
             }
@@ -1786,19 +1756,16 @@ public class SchemaManager {
     }
 
     //
-    public void getCascadingReferencesTo(
-            HsqlName object,
-            OrderedHashSet<HsqlName> set) {
+    public void getCascadingReferencesTo(HsqlName object, OrderedHashSet set) {
 
         readLock.lock();
 
         try {
-            OrderedHashSet<HsqlName> newSet = new OrderedHashSet<>();
-            Iterator<HsqlName>       it = referenceMap.getValuesIterator(
-                object);
+            OrderedHashSet newSet = new OrderedHashSet();
+            Iterator       it     = referenceMap.getValuesIterator(object);
 
             while (it.hasNext()) {
-                HsqlName name  = it.next();
+                HsqlName name  = (HsqlName) it.next();
                 boolean  added = set.add(name);
 
                 if (added) {
@@ -1807,7 +1774,7 @@ public class SchemaManager {
             }
 
             for (int i = 0; i < newSet.size(); i++) {
-                HsqlName name = newSet.get(i);
+                HsqlName name = (HsqlName) newSet.get(i);
 
                 getCascadingReferencesTo(name, set);
             }
@@ -1816,14 +1783,13 @@ public class SchemaManager {
         }
     }
 
-    public void getCascadingReferencesToSchema(
-            HsqlName schema,
-            OrderedHashSet<HsqlName> set) {
+    public void getCascadingReferencesToSchema(HsqlName schema,
+            OrderedHashSet set) {
 
-        Iterator<HsqlName> mainIterator = referenceMap.keySet().iterator();
+        Iterator mainIterator = referenceMap.keySet().iterator();
 
         while (mainIterator.hasNext()) {
-            HsqlName name = mainIterator.next();
+            HsqlName name = (HsqlName) mainIterator.next();
 
             if (name.schema != schema) {
                 continue;
@@ -1833,7 +1799,7 @@ public class SchemaManager {
         }
 
         for (int i = set.size() - 1; i >= 0; i--) {
-            HsqlName name = set.get(i);
+            HsqlName name = (HsqlName) set.get(i);
 
             if (name.schema == schema) {
                 set.remove(i);
@@ -1841,20 +1807,19 @@ public class SchemaManager {
         }
     }
 
-    public MultiValueHashMap<HsqlName, HsqlName> getReferencesToSchema(
-            String schemaName) {
+    public MultiValueHashMap getReferencesToSchema(String schemaName) {
 
-        MultiValueHashMap<HsqlName, HsqlName> map = new MultiValueHashMap<>();
-        Iterator<HsqlName> mainIterator = referenceMap.keySet().iterator();
+        MultiValueHashMap map          = new MultiValueHashMap();
+        Iterator          mainIterator = referenceMap.keySet().iterator();
 
         while (mainIterator.hasNext()) {
-            HsqlName name = mainIterator.next();
+            HsqlName name = (HsqlName) mainIterator.next();
 
             if (!name.schema.name.equals(schemaName)) {
                 continue;
             }
 
-            Iterator<HsqlName> it = referenceMap.getValuesIterator(name);
+            Iterator it = referenceMap.getValuesIterator(name);
 
             while (it.hasNext()) {
                 map.put(name, it.next());
@@ -1865,54 +1830,139 @@ public class SchemaManager {
     }
 
     //
-    public HsqlName getSchemaObjectName(
-            HsqlName schemaName,
-            String name,
-            int type,
-            boolean raise) {
+    public HsqlName getSchemaObjectName(HsqlName schemaName, String name,
+                                        int type, boolean raise) {
 
         readLock.lock();
 
         try {
-            SchemaObject object;
+            Schema          schema = (Schema) schemaMap.get(schemaName.name);
+            SchemaObjectSet set    = null;
 
-            if (type == SchemaObject.SCHEMA) {
-                object = schemaMap.get(name);
-            } else {
-                object = findSchemaObject(name, schemaName.name, type);
-            }
-
-            if (object == null) {
+            if (schema == null) {
                 if (raise) {
-                    throw Error.error(SchemaObjectSet.getErrorCode);
+                    throw Error.error(SchemaObjectSet.getGetErrorCode(type));
                 } else {
                     return null;
                 }
             }
 
-            return object.getName();
+            if (type == SchemaObject.ROUTINE) {
+                set = schema.functionLookup;
+
+                SchemaObject object = schema.functionLookup.getObject(name);
+
+                if (object == null) {
+                    set    = schema.procedureLookup;
+                    object = schema.procedureLookup.getObject(name);
+                }
+            } else {
+                set = getSchemaObjectSet(schema, type);
+            }
+
+            if (raise) {
+                set.checkExists(name);
+            }
+
+            return set.getName(name);
         } finally {
             readLock.unlock();
         }
     }
 
-    public SchemaObject findSchemaObject(HsqlName name) {
+    public SchemaObject getSchemaObject(HsqlName name) {
 
         readLock.lock();
 
         try {
-            String nameString;
-            String schemaString;
+            Schema schema = (Schema) schemaMap.get(name.schema.name);
 
-            if (name.type == SchemaObject.SCHEMA) {
-                nameString   = name.schema.name;
-                schemaString = null;
-            } else {
-                nameString   = name.name;
-                schemaString = name.schema.name;
+            if (schema == null) {
+                return null;
             }
 
-            return findSchemaObject(nameString, schemaString, name.type);
+            switch (name.type) {
+
+                case SchemaObject.SEQUENCE :
+                    return (SchemaObject) schema.sequenceList.get(name.name);
+
+                case SchemaObject.TABLE :
+                case SchemaObject.VIEW :
+                    return (SchemaObject) schema.tableList.get(name.name);
+
+                case SchemaObject.CHARSET :
+                    return schema.charsetLookup.getObject(name.name);
+
+                case SchemaObject.COLLATION :
+                    return schema.collationLookup.getObject(name.name);
+
+                case SchemaObject.PROCEDURE :
+                    return schema.procedureLookup.getObject(name.name);
+
+                case SchemaObject.FUNCTION :
+                    return schema.functionLookup.getObject(name.name);
+
+                case RoutineSchema.SPECIFIC_ROUTINE :
+                    return schema.specificRoutineLookup.getObject(name.name);
+
+                case RoutineSchema.ROUTINE :
+                    SchemaObject object =
+                        schema.functionLookup.getObject(name.name);
+
+                    if (object == null) {
+                        object = schema.procedureLookup.getObject(name.name);
+                    }
+
+                    return object;
+
+                case SchemaObject.DOMAIN :
+                case SchemaObject.TYPE :
+                    return schema.typeLookup.getObject(name.name);
+
+                case SchemaObject.TRIGGER : {
+                    name = schema.triggerLookup.getName(name.name);
+
+                    if (name == null) {
+                        return null;
+                    }
+
+                    HsqlName tableName = name.parent;
+                    Table table = (Table) schema.tableList.get(tableName.name);
+
+                    return table.getTrigger(name.name);
+                }
+                case SchemaObject.CONSTRAINT : {
+                    name = schema.constraintLookup.getName(name.name);
+
+                    if (name == null) {
+                        return null;
+                    }
+
+                    HsqlName tableName = name.parent;
+                    Table table = (Table) schema.tableList.get(tableName.name);
+
+                    return table.getConstraint(name.name);
+                }
+                case SchemaObject.ASSERTION :
+                    return null;
+
+                case SchemaObject.INDEX :
+                    name = schema.indexLookup.getName(name.name);
+
+                    if (name == null) {
+                        return null;
+                    }
+
+                    HsqlName tableName = name.parent;
+                    Table table = (Table) schema.tableList.get(tableName.name);
+
+                    return table.getUserIndex(name.name);
+
+                case SchemaObject.REFERENCE :
+                    return schema.referenceLookup.getObject(name.name);
+            }
+
+            return null;
         } finally {
             readLock.unlock();
         }
@@ -1920,24 +1970,23 @@ public class SchemaManager {
 
     public void checkColumnIsReferenced(HsqlName tableName, HsqlName name) {
 
-        OrderedHashSet<HsqlName> set = getReferencesTo(tableName, name);
+        OrderedHashSet set = getReferencesTo(tableName, name);
 
         if (!set.isEmpty()) {
-            HsqlName objectName = set.get(0);
+            HsqlName objectName = (HsqlName) set.get(0);
 
-            throw Error.error(
-                ErrorCode.X_42502,
-                objectName.getSchemaQualifiedStatementName());
+            throw Error.error(ErrorCode.X_42502,
+                              objectName.getSchemaQualifiedStatementName());
         }
     }
 
     public void checkObjectIsReferenced(HsqlName name) {
 
-        OrderedHashSet<HsqlName> set     = getReferencesTo(name);
-        HsqlName                 refName = null;
+        OrderedHashSet set     = getReferencesTo(name);
+        HsqlName       refName = null;
 
         for (int i = 0; i < set.size(); i++) {
-            refName = set.get(i);
+            refName = (HsqlName) set.get(i);
 
             // except columns of same table
             if (refName.parent != name) {
@@ -1961,7 +2010,8 @@ public class SchemaManager {
             errorCode = ErrorCode.X_42533;
         }
 
-        throw Error.error(errorCode, refName.getSchemaQualifiedStatementName());
+        throw Error.error(errorCode,
+                          refName.getSchemaQualifiedStatementName());
     }
 
     public void checkSchemaNameCanChange(HsqlName name) {
@@ -1969,12 +2019,12 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            Iterator<HsqlName> it       = referenceMap.values().iterator();
-            HsqlName           refError = null;
+            Iterator it      = referenceMap.values().iterator();
+            HsqlName refName = null;
 
             mainLoop:
             while (it.hasNext()) {
-                HsqlName refName = it.next();
+                refName = (HsqlName) it.next();
 
                 switch (refName.type) {
 
@@ -1985,23 +2035,22 @@ public class SchemaManager {
                     case SchemaObject.TRIGGER :
                     case SchemaObject.SPECIFIC_ROUTINE :
                         if (refName.schema == name) {
-                            refError = refName;
                             break mainLoop;
                         }
-
                         break;
 
                     default :
                 }
+
+                refName = null;
             }
 
-            if (refError == null) {
+            if (refName == null) {
                 return;
             }
 
-            throw Error.error(
-                ErrorCode.X_42502,
-                refError.getSchemaQualifiedStatementName());
+            throw Error.error(ErrorCode.X_42502,
+                              refName.getSchemaQualifiedStatementName());
         } finally {
             readLock.unlock();
         }
@@ -2013,27 +2062,27 @@ public class SchemaManager {
 
         try {
             HsqlName name   = object.getName();
-            Schema   schema = schemaMap.get(name.schema.name);
+            Schema   schema = (Schema) schemaMap.get(name.schema.name);
 
             switch (name.type) {
 
                 case SchemaObject.TABLE : {
-                    OrderedHashSet<HsqlName> refs =
+                    OrderedHashSet refs =
                         ((Table) object).getReferencesForDependents();
 
                     for (int i = 0; i < refs.size(); i++) {
-                        HsqlName ref = refs.get(i);
+                        HsqlName ref = (HsqlName) refs.get(i);
 
                         switch (ref.type) {
 
                             case SchemaObject.COLUMN : {
-                                int index = ((Table) object).findColumn(
-                                    ref.name);
+                                int index =
+                                    ((Table) object).findColumn(ref.name);
                                 ColumnSchema column =
-                                    ((Table) object).getColumn(
-                                        index);
+                                    ((Table) object).getColumn(index);
 
                                 addSchemaObject(column);
+
                                 break;
                             }
                         }
@@ -2041,9 +2090,8 @@ public class SchemaManager {
 
                     break;
                 }
-
                 case SchemaObject.COLUMN : {
-                    OrderedHashSet<HsqlName> refs = object.getReferences();
+                    OrderedHashSet refs = object.getReferences();
 
                     if (refs == null || refs.isEmpty()) {
                         return;
@@ -2067,27 +2115,25 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            OrderedHashSet<HsqlName> objectSet = new OrderedHashSet<>();
+            OrderedHashSet objectSet = new OrderedHashSet();
 
             switch (name.type) {
 
                 case SchemaObject.ROUTINE :
                 case SchemaObject.PROCEDURE :
                 case SchemaObject.FUNCTION : {
-                    RoutineSchema routine = (RoutineSchema) findSchemaObject(
-                        name);
+                    RoutineSchema routine =
+                        (RoutineSchema) getSchemaObject(name);
 
                     if (routine != null) {
                         Routine[] specifics = routine.getSpecificRoutines();
 
                         for (int i = 0; i < specifics.length; i++) {
                             getCascadingReferencesTo(
-                                specifics[i].getSpecificName(),
-                                objectSet);
+                                specifics[i].getSpecificName(), objectSet);
                         }
                     }
                 }
-
                 break;
 
                 case SchemaObject.SEQUENCE :
@@ -2101,11 +2147,11 @@ public class SchemaManager {
                     break;
 
                 case SchemaObject.DOMAIN :
-                    OrderedHashSet<HsqlName> set = getReferencesTo(name);
-                    Iterator<HsqlName>       it  = set.iterator();
+                    OrderedHashSet set = getReferencesTo(name);
+                    Iterator       it  = set.iterator();
 
                     while (it.hasNext()) {
-                        HsqlName ref = it.next();
+                        HsqlName ref = (HsqlName) it.next();
 
                         if (ref.type != SchemaObject.COLUMN) {
                             throw Error.error(
@@ -2113,7 +2159,6 @@ public class SchemaManager {
                                 ref.getSchemaQualifiedStatementName());
                         }
                     }
-
                     break;
             }
 
@@ -2124,7 +2169,7 @@ public class SchemaManager {
             }
 
             if (!cascade) {
-                HsqlName objectName = objectSet.get(0);
+                HsqlName objectName = (HsqlName) objectSet.get(0);
 
                 throw Error.error(
                     ErrorCode.X_42502,
@@ -2138,13 +2183,13 @@ public class SchemaManager {
         }
     }
 
-    public void removeSchemaObjects(OrderedHashSet<HsqlName> set) {
+    public void removeSchemaObjects(OrderedHashSet set) {
 
         writeLock.lock();
 
         try {
             for (int i = 0; i < set.size(); i++) {
-                HsqlName name = set.get(i);
+                HsqlName name = (HsqlName) set.get(i);
 
                 if (name.parent != null) {
                     removeSchemaObject(name);
@@ -2152,7 +2197,7 @@ public class SchemaManager {
             }
 
             for (int i = 0; i < set.size(); i++) {
-                HsqlName name = set.get(i);
+                HsqlName name = (HsqlName) set.get(i);
 
                 if (name.parent == null) {
                     removeSchemaObject(name);
@@ -2168,7 +2213,7 @@ public class SchemaManager {
         writeLock.lock();
 
         try {
-            Schema          schema = schemaMap.get(name.schema.name);
+            Schema          schema = (Schema) schemaMap.get(name.schema.name);
             SchemaObject    object = null;
             SchemaObjectSet set    = null;
 
@@ -2183,20 +2228,19 @@ public class SchemaManager {
                 case SchemaObject.VIEW : {
                     set    = schema.tableLookup;
                     object = set.getObject(name.name);
+
                     break;
                 }
-
                 case SchemaObject.COLUMN : {
-                    Table table = (Table) findSchemaObject(name.parent);
+                    Table table = (Table) getSchemaObject(name.parent);
 
                     if (table != null) {
-                        object = table.getColumn(
-                            table.getColumnIndex(name.name));
+                        object =
+                            table.getColumn(table.getColumnIndex(name.name));
                     }
 
                     break;
                 }
-
                 case SchemaObject.CHARSET :
                     set    = schema.charsetLookup;
                     object = set.getObject(name.name);
@@ -2210,8 +2254,8 @@ public class SchemaManager {
                 case SchemaObject.PROCEDURE : {
                     set = schema.procedureLookup;
 
-                    RoutineSchema routine = (RoutineSchema) set.getObject(
-                        name.name);
+                    RoutineSchema routine =
+                        (RoutineSchema) set.getObject(name.name);
 
                     object = routine;
 
@@ -2223,12 +2267,11 @@ public class SchemaManager {
 
                     break;
                 }
-
                 case SchemaObject.FUNCTION : {
                     set = schema.functionLookup;
 
-                    RoutineSchema routine = (RoutineSchema) set.getObject(
-                        name.name);
+                    RoutineSchema routine =
+                        (RoutineSchema) set.getObject(name.name);
 
                     object = routine;
 
@@ -2240,9 +2283,8 @@ public class SchemaManager {
 
                     break;
                 }
-
                 case SchemaObject.SPECIFIC_ROUTINE : {
-                    set = schema.specificRLookup;
+                    set = schema.specificRoutineLookup;
 
                     Routine routine = (Routine) set.getObject(name.name);
 
@@ -2257,7 +2299,6 @@ public class SchemaManager {
 
                     break;
                 }
-
                 case SchemaObject.DOMAIN :
                 case SchemaObject.TYPE :
                     set    = schema.typeLookup;
@@ -2272,7 +2313,8 @@ public class SchemaManager {
                     set = schema.constraintLookup;
 
                     if (name.parent.type == SchemaObject.TABLE) {
-                        Table table = schema.tableList.get(name.parent.name);
+                        Table table =
+                            (Table) schema.tableList.get(name.parent.name);
 
                         object = table.getConstraint(name.name);
 
@@ -2281,18 +2323,19 @@ public class SchemaManager {
                         Type type = (Type) schema.typeLookup.getObject(
                             name.parent.name);
 
-                        object = type.userTypeModifier.getConstraint(name.name);
+                        object =
+                            type.userTypeModifier.getConstraint(name.name);
 
                         type.userTypeModifier.removeConstraint(name.name);
                     }
 
                     break;
                 }
-
                 case SchemaObject.TRIGGER : {
                     set = schema.triggerLookup;
 
-                    Table table = schema.tableList.get(name.parent.name);
+                    Table table =
+                        (Table) schema.tableList.get(name.parent.name);
 
                     object = table.getTrigger(name.name);
 
@@ -2302,17 +2345,15 @@ public class SchemaManager {
 
                     break;
                 }
-
                 case SchemaObject.REFERENCE : {
                     set    = schema.referenceLookup;
                     object = set.getObject(name.name);
+
                     break;
                 }
-
                 default :
-                    throw Error.runtimeError(
-                        ErrorCode.U_S0500,
-                        "SchemaManager");
+                    throw Error.runtimeError(ErrorCode.U_S0500,
+                                             "SchemaManager");
             }
 
             if (object != null) {
@@ -2341,17 +2382,17 @@ public class SchemaManager {
 
             checkObjectIsReferenced(name);
 
-            Schema schema = schemaMap.get(name.schema.name);
+            Schema          schema = (Schema) schemaMap.get(name.schema.name);
+            SchemaObjectSet set    = getSchemaObjectSet(schema, name.type);
 
-            schema.renameObject(name, newName);
+            set.rename(name, newName);
         } finally {
             writeLock.unlock();
         }
     }
 
-    public void replaceReferences(
-            SchemaObject oldObject,
-            SchemaObject newObject) {
+    public void replaceReferences(SchemaObject oldObject,
+                                  SchemaObject newObject) {
 
         writeLock.lock();
 
@@ -2363,18 +2404,18 @@ public class SchemaManager {
         }
     }
 
-    public List<String> getSQLArray() {
+    public String[] getSQLArray() {
 
         readLock.lock();
 
         try {
-            OrderedHashSet<HsqlName>     resolved   = new OrderedHashSet<>();
-            OrderedHashSet<SchemaObject> unresolved = new OrderedHashSet<>();
-            HsqlArrayList<String>        list       = new HsqlArrayList<>();
-            Iterator<Schema>             schemas    = getUserSchemaIterator();
+            OrderedHashSet resolved   = new OrderedHashSet();
+            OrderedHashSet unresolved = new OrderedHashSet();
+            HsqlArrayList  list       = new HsqlArrayList();
+            Iterator       schemas    = getUserSchemaIterator();
 
             while (schemas.hasNext()) {
-                Schema schema = schemas.next();
+                Schema schema = (Schema) schemas.next();
 
                 list.add(schema.getSQL());
 
@@ -2382,29 +2423,24 @@ public class SchemaManager {
                         round++) {
                     int objectType = Schema.scriptSequenceOne[round];
 
-                    list.addAll(
-                        schema.getSQLArray(objectType, resolved, unresolved));
+                    list.addAll(schema.getSQLArray(objectType, resolved,
+                                                   unresolved));
                 }
 
                 while (true) {
-                    Iterator<SchemaObject> it = unresolved.iterator();
+                    Iterator it = unresolved.iterator();
 
                     if (!it.hasNext()) {
                         break;
                     }
 
-                    OrderedHashSet<SchemaObject> newResolved =
-                        new OrderedHashSet<>();
+                    OrderedHashSet newResolved = new OrderedHashSet();
 
-                    SchemaObjectSet.addAllSQL(
-                        resolved,
-                        unresolved,
-                        list,
-                        it,
-                        newResolved);
+                    SchemaObjectSet.addAllSQL(resolved, unresolved, list, it,
+                                              newResolved);
                     unresolved.removeAll(newResolved);
 
-                    if (newResolved.isEmpty()) {
+                    if (newResolved.size() == 0) {
                         break;
                     }
                 }
@@ -2416,42 +2452,37 @@ public class SchemaManager {
                 schemas = getUserSchemaIterator();
 
                 while (schemas.hasNext()) {
-                    Schema schema     = schemas.next();
+                    Schema schema     = (Schema) schemas.next();
                     int    objectType = Schema.scriptSequenceTwo[round];
 
-                    list.addAll(
-                        schema.getSQLArray(objectType, resolved, unresolved));
+                    list.addAll(schema.getSQLArray(objectType, resolved,
+                                                   unresolved));
                 }
             }
 
             while (true) {
-                Iterator<SchemaObject> it = unresolved.iterator();
+                Iterator it = unresolved.iterator();
 
                 if (!it.hasNext()) {
                     break;
                 }
 
-                OrderedHashSet<SchemaObject> newResolved =
-                    new OrderedHashSet<>();
+                OrderedHashSet newResolved = new OrderedHashSet();
 
-                SchemaObjectSet.addAllSQL(
-                    resolved,
-                    unresolved,
-                    list,
-                    it,
-                    newResolved);
+                SchemaObjectSet.addAllSQL(resolved, unresolved, list, it,
+                                          newResolved);
                 unresolved.removeAll(newResolved);
 
-                if (newResolved.isEmpty()) {
+                if (newResolved.size() == 0) {
                     break;
                 }
             }
 
             // forward reference routines
-            Iterator<SchemaObject> it = unresolved.iterator();
+            Iterator it = unresolved.iterator();
 
             while (it.hasNext()) {
-                SchemaObject object = it.next();
+                SchemaObject object = (SchemaObject) it.next();
 
                 if (object instanceof Routine) {
                     list.add(((Routine) object).getSQLDeclaration());
@@ -2461,7 +2492,7 @@ public class SchemaManager {
             it = unresolved.iterator();
 
             while (it.hasNext()) {
-                SchemaObject object = it.next();
+                SchemaObject object = (SchemaObject) it.next();
 
                 if (object instanceof Routine) {
                     list.add(((Routine) object).getSQLAlter());
@@ -2473,7 +2504,7 @@ public class SchemaManager {
             it = unresolved.iterator();
 
             while (it.hasNext()) {
-                SchemaObject object = it.next();
+                SchemaObject object = (SchemaObject) it.next();
 
                 if (object instanceof ReferenceObject) {
                     list.add(object.getSQL());
@@ -2483,8 +2514,8 @@ public class SchemaManager {
             schemas = getUserSchemaIterator();
 
             while (schemas.hasNext()) {
-                Schema                schema = schemas.next();
-                HsqlArrayList<String> t      = schema.getTriggerSQLArray();
+                Schema        schema = (Schema) schemas.next();
+                HsqlArrayList t      = schema.getTriggerSQL();
 
                 if (t.size() > 0) {
                     list.add(schema.getSetSchemaSQL());
@@ -2495,44 +2526,42 @@ public class SchemaManager {
             schemas = schemaMap.values().iterator();
 
             while (schemas.hasNext()) {
-                Schema schema = schemas.next();
+                Schema schema = (Schema) schemas.next();
 
-                list.addAll(schema.getSequenceRestartSQLArray());
+                list.addAll(schema.getSequenceRestartSQL());
             }
 
             if (defaultSchemaHsqlName != null) {
-                StringBuilder sb = new StringBuilder(64);
+                StringBuilder sb = new StringBuilder();
 
-                sb.append(Tokens.T_SET)
-                  .append(' ')
-                  .append(Tokens.T_DATABASE)
-                  .append(' ')
-                  .append(Tokens.T_DEFAULT)
-                  .append(' ')
-                  .append(Tokens.T_INITIAL)
-                  .append(' ')
-                  .append(Tokens.T_SCHEMA)
-                  .append(' ')
-                  .append(defaultSchemaHsqlName.statementName);
+                sb.append(Tokens.T_SET).append(' ').append(Tokens.T_DATABASE);
+                sb.append(' ').append(Tokens.T_DEFAULT).append(' ');
+                sb.append(Tokens.T_INITIAL).append(' ').append(
+                    Tokens.T_SCHEMA);
+                sb.append(' ').append(defaultSchemaHsqlName.statementName);
                 list.add(sb.toString());
             }
 
-            return list;
+            String[] array = new String[list.size()];
+
+            list.toArray(array);
+
+            return array;
         } finally {
             readLock.unlock();
         }
     }
 
-    public List<String> getTablePropsSQLArray(boolean withHeader) {
+    public String[] getTablePropsSQL(boolean withHeader) {
 
         readLock.lock();
 
         try {
-            HsqlArrayList<Table>  tableList = getAllTables(false);
-            HsqlArrayList<String> list      = new HsqlArrayList<>();
+            HsqlArrayList tableList = getAllTables(false);
+            HsqlArrayList list      = new HsqlArrayList();
 
             for (int i = 0; i < tableList.size(); i++) {
-                Table t = tableList.get(i);
+                Table t = (Table) tableList.get(i);
 
                 if (t.isText()) {
                     String[] ddl = t.getSQLForTextSource(withHeader);
@@ -2555,22 +2584,26 @@ public class SchemaManager {
                 }
             }
 
-            return list;
+            String[] array = new String[list.size()];
+
+            list.toArray(array);
+
+            return array;
         } finally {
             readLock.unlock();
         }
     }
 
-    public List<String> getTableSpaceSQLArray() {
+    public String[] getTableSpaceSQL() {
 
         readLock.lock();
 
         try {
-            HsqlArrayList<Table>  tableList = getAllTables(true);
-            HsqlArrayList<String> list      = new HsqlArrayList<>();
+            HsqlArrayList tableList = getAllTables(true);
+            HsqlArrayList list      = new HsqlArrayList();
 
             for (int i = 0; i < tableList.size(); i++) {
-                Table t = tableList.get(i);
+                Table t = (Table) tableList.get(i);
 
                 if (t.isCached()) {
                     String ddl = t.getSQLForTableSpace();
@@ -2581,26 +2614,29 @@ public class SchemaManager {
                 }
             }
 
-            return list;
+            String[] array = new String[list.size()];
+
+            list.toArray(array);
+
+            return array;
         } finally {
             readLock.unlock();
         }
     }
 
-    public List<String> getIndexRootsSQLArray() {
+    public String[] getIndexRootsSQL() {
 
         readLock.lock();
 
         try {
-            long[][]              rootsArray = getIndexRoots();
-            HsqlArrayList<Table>  tableList  = getAllTables(true);
-            HsqlArrayList<String> list       = new HsqlArrayList<>();
+            long[][]      rootsArray = getIndexRoots();
+            HsqlArrayList tableList  = getAllTables(true);
+            HsqlArrayList list       = new HsqlArrayList();
 
             for (int i = 0; i < rootsArray.length; i++) {
-                Table table = tableList.get(i);
+                Table table = (Table) tableList.get(i);
 
-                if (rootsArray[i] != null
-                        && rootsArray[i].length > 0
+                if (rootsArray[i] != null && rootsArray[i].length > 0
                         && rootsArray[i][0] != -1) {
                     String ddl = table.getIndexRootsSQL(rootsArray[i]);
 
@@ -2608,7 +2644,11 @@ public class SchemaManager {
                 }
             }
 
-            return list;
+            String[] array = new String[list.size()];
+
+            list.toArray(array);
+
+            return array;
         } finally {
             readLock.unlock();
         }
@@ -2633,11 +2673,11 @@ public class SchemaManager {
                 return roots;
             }
 
-            HsqlArrayList<Table>  allTables = getAllTables(true);
-            HsqlArrayList<long[]> list      = new HsqlArrayList<>();
+            HsqlArrayList allTables = getAllTables(true);
+            HsqlArrayList list      = new HsqlArrayList();
 
             for (int i = 0, size = allTables.size(); i < size; i++) {
-                Table t = allTables.get(i);
+                Table t = (Table) allTables.get(i);
 
                 if (t.getTableType() == TableBase.CACHED_TABLE) {
                     long[] roots = t.getIndexRootsArray();
@@ -2666,12 +2706,11 @@ public class SchemaManager {
         readLock.lock();
 
         try {
-            HsqlArrayList<Table> allTables =
-                database.schemaManager.getAllTables(
-                    true);
+            HsqlArrayList allTables =
+                database.schemaManager.getAllTables(true);
 
             for (int i = 0, size = allTables.size(); i < size; i++) {
-                Table t = allTables.get(i);
+                Table t = (Table) allTables.get(i);
 
                 if (t.getTableType() == TableBase.CACHED_TABLE) {
                     long[] rootsArray = roots[i];
@@ -2696,28 +2735,51 @@ public class SchemaManager {
 
     public void createSystemTables() {
 
-        dualTable = TableUtil.newSingleColumnTable(
-            database,
-            SqlInvariants.DUAL_TABLE_HSQLNAME,
-            TableBase.SYSTEM_TABLE,
-            SqlInvariants.DUAL_COLUMN_HSQLNAME,
-            Type.SQL_VARCHAR);
+        dualTable = TableUtil.newSingleColumnTable(database,
+                SqlInvariants.DUAL_TABLE_HSQLNAME, TableBase.SYSTEM_TABLE,
+                SqlInvariants.DUAL_COLUMN_HSQLNAME, Type.SQL_VARCHAR);
 
-        dualTable.insertSys(
-            database.sessionManager.getSysSession(),
-            dualTable.getRowStore(null),
-            new Object[]{ "X" });
+        dualTable.insertSys(database.sessionManager.getSysSession(),
+                            dualTable.getRowStore(null), new Object[]{ "X" });
         dualTable.setDataReadOnly(true);
+
+        Type[] columnTypes = new Type[] {
+            Type.SQL_BIGINT, Type.SQL_BIGINT, Type.SQL_BIGINT,
+            TypeInvariants.SQL_IDENTIFIER, TypeInvariants.SQL_IDENTIFIER,
+            Type.SQL_BOOLEAN
+        };
+        HsqlName       tableName = database.nameManager.getSubqueryTableName();
+        OrderedHashMap columnList = new OrderedHashMap();
+
+        for (int i = 0; i < columnTypes.length; i++) {
+            HsqlName name = HsqlNameManager.getAutoColumnName(i + 1);
+            ColumnSchema column = new ColumnSchema(name, columnTypes[i], true,
+                                                   false, null);
+
+            columnList.add(name.name, column);
+        }
+
+        dataChangeTable = new TableDerived(database, tableName,
+                                           TableBase.CHANGE_SET_TABLE,
+                                           columnTypes, columnList,
+                                           new int[]{ 0 });
+
+        dataChangeTable.createIndexForColumns(null, new int[]{ 1 });
     }
 
-    static class UserSchemaFilter implements FilteredIterator.Filter<Schema> {
+    static class UserSchemaFilter implements FilteredIterator.Filter {
 
-        public boolean test(Schema schema) {
+        public boolean test(Object schemaObject) {
 
-            String name = schema.getName().name;
+            Schema schema = (Schema) schemaObject;
+            String name   = schema.getName().name;
 
-            return !SqlInvariants.isLobsSchemaName(name)
-                   && !SqlInvariants.isSystemSchemaName(name);
+            if (SqlInvariants.isLobsSchemaName(name)
+                    || SqlInvariants.isSystemSchemaName(name)) {
+                return false;
+            }
+
+            return true;
         }
     }
 }

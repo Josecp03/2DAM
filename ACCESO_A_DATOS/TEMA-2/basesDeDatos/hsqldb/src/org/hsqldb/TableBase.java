@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,13 +84,13 @@ public class TableBase implements Cloneable {
     public Database database;
     int[]           bestRowIdentifierCols;      // column set for best index
     boolean         bestRowIdentifierStrict;    // true if it has no nullable column
-    int[]           bestIndexForColumn;         // 'best' index for each column
-    Index           bestIndex;                  // the best index overall
-    Index           fullIndex;                  // index on all columns
-    boolean[]       colNotNull;                 // nullability
-    Type[]          colTypes;                   // types of columns
-    protected int   columnCount;
-    boolean[]       emptyColumnCheckList;
+    int[]           bestIndexForColumn;         // index of the 'best' index for each column
+    Index           bestIndex;                  // the best index overall - null if there is no user-defined index
+    Index         fullIndex;                    // index on all columns
+    boolean[]     colNotNull;                   // nullability
+    Type[]        colTypes;                     // types of columns
+    protected int columnCount;
+    boolean[]     emptyColumnCheckList;
 
     //
     int               tableType;
@@ -162,6 +162,7 @@ public class TableBase implements Cloneable {
     }
 
     public final RowIterator rowIterator(Session session) {
+
         PersistentStore store = getRowStore(session);
 
         return getDefaultIndex().firstRow(session, store, null, 0, null);
@@ -176,9 +177,8 @@ public class TableBase implements Cloneable {
     }
 
     public final Index getPrimaryIndex() {
-        return indexList.length > 0
-               ? indexList[0]
-               : null;
+        return indexList.length > 0 ? indexList[0]
+                                    : null;
     }
 
     public Index getDefaultIndex() {
@@ -326,8 +326,7 @@ public class TableBase implements Cloneable {
             }
 
             if (nnullc == colsCount) {
-                if (briCols == null
-                        || briColsCount != nNullCount
+                if (briCols == null || briColsCount != nNullCount
                         || colsCount < briColsCount) {
 
                     //  nothing found before ||
@@ -342,8 +341,7 @@ public class TableBase implements Cloneable {
                 continue;
             } else if (isStrict) {
                 continue;
-            } else if (briCols == null
-                       || colsCount < briColsCount
+            } else if (briCols == null || colsCount < briColsCount
                        || nnullc > nNullCount) {
 
                 //  nothing found before ||
@@ -358,10 +356,8 @@ public class TableBase implements Cloneable {
         if (briCols == null || briColsCount == briCols.length) {
             bestRowIdentifierCols = briCols;
         } else {
-            bestRowIdentifierCols = ArrayUtil.arraySlice(
-                briCols,
-                0,
-                briColsCount);
+            bestRowIdentifierCols = ArrayUtil.arraySlice(briCols, 0,
+                    briColsCount);
         }
 
         bestRowIdentifierStrict = isStrict;
@@ -375,10 +371,9 @@ public class TableBase implements Cloneable {
         return this.colNotNull;
     }
 
-    public final void createPrimaryIndex(
-            int[] pkcols,
-            Type[] pktypes,
-            HsqlName name) {
+    public final void createPrimaryIndex(int[] pkcols, Type[] pktypes,
+                                         HsqlName name) {
+
         Index newIndex = getNewPrimaryIndex(pkcols, pktypes, name);
 
         addIndexStructure(newIndex);
@@ -388,54 +383,28 @@ public class TableBase implements Cloneable {
 
         long id = database.persistentStoreCollection.getNextId();
 
-        return database.logger.newIndex(
-            name,
-            id,
-            this,
-            pkcols,
-            null,
-            null,
-            pktypes,
-            true,
-            pkcols.length > 0,
-            pkcols.length > 0,
-            false);
+        return database.logger.newIndex(name, id, this, pkcols, null, null,
+                                        pktypes, true, pkcols.length > 0,
+                                        pkcols.length > 0, false);
     }
 
-    public final Index createAndAddIndexStructure(
-            Session session,
-            HsqlName name,
-            int[] columns,
-            boolean[] descending,
-            boolean[] nullsLast,
-            boolean unique,
-            boolean constraint,
+    public final Index createAndAddIndexStructure(Session session,
+            HsqlName name, int[] columns, boolean[] descending,
+            boolean[] nullsLast, boolean unique, boolean constraint,
             boolean forward) {
 
-        Index newindex = createIndexStructure(
-            name,
-            columns,
-            descending,
-            nullsLast,
-            false,
-            unique,
-            constraint,
-            forward);
+        Index newindex = createIndexStructure(name, columns, descending,
+                                              nullsLast, false, unique,
+                                              constraint, forward);
 
         addIndex(session, newindex);
 
         return newindex;
     }
 
-    public final Index createIndexStructure(
-            HsqlName name,
-            int[] columns,
-            boolean[] descending,
-            boolean[] nullsLast,
-            boolean primaryKey,
-            boolean unique,
-            boolean constraint,
-            boolean forward) {
+    public final Index createIndexStructure(HsqlName name, int[] columns,
+            boolean[] descending, boolean[] nullsLast, boolean primaryKey,
+            boolean unique, boolean constraint, boolean forward) {
 
         int    s     = columns.length;
         int[]  cols  = new int[s];
@@ -447,17 +416,8 @@ public class TableBase implements Cloneable {
         }
 
         long id = database.persistentStoreCollection.getNextId();
-        Index newIndex = database.logger.newIndex(
-            name,
-            id,
-            this,
-            cols,
-            descending,
-            nullsLast,
-            types,
-            primaryKey,
-            unique,
-            constraint,
+        Index newIndex = database.logger.newIndex(name, id, this, cols,
+            descending, nullsLast, types, primaryKey, unique, constraint,
             forward);
 
         return newIndex;
@@ -470,11 +430,8 @@ public class TableBase implements Cloneable {
      */
     public void dropIndex(Session session, int todrop) {
 
-        Index[] list = (Index[]) ArrayUtil.toAdjustedArray(
-            indexList,
-            null,
-            todrop,
-            -1);
+        Index[] list = (Index[]) ArrayUtil.toAdjustedArray(indexList, null,
+            todrop, -1);
 
         for (int i = 0; i < list.length; i++) {
             list[i].setPosition(i);
@@ -488,6 +445,7 @@ public class TableBase implements Cloneable {
     }
 
     final void addIndexStructure(Index index) {
+
         indexList = getNewIndexArray(index, indexList);
 
         setBestRowIdentifiers();
@@ -507,8 +465,7 @@ public class TableBase implements Cloneable {
             }
         }
 
-        boolean replacePK = index.isPrimaryKey()
-                            && list.length > 0
+        boolean replacePK = index.isPrimaryKey() && list.length > 0
                             && list[0].isPrimaryKey();
 
         if (replacePK) {
@@ -545,6 +502,7 @@ public class TableBase implements Cloneable {
     }
 
     private void resetAccessorKeys(Session session, Index[] indexes) {
+
         if (store != null) {
             store.resetAccessorKeys(session, indexes);
         }
@@ -561,25 +519,13 @@ public class TableBase implements Cloneable {
     /**
      *  Create new memory-resident index. For MEMORY and TEXT tables.
      */
-    public final Index createIndex(
-            Session session,
-            HsqlName name,
-            int[] columns,
-            boolean[] descending,
-            boolean[] nullsLast,
-            boolean unique,
-            boolean constraint,
-            boolean forward) {
+    public final Index createIndex(Session session, HsqlName name,
+                                   int[] columns, boolean[] descending,
+                                   boolean[] nullsLast, boolean unique,
+                                   boolean constraint, boolean forward) {
 
-        Index newIndex = createAndAddIndexStructure(
-            session,
-            name,
-            columns,
-            descending,
-            nullsLast,
-            unique,
-            constraint,
-            forward);
+        Index newIndex = createAndAddIndexStructure(session, name, columns,
+            descending, nullsLast, unique, constraint, forward);
 
         return newIndex;
     }
@@ -605,6 +551,7 @@ public class TableBase implements Cloneable {
     }
 
     public PersistentStore getRowStore(Session session) {
+
         return store == null
                ? session.sessionData.persistentStoreCollection.getStore(this)
                : store;

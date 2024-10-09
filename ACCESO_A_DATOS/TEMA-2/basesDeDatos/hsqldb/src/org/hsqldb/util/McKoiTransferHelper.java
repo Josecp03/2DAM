@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ package org.hsqldb.util;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 
 /**
  * Helper class for conversion from a different databases
@@ -46,14 +47,11 @@ class McKoiTransferHelper extends TransferHelper {
         super();
     }
 
-    String fixupColumnDefRead(
-            TransferTable t,
-            ResultSetMetaData meta,
-            String columnType,
-            ResultSet columnDesc,
-            int columnIndex) {
+    String fixupColumnDefRead(TransferTable t, ResultSetMetaData meta,
+                              String columnType, ResultSet columnDesc,
+                              int columnIndex) {
 
-        String CompareString = "UNIQUEKEY('" + t.Stmts.sDestTable + "'";
+        String CompareString = "UNIQUEKEY(\'" + t.Stmts.sDestTable + "\'";
 
         if (columnType.indexOf(CompareString) > 0) {
 
@@ -68,16 +66,13 @@ class McKoiTransferHelper extends TransferHelper {
         super(database, t, q);
     }
 
-    String fixupColumnDefWrite(
-            TransferTable t,
-            ResultSetMetaData meta,
-            String columnType,
-            ResultSet columnDesc,
-            int columnIndex) {
+    String fixupColumnDefWrite(TransferTable t, ResultSetMetaData meta,
+                               String columnType, ResultSet columnDesc,
+                               int columnIndex) {
 
         if (columnType.equals("SERIAL")) {
-            columnType = "INTEGER DEFAULT UNIQUEKEY ('" + t.Stmts.sSourceTable
-                         + "')";
+            columnType = "INTEGER DEFAULT UNIQUEKEY (\'"
+                         + t.Stmts.sSourceTable + "\')";
         }
 
         return (columnType);

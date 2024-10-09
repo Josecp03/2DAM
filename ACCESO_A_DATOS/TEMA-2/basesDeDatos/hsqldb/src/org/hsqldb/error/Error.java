@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ import org.hsqldb.result.Result;
  *
  * @author Loic Lefevre
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.2.7
  * @since 1.9.0
  */
 public final class Error {
@@ -53,18 +53,17 @@ public final class Error {
     public static boolean TRACESYSTEMOUT = false;
 
     //
-    private static final String defaultMessage   = "S1000 General error";
-    private static final String errPropsName     = "sql-state-messages";
+    private static final String defaultMessage = "S1000 General error";
+    private static final String errPropsName   = "sql-state-messages";
     private static final int bundleHandle =
-        ResourceBundleHandler.getBundleHandle(
-            errPropsName,
-            null);
+        ResourceBundleHandler.getBundleHandle(errPropsName, null);
     private static final String MESSAGE_TAG      = "$$";
     private static final int    SQL_STATE_DIGITS = 5;
     private static final int    SQL_CODE_DIGITS  = 4;
     private static final int    ERROR_CODE_BASE  = 11;
 
     public static RuntimeException runtimeError(int code, String add) {
+
         HsqlException e = error(code, add);
 
         return new RuntimeException(e.getMessage());
@@ -82,17 +81,12 @@ public final class Error {
             s += ": " + add;
         }
 
-        return new HsqlException(
-            t,
-            s.substring(SQL_STATE_DIGITS + 1),
-            s.substring(0, SQL_STATE_DIGITS),
-            -code);
+        return new HsqlException(t, s.substring(SQL_STATE_DIGITS + 1),
+                                 s.substring(0, SQL_STATE_DIGITS), -code);
     }
 
-    public static HsqlException parseError(
-            int code,
-            String add,
-            int lineNumber) {
+    public static HsqlException parseError(int code, String add,
+                                           int lineNumber) {
 
         String s = getMessage(code);
 
@@ -105,11 +99,8 @@ public final class Error {
             s   = s + " :" + add + lineNumber;
         }
 
-        return new HsqlException(
-            null,
-            s.substring(SQL_STATE_DIGITS + 1),
-            s.substring(0, SQL_STATE_DIGITS),
-            -code);
+        return new HsqlException(null, s.substring(SQL_STATE_DIGITS + 1),
+                                 s.substring(0, SQL_STATE_DIGITS), -code);
     }
 
     public static HsqlException error(int code) {
@@ -120,10 +111,8 @@ public final class Error {
 
         String message = getMessage(code, 0, null);
 
-        return new HsqlException(
-            t,
-            message.substring(0, SQL_STATE_DIGITS),
-            -code);
+        return new HsqlException(t, message.substring(0, SQL_STATE_DIGITS),
+                                 -code);
     }
 
     /**
@@ -133,34 +122,26 @@ public final class Error {
      * the add parameters.
      *
      * @param code      main error code
-     * @param subCode   sub error code (if 0 then no subMessage!)
+     * @param subCode   sub error code (if 0 => no subMessage!)
      * @param   add     optional parameters
      *
-     * @return an {@code HsqlException}
+     * @return an <code>HsqlException</code>
      */
-    public static HsqlException error(
-            Throwable t,
-            int code,
-            int subCode,
-            final String[] add) {
+    public static HsqlException error(Throwable t, int code, int subCode,
+                                      final String[] add) {
 
         String message = getMessage(code, subCode, add);
-        int    sqlCode = subCode < ERROR_CODE_BASE
-                         ? code
-                         : subCode;
+        int    sqlCode = subCode < ERROR_CODE_BASE ? code
+                                                   : subCode;
 
-        return new HsqlException(
-            t,
-            message.substring(SQL_STATE_DIGITS + 1),
-            message.substring(0, SQL_STATE_DIGITS),
-            -sqlCode);
+        return new HsqlException(t, message.substring(SQL_STATE_DIGITS + 1),
+                                 message.substring(0, SQL_STATE_DIGITS),
+                                 -sqlCode);
     }
 
-    public static HsqlException parseError(
-            int code,
-            int subCode,
-            int lineNumber,
-            final String[] add) {
+    public static HsqlException parseError(int code, int subCode,
+                                           int lineNumber,
+                                           final String[] add) {
 
         String message = getMessage(code, subCode, add);
 
@@ -170,15 +151,13 @@ public final class Error {
             message = message + " :" + sub + lineNumber;
         }
 
-        int sqlCode = subCode < ERROR_CODE_BASE
-                      ? code
-                      : subCode;
+        int sqlCode = subCode < ERROR_CODE_BASE ? code
+                                                : subCode;
 
-        return new HsqlException(
-            null,
-            message.substring(SQL_STATE_DIGITS + 1),
-            message.substring(0, SQL_STATE_DIGITS),
-            -sqlCode);
+        return new HsqlException(null,
+                                 message.substring(SQL_STATE_DIGITS + 1),
+                                 message.substring(0, SQL_STATE_DIGITS),
+                                 -sqlCode);
     }
 
     public static HsqlException error(int code, int code2) {
@@ -188,7 +167,7 @@ public final class Error {
     /**
      * For SIGNAL and RESIGNAL
      * @see HsqlException#HsqlException(Throwable,String, String, int)
-     * @return an {@code HsqlException}
+     * @return an <code>HsqlException</code>
      */
     public static HsqlException error(String message, String sqlState) {
 
@@ -214,7 +193,7 @@ public final class Error {
      * @param message  message string
      * @param add      optional parameters
      *
-     * @return an {@code HsqlException}
+     * @return an <code>HsqlException</code>
      */
     private static String insertStrings(String message, String[] add) {
 
@@ -234,9 +213,8 @@ public final class Error {
             }
 
             sb.append(message, lastIndex, escIndex);
-            sb.append(add[i] == null
-                      ? "null exception message"
-                      : add[i]);
+            sb.append(add[i] == null ? "null exception message"
+                                     : add[i]);
 
             lastIndex = escIndex + MESSAGE_TAG.length();
         }
@@ -250,8 +228,8 @@ public final class Error {
 
     /**
      * Returns the error message given the error code.<p>
-     * This method is to be used when throwing exception other
-     * than {@code HsqlException}.
+     * This method is be used when throwing exception other
+     * than <code>HsqlException</code>.
      *
      * @param errorCode    the error code associated to the error message
      * @return  the error message associated with the error code
@@ -262,7 +240,7 @@ public final class Error {
 
     /**
      * Returns the error SQL STATE sting given the error code.<p>
-     * This method is to be used when throwing exception based on other exceptions.
+     * This method is be used when throwing exception based on other exceptions.
      *
      * @param errorCode    the error code associated to the error message
      * @return  the error message associated with the error code
@@ -274,22 +252,20 @@ public final class Error {
     /**
      * Returns the error message given the error code.<p>
      * This method is used
-     * when throwing exception other than {@code HsqlException}.
+     * when throwing exception other than <code>HsqlException</code>.
      *
      * @param code the code for the error message
      * @param subCode the code for the addon message
      * @param add value(s) to use to replace the placeholer(s)
      * @return the error message associated with the error code
      */
-    public static String getMessage(
-            final int code,
-            int subCode,
-            final String[] add) {
+    public static String getMessage(final int code, int subCode,
+                                    final String[] add) {
 
         String message = getResourceString(code);
 
         if (subCode != 0) {
-            message += ' ' + getResourceString(subCode);
+            message += getResourceString(subCode);
         }
 
         if (add != null) {
@@ -301,9 +277,7 @@ public final class Error {
 
     private static String getResourceString(int code) {
 
-        String key = StringUtil.toZeroPaddedString(
-            code,
-            SQL_CODE_DIGITS,
+        String key = StringUtil.toZeroPaddedString(code, SQL_CODE_DIGITS,
             SQL_CODE_DIGITS);
         String string = ResourceBundleHandler.getString(bundleHandle, key);
 
@@ -325,6 +299,7 @@ public final class Error {
      * @param message message to print
      */
     public static void printSystemOut(String message) {
+
         if (TRACESYSTEMOUT) {
             System.out.println(message);
         }

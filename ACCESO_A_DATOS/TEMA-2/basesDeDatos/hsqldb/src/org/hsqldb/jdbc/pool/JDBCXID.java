@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 package org.hsqldb.jdbc.pool;
 
 import java.net.Inet4Address;
-
 import java.util.Arrays;
 import java.util.Random;
 
@@ -99,6 +98,7 @@ public class JDBCXID implements Xid {
     }
 
     public JDBCXID(int formatID, byte[] txID, byte[] txBranch) {
+
         this.formatID = formatID;
         this.txID     = txID;
         this.txBranch = txBranch;
@@ -152,9 +152,8 @@ public class JDBCXID implements Xid {
         }
 
         //
-        sb.append("} branchQualifier(")
-          .append(txBranch.length)
-          .append("))={0x");
+        sb.append("} branchQualifier(").append(txBranch.length).append(
+            "))={0x");
 
         for (int i = 0; i < txBranch.length; i++) {
             final int hexVal = txBranch[i] & 0xFF;
@@ -179,6 +178,7 @@ public class JDBCXID implements Xid {
     private static final int UXID_FORMAT_ID = 0xFEED;
 
     private static int nextTxnSequenceNumber() {
+
         s_txnSequenceNumber++;
 
         return s_txnSequenceNumber;
@@ -190,7 +190,9 @@ public class JDBCXID implements Xid {
             try {
                 s_localIp = Inet4Address.getLocalHost().getAddress();
             } catch (Exception ex) {
-                s_localIp = new byte[]{ 0x7F, 0x00, 0x00, 0x01 };
+                s_localIp = new byte[] {
+                    0x7F, 0x00, 0x00, 0x01
+                };
             }
         }
 
@@ -199,11 +201,11 @@ public class JDBCXID implements Xid {
 
     /**
      * Retrieves a randomly generated JDBCXID.
-     * <p>
+     *
      * The newly generated object is based on the local IP address, the given
-     * {@code threadId} and a randomly generated number using the current time
+     * <code>threadId</code> and a randomly generated number using the current time
      * in milliseconds as the random seed.
-     * <p>
+     *
      * Note that java.util.Random is used, not java.security.SecureRandom.
      *
      * @param threadId can be a real thread id or just some convenient
@@ -233,7 +235,7 @@ public class JDBCXID implements Xid {
         // Bytes 12->15 - random.
         for (int i = 0; i <= 3; i++) {
             globalTransactionId[i + 4] = (byte) (txnSequenceNumberValue
-                    % 0x100);
+                                                 % 0x100);
             branchQualifier[i + 4] = (byte) (txnSequenceNumberValue % 0x100);
             txnSequenceNumberValue      >>= 8;
             globalTransactionId[i + 8]  = (byte) (threadIdValue % 0x100);
@@ -244,9 +246,7 @@ public class JDBCXID implements Xid {
             randomValue                 >>= 8;
         }
 
-        return new JDBCXID(
-            UXID_FORMAT_ID,
-            globalTransactionId,
-            branchQualifier);
+        return new JDBCXID(UXID_FORMAT_ID, globalTransactionId,
+                           branchQualifier);
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ import org.hsqldb.lib.StringConverter;
  * Cast to CHARACTER types converts to a hexadecimal UUID string.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 2.3.4
  */
 public class BinaryUUIDType extends BinaryType {
@@ -125,9 +125,8 @@ public class BinaryUUIDType extends BinaryType {
             return Integer.MIN_VALUE;
         }
 
-        return other.typeCode == Types.SQL_BLOB
-               ? 4
-               : 2;
+        return other.typeCode == Types.SQL_BLOB ? 4
+                                                : 2;
     }
 
     public Type getAggregateType(Type other) {
@@ -185,7 +184,8 @@ public class BinaryUUIDType extends BinaryType {
         if (a instanceof BinaryData && b instanceof BinaryData) {
             byte[] data1  = ((BinaryData) a).getBytes();
             byte[] data2  = ((BinaryData) b).getBytes();
-            int    length = Math.min(data1.length, data2.length);
+            int    length = data1.length > data2.length ? data2.length
+                                                        : data1.length;
 
             for (int i = 0; i < length; i++) {
                 if (data1[i] == data2[i]) {
@@ -201,9 +201,8 @@ public class BinaryUUIDType extends BinaryType {
                 return 0;
             }
 
-            return data1.length > data2.length
-                   ? 1
-                   : -1;
+            return data1.length > data2.length ? 1
+                                               : -1;
         }
 
         throw Error.runtimeError(ErrorCode.U_S0500, "BinaryUUIDType");
@@ -213,17 +212,13 @@ public class BinaryUUIDType extends BinaryType {
         return castOrConvertToType(session, a, this, false);
     }
 
-    public Object castToType(
-            SessionInterface session,
-            Object a,
-            Type otherType) {
+    public Object castToType(SessionInterface session, Object a,
+                             Type otherType) {
         return castOrConvertToType(session, a, otherType, true);
     }
 
-    public Object convertToType(
-            SessionInterface session,
-            Object a,
-            Type otherType) {
+    public Object convertToType(SessionInterface session, Object a,
+                                Type otherType) {
         return castOrConvertToType(session, a, otherType, false);
     }
 
@@ -253,11 +248,8 @@ public class BinaryUUIDType extends BinaryType {
         return getJavaUUID((BinaryData) a);
     }
 
-    Object castOrConvertToType(
-            SessionInterface session,
-            Object a,
-            Type otherType,
-            boolean cast) {
+    Object castOrConvertToType(SessionInterface session, Object a,
+                               Type otherType, boolean cast) {
 
         BlobData b;
 
@@ -275,9 +267,9 @@ public class BinaryUUIDType extends BinaryType {
             case Types.SQL_CHAR : {
                 b = session.getScanner().convertToBinary((String) a, true);
                 otherType = this;
+
                 break;
             }
-
             case Types.SQL_GUID :
             case Types.SQL_BINARY :
             case Types.SQL_VARBINARY :
@@ -299,19 +291,20 @@ public class BinaryUUIDType extends BinaryType {
             byte[] bytes = b.getBytes(session, 0, (int) precision);
 
             b = new BinaryData(bytes, false);
+
         } else {
             if (b.length(session) != precision) {
                 throw Error.error(ErrorCode.X_22001);
             }
-        }
 
+        }
         return b;
     }
 
     public Object convertToDefaultType(SessionInterface session, Object a) {
 
         if (a == null) {
-            return null;
+            return a;
         }
 
         if (a instanceof byte[]) {
@@ -347,38 +340,33 @@ public class BinaryUUIDType extends BinaryType {
 
     public boolean canConvertFrom(Type otherType) {
         return otherType.typeCode == Types.SQL_ALL_TYPES
-               || otherType.isBinaryType()
-               || otherType.isCharacterType();
+               || otherType.isBinaryType() || otherType.isCharacterType();
     }
 
     public int canMoveFrom(Type otherType) {
 
         if (otherType == this) {
-            return ReType.keep;
+            return 0;
         }
 
         switch (otherType.typeCode) {
 
             case Types.SQL_GUID :
-                return ReType.keep;
+                return 0;
 
             case Types.SQL_VARBINARY :
             case Types.SQL_BINARY :
             case Types.SQL_CHAR :
             case Types.SQL_VARCHAR :
-                return ReType.change;
+                return -1;
 
             default :
-                return ReType.change;
+                return -1;
         }
     }
 
-    public long position(
-            SessionInterface session,
-            BlobData data,
-            BlobData otherData,
-            Type otherType,
-            long offset) {
+    public long position(SessionInterface session, BlobData data,
+                         BlobData otherData, Type otherType, long offset) {
 
         if (data == null || otherData == null) {
             return -1L;
@@ -393,12 +381,8 @@ public class BinaryUUIDType extends BinaryType {
         return data.position(session, otherData, offset);
     }
 
-    public BlobData substring(
-            SessionInterface session,
-            BlobData data,
-            long offset,
-            long length,
-            boolean hasLength) {
+    public BlobData substring(SessionInterface session, BlobData data,
+                              long offset, long length, boolean hasLength) {
 
         long end;
         long dataLength = data.length(session);
@@ -406,7 +390,8 @@ public class BinaryUUIDType extends BinaryType {
         if (hasLength) {
             end = offset + length;
         } else {
-            end = Math.max(dataLength, offset);
+            end = dataLength > offset ? dataLength
+                                      : offset;
         }
 
         if (offset > end) {
@@ -446,12 +431,8 @@ public class BinaryUUIDType extends BinaryType {
         return ++endindex;
     }
 
-    public BlobData trim(
-            Session session,
-            BlobData data,
-            int trim,
-            boolean leading,
-            boolean trailing) {
+    public BlobData trim(Session session, BlobData data, int trim,
+                         boolean leading, boolean trailing) {
 
         if (data == null) {
             return null;
@@ -467,8 +448,8 @@ public class BinaryUUIDType extends BinaryType {
         int    endindex = bytes.length;
 
         if (trailing) {
-            for (--endindex; endindex >= 0
-                             && bytes[endindex] == trim; endindex--) {}
+            for (--endindex; endindex >= 0 && bytes[endindex] == trim;
+                    endindex--) {}
 
             endindex++;
         }
@@ -486,24 +467,15 @@ public class BinaryUUIDType extends BinaryType {
         if (startindex != 0 || endindex != bytes.length) {
             newBytes = new byte[endindex - startindex];
 
-            System.arraycopy(
-                bytes,
-                startindex,
-                newBytes,
-                0,
-                endindex - startindex);
+            System.arraycopy(bytes, startindex, newBytes, 0,
+                             endindex - startindex);
         }
 
         return new BinaryData(newBytes, newBytes == bytes);
     }
 
-    public BlobData overlay(
-            Session session,
-            BlobData data,
-            BlobData overlay,
-            long offset,
-            long length,
-            boolean hasLength) {
+    public BlobData overlay(Session session, BlobData data, BlobData overlay,
+                            long offset, long length, boolean hasLength) {
 
         if (data == null || overlay == null) {
             return null;
@@ -513,15 +485,13 @@ public class BinaryUUIDType extends BinaryType {
             length = overlay.length(session);
         }
 
-        BinaryData binary = new BinaryData(
-            session,
-            substring(session, data, 0, offset, true),
-            overlay);
+        BinaryData binary =
+            new BinaryData(session, substring(session, data, 0, offset, true),
+                           overlay);
 
-        binary = new BinaryData(
-            session,
-            binary,
-            substring(session, data, offset + length, 0, false));
+        binary = new BinaryData(session, binary,
+                                substring(session, data, offset + length, 0,
+                                          false));
 
         return binary;
     }
@@ -532,8 +502,8 @@ public class BinaryUUIDType extends BinaryType {
             return null;
         }
 
-        long length = ((BlobData) a).length(
-            session) + ((BlobData) b).length(session);
+        long length = ((BlobData) a).length(session)
+                      + ((BlobData) b).length(session);
 
         if (length > precision) {
             throw Error.error(ErrorCode.X_22001);
@@ -547,9 +517,8 @@ public class BinaryUUIDType extends BinaryType {
     }
 
     public static BinaryData getBinary(UUID uuid) {
-        return getBinary(
-            uuid.getMostSignificantBits(),
-            uuid.getLeastSignificantBits());
+        return getBinary(uuid.getMostSignificantBits(),
+                         uuid.getLeastSignificantBits());
     }
 
     public static UUID getJavaUUID(BinaryData data) {

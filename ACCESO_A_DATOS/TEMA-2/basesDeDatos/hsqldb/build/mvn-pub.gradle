@@ -20,26 +20,14 @@
  * by 'build-dist' not by 'mvn-pub'.
  *
  * <PRE><CODE>
- *     gradlew -x sqltool -x hsqldb -b mvn-pub.gradle
+ *     gradlew -x sqltool -x osgi -b mvn-pub.gradle
  * </CODE></PRE>
  *
  * Now, for each alternative, adjust environment and build properties, like
- * by setting build property 'build.debug', and run
+ * by setting env var JAVA_HOME or build property 'build.debug', and run
  *
  * <PRE><CODE>
- *   [single-command no longer works due to broken inter-dependencies:
- *   gradlew -Pclassifier=NEW_CLASSIFIER -b mvn-pub.gradle clean-all uploadArchives]
- *   gradlew -b mvn-pub.gradle clean-all
- *   gradlew -Pclassifier=NEW_CLASSIFIER -b mvn-pub.gradle sqltool
- *   gradlew -Pclassifier=NEW_CLASSIFIER -b mvn-pub.gradle hsqldb
- *   gradlew -Pclassifier=NEW_CLASSIFIER -b mvn-pub.gradle -x sqltool -x hsqldb
- *
- *   # Restore regular build property values
- *   pushd ../lib; mkdir ../safe.d; mv -v hsqldb.jar sqltool.jar ../safe.d/
- *   mv -v hsqldb-jdk8.jar hsqldb.jar && mv -v sqltool-jdk8.jar sqltool.jar
- *   popd
- *   gradlew -Pclassifier=jdk8 -b mvn-pub.gradle -x sqltool -x hsqldb
- *   
+ *   gradlew -Pclassifier=NEW_CLASSIFIER -b mvn-pub.gradle clean-all uploadArchives
  * </CODE></PRE>
  * The clean-all will wipe .../doc, but the .../doc and everything else from
  * your original dist build will be retained in .../dist/*.zip.
@@ -209,18 +197,18 @@ uploadArchives { doFirst {
 // Funny name is work-around for Gradle sequencing bug
 task zJarDep { doLast {
     if (jar.archivePath.exists() && jar.archivePath.lastModified()
-            < file('../lib/hsqldb.jar').lastModified()) {
+            < file('../lib/hsqldb-osgi.jar').lastModified()) {
         logger.warn "Deleting $jar.archivePath.absolutePath"
         jar.archivePath.delete()
     }
 } }
 
 jar { doLast {
-    File srcFile = file('../lib/hsqldb.jar')
+    File srcFile = file('../lib/hsqldb-osgi.jar')
     jar.archivePath.setBytes(srcFile.bytes)
 } }
 
-jar.dependsOn = [hsqldb, zJarDep]
+jar.dependsOn = [osgi, zJarDep]
 if (project.hasProperty('classifier')) jar.classifier = project.classifier
 
 clean.dependsOn = [prohibitionMap['clean']]
@@ -245,10 +233,10 @@ sqltoolJar { doLast {
     sqltoolJar.archivePath.setBytes(srcFile.bytes)
 } }
 
-task sourcesJar(type: Jar, dependsOn:hsqldbsources) {
-    classifier = 'sources'
-    //from sourceSets.main.allSource
-    from { zipTree '../lib/hsqldb-sources.jar' }
+task sourcesJar(type: Jar, dependsOn:classes) {
+     classifier = 'sources'
+     //from sourceSets.main.allSource
+     from fileTree(dir: '../src')
 }
 sourcesJar.description = 'Build sources jar file'
 
@@ -259,11 +247,11 @@ task javadocJar(type: Jar, dependsOn:javadoc) {
 }
 javadocJar.description = 'Build javadoc jar file'
 
-task sqltoolSourcesJar(type: Jar, dependsOn:sqltoolsources) {
+task sqltoolSourcesJar(type: Jar, dependsOn:classes) {
     archiveBaseName = 'sqltool'
     classifier = 'sources'
     //from sourceSets.main.allSource
-    from { zipTree '../lib/sqltool-sources.jar' }
+    from fileTree(dir: '../src')
 }
 sqltoolSourcesJar.description = 'Build Sqltool sources jar file'
 
@@ -271,7 +259,7 @@ task sqltoolJavadocJar(type: Jar, dependsOn:javadoc) {
     archiveBaseName = 'sqltool'
     classifier = 'javadoc'
     //from javadoc.destinationDir
-    from fileTree(dir: '../doc/apidocssqltool')
+    from fileTree(dir: '../doc/apidocs')
 }
 sqltoolJavadocJar.description = 'Build Sqltool javadoc jar file'
  

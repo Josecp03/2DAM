@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,11 @@ package org.hsqldb.lib;
 import java.lang.reflect.Array;
 
 /** Provides a collection of convenience methods for processing and
- * creating objects with {@code String} value components.
+ * creating objects with <code>String</code> value components.
  *
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.7.0
  */
 public class StringUtil {
@@ -54,9 +54,7 @@ public class StringUtil {
      * @param maxSize int
      * @return String
      */
-    public static String toZeroPaddedString(
-            long value,
-            int precision,
+    public static String toZeroPaddedString(long value, int precision,
             int maxSize) {
 
         StringBuilder sb = new StringBuilder();
@@ -84,11 +82,8 @@ public class StringUtil {
         return sb.toString();
     }
 
-    public static String toPaddedString(
-            String source,
-            int length,
-            char pad,
-            boolean trailing) {
+    public static String toPaddedString(String source, int length, char pad,
+                                        boolean trailing) {
 
         int len = source.length();
 
@@ -113,11 +108,8 @@ public class StringUtil {
         return sb.toString();
     }
 
-    public static String toPaddedString(
-            String source,
-            int length,
-            String pad,
-            boolean trailing) {
+    public static String toPaddedString(String source, int length, String pad,
+                                        boolean trailing) {
 
         int len = source.length();
 
@@ -146,7 +138,7 @@ public class StringUtil {
             sb.append(pad);
         }
 
-        sb.append(pad, 0, partLength);
+        sb.append(pad.substring(0, partLength));
 
         if (!trailing) {
             sb.append(source);
@@ -156,7 +148,7 @@ public class StringUtil {
     }
 
     /**
-     * Returns a string with non-alphanumeric chars converted to the
+     * Returns a string with non alphanumeric chars converted to the
      * substitute character. A digit first character is also converted.
      * By sqlbob@users
      * @param source string to convert
@@ -217,16 +209,16 @@ public class StringUtil {
      * <ul>
      * <li>All arguments are assumed to be non-null.
      * <li>Separates each list element with the value of the
-     * {@code separator} argument.
+     * <code>separator</code> argument.
      * <li>Prepends and appends each element with the value of the
-     *     {@code quote} argument.
+     *     <code>quote</code> argument.
      * <li> No attempt is made to escape the quote character sequence if it is
      *      found internal to a list element.
      * </ul>
      * @return a CSV list
-     * @param separator the {@code String} to use as the list element separator
-     * @param quote the {@code String} with which to quote the list elements
-     * @param s array of {@code String} objects
+     * @param separator the <code>String</code> to use as the list element separator
+     * @param quote the <code>String</code> with which to quote the list elements
+     * @param s array of <code>String</code> objects
      */
     public static String getList(String[] s, String separator, String quote) {
 
@@ -234,7 +226,9 @@ public class StringUtil {
         StringBuilder sb  = new StringBuilder(len * 16);
 
         for (int i = 0; i < len; i++) {
-            sb.append(quote).append(s[i]).append(quote);
+            sb.append(quote);
+            sb.append(s[i]);
+            sb.append(quote);
 
             if (i + 1 < len) {
                 sb.append(separator);
@@ -251,14 +245,14 @@ public class StringUtil {
      * <ul>
      * <li>All arguments are assumed to be non-null.
      * <li>Separates each list element with the value of the
-     * {@code separator} argument.
+     * <code>separator</code> argument.
      * <li>Prepends and appends each element with the value of the
-     *     {@code quote} argument.
+     *     <code>quote</code> argument.
      * </ul>
      * @return a CSV list
      * @param s the array of int values
-     * @param separator the {@code String} to use as the separator
-     * @param quote the {@code String} with which to quote the list elements
+     * @param separator the <code>String</code> to use as the separator
+     * @param quote the <code>String</code> with which to quote the list elements
      */
     public static String getList(int[] s, String separator, String quote) {
 
@@ -266,7 +260,9 @@ public class StringUtil {
         StringBuilder sb  = new StringBuilder(len * 8);
 
         for (int i = 0; i < len; i++) {
-            sb.append(quote).append(s[i]).append(quote);
+            sb.append(quote);
+            sb.append(s[i]);
+            sb.append(quote);
 
             if (i + 1 < len) {
                 sb.append(separator);
@@ -282,7 +278,9 @@ public class StringUtil {
         StringBuilder sb  = new StringBuilder(len * 8);
 
         for (int i = 0; i < len; i++) {
-            sb.append(quote).append(s[i]).append(quote);
+            sb.append(quote);
+            sb.append(s[i]);
+            sb.append(quote);
 
             if (i + 1 < len) {
                 sb.append(separator);
@@ -300,24 +298,27 @@ public class StringUtil {
      * <li>All arguments are assumed to be non-null.
      * <li>Uses only the first element in each subarray.
      * <li>Separates each list element with the value of the
-     * {@code separator} argument.
+     * <code>separator</code> argument.
      * <li>Prepends and appends each element with the value of the
-     *     {@code quote} argument.
+     *     <code>quote</code> argument.
      * <li> No attempt is made to escape the quote character sequence if it is
      *      found internal to a list element.
      * </ul>
      * @return a CSV list
-     * @param separator the {@code String} to use as the list element separator
-     * @param quote the {@code String} with which to quote the list elements
-     * @param s the array of {@code String} array objects
+     * @param separator the <code>String</code> to use as the list element separator
+     * @param quote the <code>String</code> with which to quote the list elements
+     * @param s the array of <code>String</code> array objects
      */
-    public static String getList(String[][] s, String separator, String quote) {
+    public static String getList(String[][] s, String separator,
+                                 String quote) {
 
         int           len = s.length;
         StringBuilder sb  = new StringBuilder(len * 16);
 
         for (int i = 0; i < len; i++) {
-            sb.append(quote).append(s[i][0]).append(quote);
+            sb.append(quote);
+            sb.append(s[i][0]);
+            sb.append(quote);
 
             if (i + 1 < len) {
                 sb.append(separator);
@@ -334,9 +335,8 @@ public class StringUtil {
      */
     public static boolean isEmpty(String s) {
 
-        int i = s == null
-                ? 0
-                : s.length();
+        int i = s == null ? 0
+                          : s.length();
 
         while (i > 0) {
             if (s.charAt(--i) > ' ') {
@@ -398,8 +398,8 @@ public class StringUtil {
      */
     public static String[] split(String s, String separator) {
 
-        HsqlArrayList<String> list      = new HsqlArrayList<>();
-        int                   currindex = 0;
+        HsqlArrayList list      = new HsqlArrayList();
+        int           currindex = 0;
 
         for (boolean more = true; more; ) {
             int nextindex = s.indexOf(separator, currindex);
@@ -414,6 +414,6 @@ public class StringUtil {
             currindex = nextindex + separator.length();
         }
 
-        return list.toArray(new String[list.size()]);
+        return (String[]) list.toArray(new String[list.size()]);
     }
 }

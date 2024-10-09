@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,7 @@ public class TextTable extends Table {
      * @param type code (normal or temp text table)
      */
     TextTable(Database db, HsqlNameManager.HsqlName name, int type) {
+
         super(db, name, type);
 
         isWithDataSource = true;
@@ -99,22 +100,18 @@ public class TextTable extends Table {
         TextCache      cache    = null;
         TextFileReader reader   = null;
         boolean        readOnly = isReadOnly || database.isReadOnly();
-        String securePath = database.logger.getSecurePath(
-            dataSource,
-            false,
+        String securePath = database.logger.getSecurePath(dataSource, false,
             true);
 
         if (securePath == null) {
-            throw(Error.error(ErrorCode.ACCESS_IS_DENIED, dataSource));
+            throw (Error.error(ErrorCode.ACCESS_IS_DENIED, dataSource));
         }
 
         try {
             cache =
-                (TextCache) database.logger.textTableManager.openTextFilePersistence(
-                    this,
-                    securePath,
-                    readOnly,
-                    isReversed);
+                (TextCache) database.logger.textTableManager
+                    .openTextFilePersistence(this, securePath, readOnly,
+                                             isReversed);
 
             store.setCache(cache);
 
@@ -126,15 +123,11 @@ public class TextTable extends Table {
                 cache.setHeaderInitialise(reader.getHeaderLine());
             }
 
-            readDataIntoTable(
-                session,
-                store,
-                reader,
-                cache.getTextFileSettings());
+            readDataIntoTable(session, store, reader,
+                              cache.getTextFileSettings());
         } catch (Throwable t) {
-            long linenumber = reader == null
-                              ? 0
-                              : reader.getLineNumber();
+            long linenumber = reader == null ? 0
+                                             : reader.getLineNumber();
 
             store.removeAll();
 
@@ -150,22 +143,18 @@ public class TextTable extends Table {
             // everything is in order here.
             // At this point table should either have a valid (old) data
             // source and cache or have an empty source and null cache.
-            throw Error.error(
-                t,
-                ErrorCode.TEXT_FILE,
-                0,
-                new String[]{ String.valueOf(linenumber), t.toString() });
+            throw Error.error(t, ErrorCode.TEXT_FILE, 0, new String[] {
+                String.valueOf(linenumber), t.toString()
+            });
         }
 
         isConnected = true;
         isReadOnly  = withReadOnlyData;
     }
 
-    private void readDataIntoTable(
-            Session session,
-            PersistentStore store,
-            TextFileReader reader,
-            TextFileSettings settings) {
+    private void readDataIntoTable(Session session, PersistentStore store,
+                                   TextFileReader reader,
+                                   TextFileSettings settings) {
 
         while (true) {
             RowInputInterface rowIn = reader.readObject();
@@ -200,8 +189,8 @@ public class TextTable extends Table {
 
         this.store = null;
 
-        PersistentStore store = database.persistentStoreCollection.getStore(
-            this);
+        PersistentStore store =
+            database.persistentStoreCollection.getStore(this);
 
         store.release();
 
@@ -215,11 +204,8 @@ public class TextTable extends Table {
      *
      * Better clarification of the role of the methods is needed.
      */
-    private void openCache(
-            Session session,
-            String dataSourceNew,
-            boolean isReversedNew,
-            boolean isReadOnlyNew) {
+    private void openCache(Session session, String dataSourceNew,
+                           boolean isReversedNew, boolean isReadOnlyNew) {
 
         String  dataSourceOld = dataSource;
         boolean isReversedOld = isReversed;
@@ -250,27 +236,22 @@ public class TextTable extends Table {
      * High level command to assign a data source to the table definition.
      * Reassigns only if the data source or direction has changed.
      */
-    void setDataSource(
-            Session session,
-            String dataSourceNew,
-            boolean isReversedNew,
-            boolean createFile) {
+    void setDataSource(Session session, String dataSourceNew,
+                       boolean isReversedNew, boolean createFile) {
 
         if (getTableType() == Table.TEMP_TEXT_TABLE) {
 
             //
         } else {
-            session.getGrantee()
-                   .checkSchemaUpdateOrGrantRights(getSchemaName());
+            session.getGrantee().checkSchemaUpdateOrGrantRights(
+                getSchemaName());
         }
 
         dataSourceNew = dataSourceNew.trim();
 
         //-- Open if descending, direction changed, file changed, or not connected currently
-        if (isReversedNew
-                || (isReversedNew != isReversed)
-                || !dataSource.equals(dataSourceNew)
-                || !isConnected) {
+        if (isReversedNew || (isReversedNew != isReversed)
+                || !dataSource.equals(dataSourceNew) || !isConnected) {
             openCache(session, dataSourceNew, isReversedNew, isReadOnly);
         }
 
@@ -294,8 +275,8 @@ public class TextTable extends Table {
 
     public void setHeader(String header) {
 
-        PersistentStore store = database.persistentStoreCollection.getStore(
-            this);
+        PersistentStore store =
+            database.persistentStoreCollection.getStore(this);
         TextCache cache = (TextCache) store.getCache();
 
         if (cache != null && cache.isIgnoreFirstLine()) {
@@ -309,16 +290,15 @@ public class TextTable extends Table {
 
     private String getHeader() {
 
-        PersistentStore store = database.persistentStoreCollection.getStore(
-            this);
+        PersistentStore store =
+            database.persistentStoreCollection.getStore(this);
         TextCache cache  = (TextCache) store.getCache();
-        String    header = cache == null
-                           ? null
-                           : cache.getHeader();
+        String    header = cache == null ? null
+                                         : cache.getHeader();
 
-        return header == null
-               ? null
-               : StringConverter.toQuotedString(header, '\'', true);
+        return header == null ? null
+                              : StringConverter.toQuotedString(header, '\'',
+                              true);
     }
 
     /**
@@ -327,7 +307,7 @@ public class TextTable extends Table {
      */
     public void checkDataReadOnly() {
 
-        if (dataSource.isEmpty()) {
+        if (dataSource.length() == 0) {
             String name = getName().getSchemaQualifiedStatementName();
 
             throw Error.error(ErrorCode.TEXT_TABLE_UNKNOWN_DATA_SOURCE, name);
@@ -339,14 +319,13 @@ public class TextTable extends Table {
     }
 
     public boolean isDataReadOnly() {
-        return !isConnected()
-               || super.isDataReadOnly()
+        return !isConnected() || super.isDataReadOnly()
                || store.getCache().isDataReadOnly();
     }
 
-    public void setDataReadOnly(boolean readonly) {
+    public void setDataReadOnly(boolean value) {
 
-        if (!readonly) {
+        if (!value) {
             if (isReversed) {
                 throw Error.error(ErrorCode.DATA_IS_READONLY);
             }
@@ -357,21 +336,18 @@ public class TextTable extends Table {
 
             if (isConnected()) {
                 store.getCache().close();
-                store.getCache().open(readonly);
+                store.getCache().open(value);
             }
         }
 
-        isReadOnly = readonly;
+        isReadOnly = value;
     }
 
     /**
      * Adds commitPersistence() call
      */
-    public void insertData(
-            Session session,
-            PersistentStore store,
-            Object[] data,
-            boolean enforceUnique) {
+    public void insertData(Session session, PersistentStore store,
+                           Object[] data, boolean enforceUnique) {
 
         Row row = (Row) store.getNewCachedObject(session, data, false);
 
@@ -387,19 +363,13 @@ public class TextTable extends Table {
             return null;
         }
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder(128);
 
-        sb.append(Tokens.T_SET)
-          .append(' ')
-          .append(Tokens.T_TABLE)
-          .append(' ')
-          .append(getName().getSchemaQualifiedStatementName())
-          .append(' ')
-          .append(Tokens.T_SOURCE)
-          .append(' ')
-          .append('\'')
-          .append(dataSource)
-          .append('\'');
+        sb.append(Tokens.T_SET).append(' ').append(Tokens.T_TABLE).append(' ');
+        sb.append(getName().getSchemaQualifiedStatementName());
+        sb.append(' ').append(Tokens.T_SOURCE).append(' ').append('\'');
+        sb.append(dataSource);
+        sb.append('\'');
 
         return sb.toString();
     }
@@ -416,19 +386,13 @@ public class TextTable extends Table {
             return null;
         }
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder(128);
 
-        sb.append(Tokens.T_SET)
-          .append(' ')
-          .append(Tokens.T_TABLE)
-          .append(' ')
-          .append(getName().getSchemaQualifiedStatementName())
-          .append(' ')
-          .append(Tokens.T_SOURCE)
-          .append(' ')
-          .append(Tokens.T_HEADER)
-          .append(' ')
-          .append(header);
+        sb.append(Tokens.T_SET).append(' ').append(Tokens.T_TABLE).append(' ');
+        sb.append(getName().getSchemaQualifiedStatementName());
+        sb.append(' ').append(Tokens.T_SOURCE).append(' ');
+        sb.append(Tokens.T_HEADER).append(' ');
+        sb.append(header);
 
         return sb.toString();
     }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Clob;
@@ -162,10 +161,9 @@ public class TestLobs extends TestBase {
             st.executeUpdate("CREATE TABLE blo (id INTEGER PRIMARY KEY, b blob( 100))");
 
             PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO blo(id, b) values(?, ?)");
+                "INSERT INTO blo(id, b) values(2, ?)");
 
-            ps.setInt(1, 2);
-            ps.setBlob(2, new SerialBlob(baR1));
+            ps.setBlob(1, new SerialBlob(baR1));
             ps.executeUpdate();
 
             rs = st.executeQuery("SELECT b FROM blo WHERE id = 2");
@@ -241,17 +239,20 @@ public class TestLobs extends TestBase {
             rs.close();
 
             // again with stream
-            ps.setInt(1,3);
-            ps.setBinaryStream(2, new HsqlByteArrayInputStream(baR2),
+            ps.setBinaryStream(1, new HsqlByteArrayInputStream(baR2),
                                baR2.length);
             ps.executeUpdate();
 
             connection.commit();
 
-            rs = st.executeQuery("SELECT b FROM blo WHERE id = 3");
+            rs = st.executeQuery("SELECT b FROM blo WHERE id = 2");
 
             if (!rs.next()) {
-                assertTrue("No row with id 3", false);
+                assertTrue("No row with id 2", false);
+            }
+
+            if (!rs.next()) {
+                assertTrue("No second row with id 2", false);
             }
 
             blob1 = rs.getBlob("b");
@@ -577,7 +578,7 @@ public class TestLobs extends TestBase {
                 InputStream fis =
                     getClass().getResourceAsStream(resourceFileName);
 
-                reader = new InputStreamReader(fis, StandardCharsets.ISO_8859_1);
+                reader = new InputStreamReader(fis, "ISO-8859-1");
             } catch (Exception e) {}
 
             ps.setString(1, "test-id-1");
@@ -591,7 +592,7 @@ public class TestLobs extends TestBase {
                     getClass().getResourceAsStream(resourceFileName);
 
                 fis    = getClass().getResourceAsStream(resourceFileName);
-                reader = new InputStreamReader(fis, StandardCharsets.ISO_8859_1);
+                reader = new InputStreamReader(fis, "ISO-8859-1");
 
                 for (int i = 0; i < 100; i++) {
                     reader.read();
@@ -618,7 +619,7 @@ public class TestLobs extends TestBase {
                     getClass().getResourceAsStream(resourceFileName);
 
                 fis    = getClass().getResourceAsStream(resourceFileName);
-                reader = new InputStreamReader(fis, StandardCharsets.ISO_8859_1);
+                reader = new InputStreamReader(fis, "ISO-8859-1");
 
                 for (int i = 0; i < 100; i++) {
                     reader.read();

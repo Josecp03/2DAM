@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,10 @@ import org.hsqldb.map.BaseHashMap;
  * This class does not store null keys.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
-public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
+public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V>{
 
     private Set<K>           keySet;
     private Collection<V>    values;
@@ -55,25 +55,16 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
         this(8);
     }
 
-    public MultiValueHashMap(
-            int initialCapacity)
-            throws IllegalArgumentException {
+    public MultiValueHashMap(int initialCapacity) throws IllegalArgumentException {
 
-        super(
-            initialCapacity,
-            BaseHashMap.objectKeyOrValue,
-            BaseHashMap.objectKeyOrValue,
-            false);
-
+        super(initialCapacity, BaseHashMap.objectKeyOrValue,
+              BaseHashMap.objectKeyOrValue, false);
         this.isMultiValue = true;
     }
 
-    public MultiValueHashMap(
-            int initialCapacity,
-            ObjectComparator<K> comparator)
-            throws IllegalArgumentException {
-        this(initialCapacity);
+    public MultiValueHashMap(int initialCapacity, ObjectComparator comparator) throws IllegalArgumentException {
 
+        this(initialCapacity);
         this.comparator = comparator;
     }
 
@@ -83,7 +74,7 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
             throw new NullPointerException();
         }
 
-        return super.containsObjectKey(key);
+        return super.containsKey(key);
     }
 
     public boolean containsValue(Object value) {
@@ -96,7 +87,7 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
      * @param key the key
      * @return any value associated with the key, or null if none
      */
-    public V get(K key) {
+    public V get(Object key) {
 
         if (key == null) {
             throw new NullPointerException();
@@ -135,9 +126,7 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
 
         boolean added = super.addMultiVal(0, 0, key, value);
 
-        return added
-               ? null
-               : value;
+        return added ? null : value;
     }
 
     /**
@@ -162,7 +151,7 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
      * @param value the value
      * @return the value associated with the key, or null if none
      */
-    public boolean remove(K key, V value) {
+    public boolean remove(Object key, Object value) {
 
         if (key == null) {
             throw new NullPointerException();
@@ -179,7 +168,7 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
      * @param key the key
      * @return the count
      */
-    public int valueCount(K key) {
+    public int valueCount(Object key) {
 
         if (key == null) {
             throw new NullPointerException();
@@ -190,9 +179,9 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
         return super.multiValueElementCount(key);
     }
 
-    public void putAll(Map<K, V> m) {
+    public void putAll(Map<? extends K, ? extends V> m) {
 
-        Iterator<K> it = m.keySet().iterator();
+        Iterator<? extends K> it = m.keySet().iterator();
 
         while (it.hasNext()) {
             K key = it.next();
@@ -210,13 +199,14 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
         Iterator<K> it = m.keySet().iterator();
 
         while (it.hasNext()) {
-            K           key      = it.next();
+            K key = it.next();
+
             Iterator<V> valueSet = m.getValuesIterator(key);
 
-            while (valueSet.hasNext()) {
+            while(valueSet.hasNext()) {
                 V value = valueSet.next();
-
                 put(key, value);
+
             }
         }
     }
@@ -248,7 +238,6 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
     }
 
     public Set<Entry<K, V>> entrySet() {
-
         if (entries == null) {
             entries = new EntrySet();
         }
@@ -256,11 +245,10 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
         return entries;
     }
 
-    private class EntrySet extends AbstractReadOnlyCollection<Entry<K, V>>
-            implements Set<Map.Entry<K, V>> {
+    private class EntrySet extends AbstractReadOnlyCollection<Entry<K, V>> implements Set<Map.Entry<K, V>> {
 
         public Iterator<Entry<K, V>> iterator() {
-            return MultiValueHashMap.this.new EntrySetIterator<K, V>();
+            return MultiValueHashMap.this.new EntrySetIterator();
         }
 
         public int size() {
@@ -272,23 +260,21 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
         }
     }
 
-    private class EntrySetIterator<K, V> extends BaseHashIterator {
+    private class EntrySetIterator extends BaseHashIterator{
 
         EntrySetIterator() {
             super(true);
         }
 
         public Entry<K, V> next() {
-
             K key   = (K) super.next();
             V value = (V) objectValueTable[lookup];
 
-            return new MapEntry<K, V>(key, value);
+            return new MapEntry(key, value);
         }
     }
 
-    private class KeySet extends AbstractReadOnlyCollection<K>
-            implements Set<K> {
+    private class KeySet<K> extends AbstractReadOnlyCollection<K> implements Set<K> {
 
         public Iterator<K> iterator() {
             return MultiValueHashMap.this.new MultiValueKeyIterator();
@@ -298,12 +284,24 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
             return MultiValueHashMap.this.multiValueKeyCount();
         }
 
+        public boolean contains(Object key) {
+            return containsKey(key);
+        }
+
         public boolean isEmpty() {
             return size() == 0;
         }
+
+        public Object[] toArray() {
+            return MultiValueHashMap.this.toArray(true);
+        }
+
+        public <T> T[] toArray(T[] array) {
+            return MultiValueHashMap.this.multiValueKeysToArray(array);
+        }
     }
 
-    private class Values extends AbstractReadOnlyCollection<V> {
+    private class Values<V> extends AbstractReadOnlyCollection<V> {
 
         public Iterator<V> iterator() {
             return MultiValueHashMap.this.new BaseHashIterator(false);
@@ -315,6 +313,14 @@ public class MultiValueHashMap<K, V> extends BaseHashMap implements Map<K, V> {
 
         public boolean isEmpty() {
             return size() == 0;
+        }
+
+        public Object[] toArray() {
+            return MultiValueHashMap.this.toArray(false);
+        }
+
+        public <T> T[] toArray(T[] array) {
+            return MultiValueHashMap.this.toArray(array, false);
         }
     }
 }

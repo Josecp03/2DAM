@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.hsqldb.lib.StringConverter;
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  *
- * @version 2.7.3
+ * @version 2.3.2
  * @since 1.8.0
  */
 public class User extends Grantee {
@@ -72,21 +72,12 @@ public class User extends Grantee {
 
     public String getSQL() {
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder();
 
-        sb.append(Tokens.T_CREATE)
-          .append(' ')
-          .append(Tokens.T_USER)
-          .append(' ')
-          .append(granteeName.statementName)
-          .append(' ')
-          .append(Tokens.T_PASSWORD)
-          .append(' ')
-          .append(Tokens.T_DIGEST)
-          .append(' ')
-          .append('\'')
-          .append(password)
-          .append('\'');
+        sb.append(Tokens.T_CREATE).append(' ').append(Tokens.T_USER);
+        sb.append(' ').append(granteeName.statementName).append(' ');
+        sb.append(Tokens.T_PASSWORD).append(' ').append(Tokens.T_DIGEST);
+        sb.append(' ').append('\'').append(password).append('\'');
 
         return sb.toString();
     }
@@ -135,7 +126,8 @@ public class User extends Grantee {
                 getName().getNameString());
 
         if (schema == null) {
-            return granteeManager.database.schemaManager.getDefaultSchemaHsqlName();
+            return granteeManager.database.schemaManager
+                .getDefaultSchemaHsqlName();
         } else {
             return schema;
         }
@@ -154,21 +146,15 @@ public class User extends Grantee {
 
     public String getInitialSchemaSQL() {
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder();
 
-        sb.append(Tokens.T_ALTER)
-          .append(' ')
-          .append(Tokens.T_USER)
-          .append(' ')
-          .append(getName().getStatementName())
-          .append(' ')
-          .append(Tokens.T_SET)
-          .append(' ')
-          .append(Tokens.T_INITIAL)
-          .append(' ')
-          .append(Tokens.T_SCHEMA)
-          .append(' ')
-          .append(initialSchema.getStatementName());
+        sb.append(Tokens.T_ALTER).append(' ');
+        sb.append(Tokens.T_USER).append(' ');
+        sb.append(getName().getStatementName()).append(' ');
+        sb.append(Tokens.T_SET).append(' ');
+        sb.append(Tokens.T_INITIAL).append(' ');
+        sb.append(Tokens.T_SCHEMA).append(' ');
+        sb.append(initialSchema.getStatementName());
 
         return sb.toString();
     }
@@ -181,17 +167,11 @@ public class User extends Grantee {
 
         StringBuilder sb = new StringBuilder(64);
 
-        sb.append(Tokens.T_ALTER)
-          .append(' ')
-          .append(Tokens.T_USER)
-          .append(' ')
-          .append(getName().getStatementName())
-          .append(' ')
-          .append(Tokens.T_SET)
-          .append(' ')
-          .append(Tokens.T_LOCAL)
-          .append(' ')
-          .append(Tokens.T_TRUE);
+        sb.append(Tokens.T_ALTER).append(' ');
+        sb.append(Tokens.T_USER).append(' ');
+        sb.append(getName().getStatementName()).append(' ');
+        sb.append(Tokens.T_SET).append(' ').append(Tokens.T_LOCAL);
+        sb.append(' ').append(Tokens.T_TRUE);
 
         return sb.toString();
     }
@@ -200,8 +180,7 @@ public class User extends Grantee {
      * Returns the SQL string for setting password digest.
      *
      */
-    public String getSetUserPasswordDigestSQL(
-            String password,
+    public String getSetUserPasswordDigestSQL(String password,
             boolean isDigest) {
 
         if (!isDigest) {
@@ -210,21 +189,12 @@ public class User extends Grantee {
 
         StringBuilder sb = new StringBuilder(64);
 
-        sb.append(Tokens.T_ALTER)
-          .append(' ')
-          .append(Tokens.T_USER)
-          .append(' ')
-          .append(getName().getStatementName())
-          .append(' ')
-          .append(Tokens.T_SET)
-          .append(' ')
-          .append(Tokens.T_PASSWORD)
-          .append(' ')
-          .append(Tokens.T_DIGEST)
-          .append(' ')
-          .append('\'')
-          .append(password)
-          .append('\'');
+        sb.append(Tokens.T_ALTER).append(' ');
+        sb.append(Tokens.T_USER).append(' ');
+        sb.append(getName().getStatementName()).append(' ');
+        sb.append(Tokens.T_SET).append(' ');
+        sb.append(Tokens.T_PASSWORD).append(' ').append(Tokens.T_DIGEST);
+        sb.append(' ').append('\'').append(password).append('\'');
 
         return sb.toString();
     }
@@ -233,10 +203,8 @@ public class User extends Grantee {
      * Returns the SQL string for setting password digest.
      *
      */
-    public static String getSetCurrentPasswordDigestSQL(
-            GranteeManager manager,
-            String password,
-            boolean isDigest) {
+    public static String getSetCurrentPasswordDigestSQL(GranteeManager manager,
+            String password, boolean isDigest) {
 
         if (!isDigest) {
             password = manager.digest(password);
@@ -244,15 +212,9 @@ public class User extends Grantee {
 
         StringBuilder sb = new StringBuilder(64);
 
-        sb.append(Tokens.T_SET)
-          .append(' ')
-          .append(Tokens.T_PASSWORD)
-          .append(' ')
-          .append(Tokens.T_DIGEST)
-          .append(' ')
-          .append('\'')
-          .append(password)
-          .append('\'');
+        sb.append(Tokens.T_SET).append(' ');
+        sb.append(Tokens.T_PASSWORD).append(' ').append(Tokens.T_DIGEST);
+        sb.append(' ').append('\'').append(password).append('\'');
 
         return sb.toString();
     }
@@ -266,18 +228,13 @@ public class User extends Grantee {
      */
     public String getConnectUserSQL() {
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder();
 
-        sb.append(Tokens.T_SET)
-          .append(' ')
-          .append(Tokens.T_SESSION)
-          .append(' ')
-          .append(Tokens.T_AUTHORIZATION)
-          .append(' ')
-          .append(
-              StringConverter.toQuotedString(getName().getNameString(),
-                      '\'',
-                      true));
+        sb.append(Tokens.T_SET).append(' ');
+        sb.append(Tokens.T_SESSION).append(' ');
+        sb.append(Tokens.T_AUTHORIZATION).append(' ');
+        sb.append(StringConverter.toQuotedString(getName().getNameString(),
+                '\'', true));
 
         return sb.toString();
     }

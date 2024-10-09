@@ -1,7 +1,6 @@
--- $Id: TestSelfColGrant.txt 6761 2024-05-25 12:38:12Z fredt $
+-- $Id: TestSelfColGrant.txt 3459 2010-02-12 19:46:33Z fredt $
 -- Tests column-specific grants
 
-SET AUTOCOMMIT TRUE
 -- These two users are for sanity tests
 /*u0*/CREATE USER privd PASSWORD "privd";
 /*u0*/CREATE USER unprivd PASSWORD "unprivd";
@@ -64,5 +63,3 @@ SET AUTOCOMMIT TRUE
 /*u0*/DROP USER unprivd;
 /*u0*/DROP TABLE multicol;
 /*u0*/CHECKPOINT;
-
-SET AUTOCOMMIT FALSE

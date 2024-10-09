@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,16 +63,16 @@ import org.hsqldb.types.Type;
  * to look through Roles which "this" object is a member of.
  *
  * We use the word "Admin" (e.g., in private variable "admin" and method
- * "isAdmin()") to mean this Grantee has admin priv by any means.
+ * "isAdmin()) to mean this Grantee has admin priv by any means.
  * We use the word "adminDirect" (e.g., in private variable "adminDirect"
- * and method "isAdminDirect()") to mean this Grantee has admin priv
+ * and method "isAdminDirect()) to mean this Grantee has admin priv
  * directly.
  *
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  *
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.8.0
  */
 public class Grantee implements SchemaObject {
@@ -81,7 +81,7 @@ public class Grantee implements SchemaObject {
 
     /**
      * true if this grantee has database administrator priv directly
-     *  (i.e., not by membership in any role)
+     *  (ie., not by membership in any role)
      */
     private boolean isAdminDirect = false;
 
@@ -98,16 +98,16 @@ public class Grantee implements SchemaObject {
     protected HsqlName granteeName;
 
     /** map with database object identifier keys and access privileges values */
-    private MultiValueHashMap<HsqlName, Right> directRightsMap;
+    private MultiValueHashMap directRightsMap;
 
     /** contains rights granted direct, or via roles, except those of PUBLIC */
-    HashMap<HsqlName, Right> fullRightsMap;
+    HashMap fullRightsMap;
 
     /** These are the DIRECT roles.  Each of these may contain nested roles */
-    OrderedHashSet<Grantee> roles;
+    OrderedHashSet roles;
 
     /** map with database object identifier keys and access privileges values */
-    private MultiValueHashMap<HsqlName, Right> grantedRightsMap;
+    private MultiValueHashMap grantedRightsMap;
 
     /** Needed only to give access to the roles for this database */
     protected GranteeManager granteeManager;
@@ -120,12 +120,12 @@ public class Grantee implements SchemaObject {
      */
     Grantee(HsqlName name, GranteeManager man) {
 
-        fullRightsMap       = new HashMap<>();
-        directRightsMap     = new MultiValueHashMap<>();
-        grantedRightsMap    = new MultiValueHashMap<>();
+        fullRightsMap       = new HashMap();
+        directRightsMap     = new MultiValueHashMap();
+        grantedRightsMap    = new MultiValueHashMap();
         granteeName         = name;
         granteeManager      = man;
-        roles               = new OrderedHashSet<>();
+        roles               = new OrderedHashSet();
         ownerRights         = new Right();
         ownerRights.isFull  = true;
         ownerRights.grantor = GranteeManager.systemAuthorisation;
@@ -152,15 +152,22 @@ public class Grantee implements SchemaObject {
         return null;
     }
 
+    public OrderedHashSet getReferences() {
+        return new OrderedHashSet();
+    }
+
+    public OrderedHashSet getComponents() {
+        return null;
+    }
+
+    public void compile(Session session, SchemaObject parentObject) {}
+
     public String getSQL() {
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder();
 
-        sb.append(Tokens.T_CREATE)
-          .append(' ')
-          .append(Tokens.T_ROLE)
-          .append(' ')
-          .append(granteeName.statementName);
+        sb.append(Tokens.T_CREATE).append(' ').append(Tokens.T_ROLE);
+        sb.append(' ').append(granteeName.statementName);
 
         return sb.toString();
     }
@@ -180,29 +187,16 @@ public class Grantee implements SchemaObject {
     /**
      * Gets direct roles, not roles nested within them.
      */
-    public OrderedHashSet<Grantee> getDirectRoles() {
+    public OrderedHashSet getDirectRoles() {
         return roles;
-    }
-
-    /**
-     * Gets direct roles and public role, not roles nested within them.
-     */
-    public OrderedHashSet<Grantee> getDirectRolesWithPublic() {
-
-        OrderedHashSet<Grantee> newSet = new OrderedHashSet<>();
-
-        newSet.addAll(roles);
-        newSet.add(granteeManager.publicRole);
-
-        return newSet;
     }
 
     /**
      * Gets direct and indirect roles.
      */
-    public OrderedHashSet<Grantee> getAllRoles() {
+    public OrderedHashSet getAllRoles() {
 
-        OrderedHashSet<Grantee> set = getGranteeAndAllRoles();
+        OrderedHashSet set = getGranteeAndAllRoles();
 
         // Since we added "Grantee" in addition to Roles, need to remove self.
         set.remove(this);
@@ -210,18 +204,18 @@ public class Grantee implements SchemaObject {
         return set;
     }
 
-    public OrderedHashSet<Grantee> getGranteeAndAllRoles() {
+    public OrderedHashSet getGranteeAndAllRoles() {
 
-        OrderedHashSet<Grantee> set = new OrderedHashSet<>();
+        OrderedHashSet set = new OrderedHashSet();
 
         addGranteeAndRoles(set);
 
         return set;
     }
 
-    public OrderedHashSet<Grantee> getGranteeAndAllRolesWithPublic() {
+    public OrderedHashSet getGranteeAndAllRolesWithPublic() {
 
-        OrderedHashSet<Grantee> set = new OrderedHashSet<>();
+        OrderedHashSet set = new OrderedHashSet();
 
         addGranteeAndRoles(set);
         set.add(granteeManager.publicRole);
@@ -235,7 +229,7 @@ public class Grantee implements SchemaObject {
             return true;
         }
 
-        Right right = fullRightsMap.get(name);
+        Right right = (Right) fullRightsMap.get(name);
 
         if (right == null) {
             return false;
@@ -257,7 +251,7 @@ public class Grantee implements SchemaObject {
             return true;
         }
 
-        Right right = fullRightsMap.get(name);
+        Right right = (Right) fullRightsMap.get(name);
 
         if (right != null && !right.isEmpty()) {
             return true;
@@ -275,15 +269,14 @@ public class Grantee implements SchemaObject {
      *
      * @return Given role with new elements added.
      */
-    private OrderedHashSet<Grantee> addGranteeAndRoles(
-            OrderedHashSet<Grantee> set) {
+    private OrderedHashSet addGranteeAndRoles(OrderedHashSet set) {
 
         Grantee candidateRole;
 
         set.add(this);
 
         for (int i = 0; i < roles.size(); i++) {
-            candidateRole = roles.get(i);
+            candidateRole = (Grantee) roles.get(i);
 
             if (!set.contains(candidateRole)) {
                 candidateRole.addGranteeAndRoles(set);
@@ -301,47 +294,14 @@ public class Grantee implements SchemaObject {
         return getAllRoles().contains(role);
     }
 
-    private void grantToAll(
-            HsqlName name,
-            Right right,
-            Grantee grantor,
-            boolean withGrant) {
-
-        int objectType = SchemaObject.TABLE;
-
-        if (right.isFullUsage) {
-            right      = Right.fullRights;
-            objectType = SchemaObject.SEQUENCE;
-        } else if (right.isFullExecute) {
-            right      = Right.fullRights;
-            objectType = SchemaObject.SPECIFIC_ROUTINE;
-        }
-
-        Iterator<SchemaObject> it =
-            granteeManager.database.schemaManager.databaseObjectIterator(
-                name.name,
-                objectType);
-
-        while (it.hasNext()) {
-            SchemaObject object = it.next();
-
-            grant(object.getName(), right, grantor, withGrant);
-        }
-    }
-
     /**
      * Grants the specified rights on the specified database object. <p>
      *
      * Keys stored in rightsMap for database tables are their HsqlName
-     * attribute. This allows rights to persist when a table is renamed.
+     * attribute. This allows rights to persist when a table is renamed. <p>
      */
-    void grant(HsqlName name, Right right, Grantee grantor, boolean withGrant) {
-
-        if (name.type == SchemaObject.SCHEMA) {
-            grantToAll(name, right, grantor, withGrant);
-
-            return;
-        }
+    void grant(HsqlName name, Right right, Grantee grantor,
+               boolean withGrant) {
 
         final Right grantableRights = grantor.getAllGrantableRights(name);
         Right       existingRight   = null;
@@ -358,15 +318,16 @@ public class Grantee implements SchemaObject {
             }
         }
 
-        Iterator<Right> it = directRightsMap.getValuesIterator(name);
+        Iterator it = directRightsMap.getValuesIterator(name);
 
         while (it.hasNext()) {
-            Right existing = it.next();
+            Right existing = (Right) it.next();
 
             if (existing.grantor == grantor) {
                 existingRight = existing;
 
                 existingRight.add(right);
+
                 break;
             }
         }
@@ -396,34 +357,6 @@ public class Grantee implements SchemaObject {
         updateAllRights();
     }
 
-    private void revokeFromAll(
-            HsqlName name,
-            Right right,
-            Grantee grantor,
-            boolean grantOption) {
-
-        int objectType = SchemaObject.TABLE;
-
-        if (right.isFullUsage) {
-            right      = Right.fullRights;
-            objectType = SchemaObject.SEQUENCE;
-        } else if (right.isFullExecute) {
-            right      = Right.fullRights;
-            objectType = SchemaObject.SPECIFIC_ROUTINE;
-        }
-
-        Iterator<SchemaObject> it =
-            granteeManager.database.schemaManager.databaseObjectIterator(
-                name.name,
-                objectType);
-
-        while (it.hasNext()) {
-            SchemaObject object = it.next();
-
-            revoke(object, right, grantor, grantOption);
-        }
-    }
-
     /**
      * Revokes the specified rights on the specified database object. <p>
      *
@@ -431,29 +364,20 @@ public class Grantee implements SchemaObject {
      * database object, then the key/value pair for that object is removed
      * from the rights map
      */
-    void revoke(
-            SchemaObject object,
-            Right right,
-            Grantee grantor,
-            boolean grantOption) {
+    void revoke(SchemaObject object, Right right, Grantee grantor,
+                boolean grantOption) {
 
         HsqlName name = object.getName();
-
-        if (name.type == SchemaObject.SCHEMA) {
-            revokeFromAll(name, right, grantor, grantOption);
-
-            return;
-        }
 
         if (object instanceof Routine) {
             name = ((Routine) object).getSpecificName();
         }
 
-        Iterator<Right> it       = directRightsMap.getValuesIterator(name);
-        Right           existing = null;
+        Iterator it       = directRightsMap.getValuesIterator(name);
+        Right    existing = null;
 
         while (it.hasNext()) {
-            existing = it.next();
+            existing = (Right) it.next();
 
             if (existing.grantor == grantor) {
                 break;
@@ -496,9 +420,49 @@ public class Grantee implements SchemaObject {
      * This method removes any existing mapping from the rights map
      */
     void revokeDbObject(HsqlName name) {
+
         directRightsMap.remove(name);
         grantedRightsMap.remove(name);
         fullRightsMap.remove(name);
+    }
+
+    /**
+     * Update own table column set rights to include a newly created column.<p?
+     */
+    void updateRightsForNewColumn(HsqlName tableName, HsqlName columnName) {
+
+        Iterator it       = directRightsMap.getValuesIterator(tableName);
+        Right    existing = null;
+
+        while (it.hasNext()) {
+            existing = (Right) it.next();
+        }
+
+        if (existing == null) {
+            return;
+        }
+
+        existing.addNewColumn(columnName);
+        updateAllRights();
+    }
+
+    /**
+     * Update granted rights to include a newly created column.<p?
+     */
+    void updateRightsForNewColumn(HsqlName tableName) {
+
+        Iterator it       = grantedRightsMap.getValuesIterator(tableName);
+        Right    existing = null;
+
+        while (it.hasNext()) {
+            existing = (Right) it.next();
+        }
+
+        if (existing == null) {
+            return;
+        }
+
+        updateAllRights();
     }
 
     /**
@@ -515,8 +479,7 @@ public class Grantee implements SchemaObject {
         isAdmin = false;
     }
 
-    public OrderedHashSet<HsqlName> getColumnsForAllPrivileges(
-            SchemaObject object) {
+    public OrderedHashSet getColumnsForAllPrivileges(SchemaObject object) {
 
         if (object instanceof Table) {
             Table table = (Table) object;
@@ -525,20 +488,19 @@ public class Grantee implements SchemaObject {
                 return table.getColumnNameSet();
             }
 
-            Right right = fullRightsMap.get(table.getName());
+            Right right = (Right) fullRightsMap.get(table.getName());
 
-            return right == null
-                   ? new OrderedHashSet<>()
-                   : right.getColumnsForAllRights(table);
+            return right == null ? Right.emptySet
+                                 : right.getColumnsForAllRights(table);
         }
 
-        return new OrderedHashSet<>();
+        return Right.emptySet;
     }
 
-    public OrderedHashSet<Right> getAllDirectPrivileges(SchemaObject object) {
+    public OrderedHashSet getAllDirectPrivileges(SchemaObject object) {
 
         if (object.getOwner() == this) {
-            OrderedHashSet<Right> set = new OrderedHashSet<>();
+            OrderedHashSet set = new OrderedHashSet();
 
             set.add(ownerRights);
 
@@ -551,10 +513,10 @@ public class Grantee implements SchemaObject {
             name = ((Routine) object).getSpecificName();
         }
 
-        Iterator<Right> rights = directRightsMap.getValuesIterator(name);
+        Iterator rights = directRightsMap.getValuesIterator(name);
 
         if (rights.hasNext()) {
-            OrderedHashSet<Right> set = new OrderedHashSet<>();
+            OrderedHashSet set = new OrderedHashSet();
 
             while (rights.hasNext()) {
                 set.add(rights.next());
@@ -566,7 +528,7 @@ public class Grantee implements SchemaObject {
         return Right.emptySet;
     }
 
-    public OrderedHashSet<Right> getAllGrantedPrivileges(SchemaObject object) {
+    public OrderedHashSet getAllGrantedPrivileges(SchemaObject object) {
 
         HsqlName name = object.getName();
 
@@ -574,10 +536,10 @@ public class Grantee implements SchemaObject {
             name = ((Routine) object).getSpecificName();
         }
 
-        Iterator<Right> rights = grantedRightsMap.getValuesIterator(name);
+        Iterator rights = grantedRightsMap.getValuesIterator(name);
 
         if (rights.hasNext()) {
-            OrderedHashSet<Right> set = new OrderedHashSet<>();
+            OrderedHashSet set = new OrderedHashSet();
 
             while (rights.hasNext()) {
                 set.add(rights.next());
@@ -605,7 +567,7 @@ public class Grantee implements SchemaObject {
                 return Right.fullRights;
             }
 
-            Right right = fullRightsMap.get(table.getName());
+            Right right = (Right) fullRightsMap.get(table.getName());
 
             if (right != null && right.canSelect(table, checkList)) {
                 return right;
@@ -624,7 +586,7 @@ public class Grantee implements SchemaObject {
                 return Right.fullRights;
             }
 
-            Right right = fullRightsMap.get(table.getName());
+            Right right = (Right) fullRightsMap.get(table.getName());
 
             if (right != null && right.canInsert(table, checkList)) {
                 return right;
@@ -643,7 +605,7 @@ public class Grantee implements SchemaObject {
                 return Right.fullRights;
             }
 
-            Right right = fullRightsMap.get(table.getName());
+            Right right = (Right) fullRightsMap.get(table.getName());
 
             if (right != null && right.canUpdate(table, checkList)) {
                 return right;
@@ -662,7 +624,7 @@ public class Grantee implements SchemaObject {
                 return Right.fullRights;
             }
 
-            Right right = fullRightsMap.get(table.getName());
+            Right right = (Right) fullRightsMap.get(table.getName());
 
             if (right != null && right.canReference(table, checkList)) {
                 return right;
@@ -681,7 +643,7 @@ public class Grantee implements SchemaObject {
                 return Right.fullRights;
             }
 
-            Right right = fullRightsMap.get(table.getName());
+            Right right = (Right) fullRightsMap.get(table.getName());
 
             if (right != null && right.canReference(table, checkList)) {
                 return right;
@@ -700,7 +662,7 @@ public class Grantee implements SchemaObject {
                 return Right.fullRights;
             }
 
-            Right right = fullRightsMap.get(table.getName());
+            Right right = (Right) fullRightsMap.get(table.getName());
 
             if (right != null && right.canDelete()) {
                 return right;
@@ -722,7 +684,7 @@ public class Grantee implements SchemaObject {
             name = ((Routine) object).getSpecificName();
         }
 
-        Right right = fullRightsMap.get(name);
+        Right right = (Right) fullRightsMap.get(name);
 
         if (right != null && !right.isEmpty()) {
             return right;
@@ -736,6 +698,7 @@ public class Grantee implements SchemaObject {
      * to them.
      */
     public void checkSchemaUpdateOrGrantRights(HsqlName schemaName) {
+
         if (!hasSchemaUpdateOrGrantRights(schemaName)) {
             throw Error.error(ErrorCode.X_42501, schemaName.name);
         }
@@ -762,7 +725,11 @@ public class Grantee implements SchemaObject {
         }
 
         // If a member of Schema authorization role
-        return hasRole(schemaOwner);
+        if (hasRole(schemaOwner)) {
+            return true;
+        }
+
+        return false;
     }
 
     public boolean isGrantable(SchemaObject object, Right right) {
@@ -800,7 +767,11 @@ public class Grantee implements SchemaObject {
             return true;
         }
 
-        return hasRole(owner);
+        if (hasRole(owner)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -808,6 +779,7 @@ public class Grantee implements SchemaObject {
      * or indirectly. Otherwise it throws.
      */
     public void checkAdmin() {
+
         if (!isAdmin()) {
             throw Error.error(ErrorCode.X_42507);
         }
@@ -856,17 +828,17 @@ public class Grantee implements SchemaObject {
      * For regular grantees, this is self plus all roles granted directly
      * or indirectly
      */
-    public OrderedHashSet<Grantee> visibleGrantees() {
+    public OrderedHashSet visibleGrantees() {
 
-        OrderedHashSet<Grantee> grantees = new OrderedHashSet<>();
-        GranteeManager          gm       = granteeManager;
+        OrderedHashSet grantees = new OrderedHashSet();
+        GranteeManager gm       = granteeManager;
 
         if (isAdmin()) {
             grantees.addAll(gm.getGrantees());
         } else {
             grantees.add(this);
 
-            Iterator<Grantee> it = getAllRoles().iterator();
+            Iterator it = getAllRoles().iterator();
 
             while (it.hasNext()) {
                 grantees.add(it.next());
@@ -882,13 +854,13 @@ public class Grantee implements SchemaObject {
             return true;
         }
 
-        Right right = fullRightsMap.get(table.getName());
+        Right right = (Right) fullRightsMap.get(table.getName());
 
         if (right == null) {
             return false;
         }
 
-        return right.canAccessNonSelect();
+        return right.canAccesssNonSelect();
     }
 
     public boolean hasColumnRights(SchemaObject table, int[] columnMap) {
@@ -897,7 +869,7 @@ public class Grantee implements SchemaObject {
             return true;
         }
 
-        Right right = fullRightsMap.get(table.getName());
+        Right right = (Right) fullRightsMap.get(table.getName());
 
         if (right == null) {
             return false;
@@ -908,7 +880,7 @@ public class Grantee implements SchemaObject {
 
     /**
      * Violates naming convention (for backward compatibility).
-     * Should be "setAdminDirect(boolean)".
+     * Should be "setAdminDirect(boolean").
      */
     void setAdminDirect() {
         isAdmin = isAdminDirect = true;
@@ -948,7 +920,7 @@ public class Grantee implements SchemaObject {
 
         if (role != this) {
             for (int i = 0; i < roles.size(); i++) {
-                Grantee currentRole = roles.get(i);
+                Grantee currentRole = (Grantee) roles.get(i);
 
                 hasNested |= currentRole.updateNestedRoles(role);
             }
@@ -964,7 +936,10 @@ public class Grantee implements SchemaObject {
     /**
      * Method used with all Grantee objects to set the full set of rights
      * according to those inherited form ROLE Grantee objects and those
-     * granted to the object itself.
+     * granted to the object itself.<p>
+     *
+     * @todo -- see if this is correct and the currentRole.fullRightsMap
+     * is always updated prior to being added to this.fullRightsMap
      */
     void updateAllRights() {
 
@@ -973,7 +948,7 @@ public class Grantee implements SchemaObject {
         isAdmin = isAdminDirect;
 
         for (int i = 0; i < roles.size(); i++) {
-            Grantee currentRole = roles.get(i);
+            Grantee currentRole = (Grantee) roles.get(i);
 
             addToFullRights(currentRole.fullRightsMap);
 
@@ -990,14 +965,14 @@ public class Grantee implements SchemaObject {
     /**
      * Full or partial rights are added to existing
      */
-    void addToFullRights(HashMap<HsqlName, Right> map) {
+    void addToFullRights(HashMap map) {
 
-        Iterator<HsqlName> it = map.keySet().iterator();
+        Iterator it = map.keySet().iterator();
 
         while (it.hasNext()) {
-            HsqlName key      = it.next();
-            Right    add      = map.get(key);
-            Right    existing = fullRightsMap.get(key);
+            Object key      = it.next();
+            Right  add      = (Right) map.get(key);
+            Right  existing = (Right) fullRightsMap.get(key);
 
             if (existing == null) {
                 existing = add.duplicate();
@@ -1022,17 +997,17 @@ public class Grantee implements SchemaObject {
     /**
      * Full or partial rights are added to existing
      */
-    private void addToFullRights(MultiValueHashMap<HsqlName, Right> map) {
+    private void addToFullRights(MultiValueHashMap map) {
 
-        Iterator<HsqlName> it = map.keySet().iterator();
+        Iterator it = map.keySet().iterator();
 
         while (it.hasNext()) {
-            HsqlName        key      = it.next();
-            Iterator<Right> values   = map.getValuesIterator(key);
-            Right           existing = fullRightsMap.get(key);
+            Object   key      = it.next();
+            Iterator values   = map.getValuesIterator(key);
+            Right    existing = (Right) fullRightsMap.get(key);
 
             while (values.hasNext()) {
-                Right add = values.next();
+                Right add = (Right) values.next();
 
                 if (existing == null) {
                     existing = add.duplicate();
@@ -1069,28 +1044,28 @@ public class Grantee implements SchemaObject {
             return name.schema.owner.ownerRights;
         }
 
-        OrderedHashSet<Grantee> set = getAllRoles();
+        OrderedHashSet set = getAllRoles();
 
         for (int i = 0; i < set.size(); i++) {
-            Grantee role = set.get(i);
+            Grantee role = (Grantee) set.get(i);
 
             if (name.schema.owner == role) {
                 return role.ownerRights;
             }
         }
 
-        Right right = fullRightsMap.get(name);
+        Right right = (Right) fullRightsMap.get(name);
 
-        return right == null || right.grantableRights == null
-               ? Right.noRights
-               : right.grantableRights;
+        return right == null || right.grantableRights == null ? Right.noRights
+                                                              : right
+                                                              .grantableRights;
     }
 
     /**
      * Retrieves the map object that represents the rights that have been
      * granted on database objects.  <p>
      *
-     * The map has keys and values with the following interpretation:
+     * The map has keys and values with the following interpretation: <P>
      *
      * <UL>
      * <LI> The keys are generally (but not limited to) objects having
@@ -1102,9 +1077,9 @@ public class Grantee implements SchemaObject {
      * <LI> The values are Right objects.
      * </UL>
      */
-    private MultiValueHashMap<HsqlName, Right> getRights() {
+    private MultiValueHashMap getRights() {
 
-        // necessary for creating the script
+        // necessary to create the script
         return directRightsMap;
     }
 
@@ -1121,15 +1096,14 @@ public class Grantee implements SchemaObject {
     void revoke(Grantee role) {
 
         if (!hasRoleDirect(role)) {
-            throw Error.error(
-                ErrorCode.X_0P503,
-                role.getName().getNameString());
+            throw Error.error(ErrorCode.X_0P503,
+                              role.getName().getNameString());
         }
 
         roles.remove(role);
     }
 
-    private String roleMapToString(OrderedHashSet<Grantee> roles) {
+    private String roleMapToString(OrderedHashSet roles) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -1138,7 +1112,7 @@ public class Grantee implements SchemaObject {
                 sb.append(',');
             }
 
-            Grantee role = roles.get(i);
+            Grantee role = (Grantee) roles.get(i);
 
             sb.append(role.getName().getStatementName());
         }
@@ -1146,144 +1120,117 @@ public class Grantee implements SchemaObject {
         return sb.toString();
     }
 
-    HsqlArrayList<String> getRightsSQL() {
+    HsqlArrayList getRightsSQL() {
 
-        HsqlArrayList<String> list       = new HsqlArrayList<>();
-        String                roleString = roleMapToString(roles);
+        HsqlArrayList list       = new HsqlArrayList();
+        String        roleString = roleMapToString(roles);
 
         if (!roleString.isEmpty()) {
-            StringBuilder sb = new StringBuilder(64);
+            StringBuilder sb = new StringBuilder(128);
 
-            sb.append(Tokens.T_GRANT)
-              .append(' ')
-              .append(roleString)
-              .append(' ')
-              .append(Tokens.T_TO)
-              .append(' ')
-              .append(getName().getStatementName());
+            sb.append(Tokens.T_GRANT).append(' ').append(roleString);
+            sb.append(' ').append(Tokens.T_TO).append(' ');
+            sb.append(getName().getStatementName());
             list.add(sb.toString());
         }
 
-        MultiValueHashMap<HsqlName, Right> rightsMap = getRights();
-        Iterator<HsqlName> dbObjects = rightsMap.keySet().iterator();
+        MultiValueHashMap rightsMap = getRights();
+        Iterator          dbObjects = rightsMap.keySet().iterator();
 
         while (dbObjects.hasNext()) {
-            HsqlName        nameObject = dbObjects.next();
-            Iterator<Right> rights     = rightsMap.getValuesIterator(
-                nameObject);
+            Object   nameObject = dbObjects.next();
+            Iterator rights     = rightsMap.getValuesIterator(nameObject);
 
             while (rights.hasNext()) {
-                Right         right = rights.next();
-                StringBuilder sb    = new StringBuilder(128);
+                Right         right    = (Right) rights.next();
+                StringBuilder sb       = new StringBuilder(128);
+                HsqlName      hsqlname = (HsqlName) nameObject;
 
-                switch (nameObject.type) {
+                switch (hsqlname.type) {
 
                     case SchemaObject.TABLE :
                     case SchemaObject.VIEW :
                         Table table =
-                            granteeManager.database.schemaManager.findUserTable(
-                                nameObject.name,
-                                nameObject.schema.name);
+                            granteeManager.database.schemaManager
+                                .findUserTable(hsqlname.name,
+                                               hsqlname.schema.name);
 
                         if (table != null) {
-                            sb.append(Tokens.T_GRANT)
-                              .append(' ')
-                              .append(right.getTableRightsSQL(table))
-                              .append(' ')
-                              .append(Tokens.T_ON)
-                              .append(' ')
-                              .append(Tokens.T_TABLE)
-                              .append(' ')
-                              .append(
-                                  nameObject.getSchemaQualifiedStatementName());
+                            sb.append(Tokens.T_GRANT).append(' ');
+                            sb.append(right.getTableRightsSQL(table));
+                            sb.append(' ').append(Tokens.T_ON).append(' ');
+                            sb.append(Tokens.T_TABLE).append(' ');
+                            sb.append(
+                                hsqlname.getSchemaQualifiedStatementName());
                         }
-
                         break;
 
                     case SchemaObject.SEQUENCE :
                         NumberSequence sequence =
-                            (NumberSequence) granteeManager.database.schemaManager.findSchemaObject(
-                                nameObject.name,
-                                nameObject.schema.name,
-                                SchemaObject.SEQUENCE);
+                            (NumberSequence) granteeManager.database
+                                .schemaManager
+                                .findSchemaObject(hsqlname.name,
+                                                  hsqlname.schema.name,
+                                                  SchemaObject.SEQUENCE);
 
                         if (sequence != null) {
-                            sb.append(Tokens.T_GRANT)
-                              .append(' ')
-                              .append(Tokens.T_USAGE)
-                              .append(' ')
-                              .append(Tokens.T_ON)
-                              .append(' ')
-                              .append(Tokens.T_SEQUENCE)
-                              .append(' ')
-                              .append(
-                                  nameObject.getSchemaQualifiedStatementName());
+                            sb.append(Tokens.T_GRANT).append(' ');
+                            sb.append(Tokens.T_USAGE);
+                            sb.append(' ').append(Tokens.T_ON).append(' ');
+                            sb.append(Tokens.T_SEQUENCE).append(' ');
+                            sb.append(
+                                hsqlname.getSchemaQualifiedStatementName());
                         }
-
                         break;
 
                     case SchemaObject.DOMAIN :
                         Type domain =
-                            (Type) granteeManager.database.schemaManager.findSchemaObject(
-                                nameObject.name,
-                                nameObject.schema.name,
-                                SchemaObject.DOMAIN);
+                            (Type) granteeManager.database.schemaManager
+                                .findSchemaObject(hsqlname.name,
+                                                  hsqlname.schema.name,
+                                                  SchemaObject.DOMAIN);
 
                         if (domain != null) {
-                            sb.append(Tokens.T_GRANT)
-                              .append(' ')
-                              .append(Tokens.T_USAGE)
-                              .append(' ')
-                              .append(Tokens.T_ON)
-                              .append(' ')
-                              .append(Tokens.T_DOMAIN)
-                              .append(' ')
-                              .append(
-                                  nameObject.getSchemaQualifiedStatementName());
+                            sb.append(Tokens.T_GRANT).append(' ');
+                            sb.append(Tokens.T_USAGE);
+                            sb.append(' ').append(Tokens.T_ON).append(' ');
+                            sb.append(Tokens.T_DOMAIN).append(' ');
+                            sb.append(
+                                hsqlname.getSchemaQualifiedStatementName());
                         }
-
                         break;
 
                     case SchemaObject.TYPE :
                         Type type =
-                            (Type) granteeManager.database.schemaManager.findSchemaObject(
-                                nameObject.name,
-                                nameObject.schema.name,
-                                SchemaObject.DOMAIN);
+                            (Type) granteeManager.database.schemaManager
+                                .findSchemaObject(hsqlname.name,
+                                                  hsqlname.schema.name,
+                                                  SchemaObject.DOMAIN);
 
                         if (type != null) {
-                            sb.append(Tokens.T_GRANT)
-                              .append(' ')
-                              .append(Tokens.T_USAGE)
-                              .append(' ')
-                              .append(Tokens.T_ON)
-                              .append(' ')
-                              .append(Tokens.T_TYPE)
-                              .append(' ')
-                              .append(
-                                  nameObject.getSchemaQualifiedStatementName());
+                            sb.append(Tokens.T_GRANT).append(' ');
+                            sb.append(Tokens.T_USAGE);
+                            sb.append(' ').append(Tokens.T_ON).append(' ');
+                            sb.append(Tokens.T_TYPE).append(' ');
+                            sb.append(
+                                hsqlname.getSchemaQualifiedStatementName());
                         }
-
                         break;
 
                     case SchemaObject.PROCEDURE :
                     case SchemaObject.FUNCTION :
                     case SchemaObject.SPECIFIC_ROUTINE :
                         SchemaObject routine =
-                            granteeManager.database.schemaManager.findSchemaObject(
-                                nameObject.name,
-                                nameObject.schema.name,
-                                nameObject.type);
+                            granteeManager.database.schemaManager
+                                .findSchemaObject(hsqlname.name,
+                                                  hsqlname.schema.name,
+                                                  hsqlname.type);
 
                         if (routine != null) {
-                            sb.append(Tokens.T_GRANT)
-                              .append(' ')
-                              .append(Tokens.T_EXECUTE)
-                              .append(' ')
-                              .append(Tokens.T_ON)
-                              .append(' ')
-                              .append(Tokens.T_SPECIFIC)
-                              .append(' ');
+                            sb.append(Tokens.T_GRANT).append(' ');
+                            sb.append(Tokens.T_EXECUTE).append(' ');
+                            sb.append(Tokens.T_ON).append(' ');
+                            sb.append(Tokens.T_SPECIFIC).append(' ');
 
                             if (routine.getType() == SchemaObject.PROCEDURE) {
                                 sb.append(Tokens.T_PROCEDURE);
@@ -1291,11 +1238,10 @@ public class Grantee implements SchemaObject {
                                 sb.append(Tokens.T_FUNCTION);
                             }
 
-                            sb.append(' ')
-                              .append(
-                                  nameObject.getSchemaQualifiedStatementName());
+                            sb.append(' ');
+                            sb.append(
+                                hsqlname.getSchemaQualifiedStatementName());
                         }
-
                         break;
 
                     default :
@@ -1305,10 +1251,8 @@ public class Grantee implements SchemaObject {
                     continue;
                 }
 
-                sb.append(' ')
-                  .append(Tokens.T_TO)
-                  .append(' ')
-                  .append(getName().getStatementName());
+                sb.append(' ').append(Tokens.T_TO).append(' ');
+                sb.append(getName().getStatementName());
                 list.add(sb.toString());
             }
         }

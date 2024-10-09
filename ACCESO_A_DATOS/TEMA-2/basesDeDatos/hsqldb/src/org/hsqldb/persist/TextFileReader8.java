@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import org.hsqldb.rowio.RowInputText;
  *
  * @author Bob Preston (sqlbob@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.4.1
  * @since 2.2.7
 */
 public class TextFileReader8 implements TextFileReader {
@@ -63,41 +63,30 @@ public class TextFileReader8 implements TextFileReader {
 
     TextFileReader8() {}
 
-    TextFileReader8(
-            RandomAccessInterface dataFile,
-            TextFileSettings textFileSettings,
-            RowInputInterface rowIn,
-            boolean isReadOnly) {
+    TextFileReader8(RandomAccessInterface dataFile,
+                    TextFileSettings textFileSettings,
+                    RowInputInterface rowIn, boolean isReadOnly) {
 
         this.dataFile         = dataFile;
         this.textFileSettings = textFileSettings;
         this.rowIn            = rowIn;
         this.isReadOnly       = isReadOnly;
-        this.buffer = StringCreator.getStringCreator(
-            byte.class,
-            textFileSettings.charEncoding);
+        this.buffer = StringCreator.getStringCreator(byte.class,
+                textFileSettings.charEncoding);
 
         skipBOM();
     }
 
-    static TextFileReader newTextFileReader(
-            RandomAccessInterface dataFile,
-            TextFileSettings textFileSettings,
-            RowInputInterface rowIn,
+    static TextFileReader newTextFileReader(RandomAccessInterface dataFile,
+            TextFileSettings textFileSettings, RowInputInterface rowIn,
             boolean isReadOnly) {
 
         if (textFileSettings.isUTF16) {
-            return new TextFileReader16(
-                dataFile,
-                textFileSettings,
-                rowIn,
-                isReadOnly);
+            return new TextFileReader16(dataFile, textFileSettings, rowIn,
+                                        isReadOnly);
         } else {
-            return new TextFileReader8(
-                dataFile,
-                textFileSettings,
-                rowIn,
-                isReadOnly);
+            return new TextFileReader8(dataFile, textFileSettings, rowIn,
+                                       isReadOnly);
         }
     }
 
@@ -107,8 +96,7 @@ public class TextFileReader8 implements TextFileReader {
             if (textFileSettings.isUTF8) {
                 dataFile.seek(0);
 
-                if (dataFile.read() == 0xEF
-                        && dataFile.read() == 0xBB
+                if (dataFile.read() == 0xEF && dataFile.read() == 0xBB
                         && dataFile.read() == 0xBF) {
                     position = 3;
                 }
@@ -160,8 +148,7 @@ public class TextFileReader8 implements TextFileReader {
 
                     if (!isReadOnly) {
                         dataFile.write(
-                            textFileSettings.bytesForLineEnd,
-                            0,
+                            textFileSettings.bytesForLineEnd, 0,
                             textFileSettings.bytesForLineEnd.length);
 
                         for (int i = 0;
@@ -232,13 +219,11 @@ public class TextFileReader8 implements TextFileReader {
                 try {
                     rowString = buffer.getString();
                 } catch (UnsupportedEncodingException e) {
-                    throw Error.error(ErrorCode.X_S0531, e);
+                    throw Error.error(ErrorCode.X_S0531);
                 }
 
-                ((RowInputText) rowIn).setSource(
-                    rowString,
-                    position,
-                    buffer.getByteSize());
+                ((RowInputText) rowIn).setSource(rowString, position,
+                                                 buffer.getByteSize());
 
                 position += rowIn.getSize();
 
@@ -282,8 +267,7 @@ public class TextFileReader8 implements TextFileReader {
 
                     if (!isReadOnly) {
                         dataFile.write(
-                            textFileSettings.bytesForLineEnd,
-                            0,
+                            textFileSettings.bytesForLineEnd, 0,
                             textFileSettings.bytesForLineEnd.length);
 
                         for (int i = 0;
@@ -296,7 +280,7 @@ public class TextFileReader8 implements TextFileReader {
                     break;
                 }
             } catch (IOException e) {
-                throw Error.error(ErrorCode.TEXT_FILE, e);
+                throw Error.error(ErrorCode.TEXT_FILE);
             }
 
             switch (c) {
@@ -329,7 +313,7 @@ public class TextFileReader8 implements TextFileReader {
         try {
             header = buffer.getString();
         } catch (UnsupportedEncodingException e) {
-            throw Error.error(ErrorCode.X_S0531, e);
+            throw Error.error(ErrorCode.X_S0531);
         }
 
         position += buffer.getByteSize();
@@ -376,7 +360,6 @@ public class TextFileReader8 implements TextFileReader {
 
                             ((RowInputText) rowIn).skippedLine();
                         }
-
                         break;
 
                     case -1 :
@@ -422,7 +405,7 @@ public class TextFileReader8 implements TextFileReader {
 
     static abstract class StringCreator {
 
-        static StringCreator getStringCreator(Class<?> cl, String encoding) {
+        static StringCreator getStringCreator(Class cl, String encoding) {
 
             if (byte.class.equals(cl)) {
                 return new StringCreatorBytes(encoding);
@@ -506,6 +489,7 @@ public class TextFileReader8 implements TextFileReader {
         }
 
         String getString() {
+
             String string = new String(buffer.getBuffer(), 0, buffer.size());
 
             return string;

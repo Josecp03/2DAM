@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,37 +44,33 @@ public class FilteredIterator<E> implements Iterator<E> {
 
     private final Iterator<E> it;
     private final Filter<E>   filter;
-    private E                 nextValue;
+    private       E           nextValue;
 
-    public FilteredIterator(Iterator<E> iterator, Filter<E> filter) {
-
-        this.it     = iterator;
+    public FilteredIterator (Iterator<E> iterator, Filter<E> filter ) {
+        this.it = iterator;
         this.filter = filter;
 
         moveNext();
     }
 
     public boolean hasNext() {
+
         return nextValue != null;
     }
 
     public E next() throws NoSuchElementException {
-
         E returnValue = nextValue;
 
         moveNext();
-
         return returnValue;
     }
 
     private void moveNext() {
-
-        while (it.hasNext()) {
+        while(it.hasNext()) {
             E unfilteredValue = it.next();
 
             if (filter.test(unfilteredValue)) {
                 nextValue = unfilteredValue;
-
                 return;
             }
         }
@@ -82,7 +78,20 @@ public class FilteredIterator<E> implements Iterator<E> {
         nextValue = null;
     }
 
+    public int nextInt() throws NoSuchElementException {
+        throw new NoSuchElementException("Iterator");
+    }
+
+    public long nextLong() throws NoSuchElementException {
+        throw new NoSuchElementException("Iterator");
+    }
+
+    public void remove() throws NoSuchElementException {
+        throw new NoSuchElementException("Iterator");
+    }
+
     public interface Filter<E> {
         boolean test(E object);
     }
+
 }

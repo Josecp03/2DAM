@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +58,8 @@ import org.hsqldb.lib.StringUtil;
 public class TarGenerator {
 
     protected TarFileOutputStream      archive;
-    protected List<TarEntrySupplicant> entryQueue = new ArrayList<>();
+    protected List<TarEntrySupplicant> entryQueue =
+        new ArrayList<TarEntrySupplicant>();
     protected long paxThreshold = 0100000000000L;
 
     // in bytes.  Value here exactly = 8GB.
@@ -73,17 +73,13 @@ public class TarGenerator {
      * At this time, PAX is only implemented for entries added as Files,
      * not entries added as Stream.
      * </P>
-     *
-     * @param paxThreshold long
      */
     public void setPaxThreshold(long paxThreshold) {
         this.paxThreshold = paxThreshold;
     }
 
     /**
-     *
      * @see #setPaxThreshold(long)
-     * @return long
      */
     public long getPaxThreshold() {
         return paxThreshold;
@@ -99,7 +95,6 @@ public class TarGenerator {
      *                     method.
      * @param overWrite    True to replace an existing file of same path.
      * @param blocksPerRecord  Null will use default tar value.
-     * @throws IOException on access failure
      */
     public TarGenerator(File inFile, boolean overWrite, Integer blocksPerRecord)
             throws IOException {
@@ -183,12 +178,6 @@ public class TarGenerator {
      * <P>
      * This limitation may or may not be eliminated in the future.
      * </P>
-
-     * @param entryPath String
-     * @param inStream InputStream
-     * @param maxBytes int
-     * @throws IOException on access failure
-     * @throws TarMalformatException if malformed
      */
     public void queueEntry(String entryPath, InputStream inStream, int maxBytes)
             throws IOException, TarMalformatException {
@@ -198,9 +187,6 @@ public class TarGenerator {
 
     /**
      * This method does release all of the streams, even if there is a failure.
-     *
-     * @throws IOException on access failure
-     * @throws TarMalformatException if malformed
      */
     public void write() throws IOException, TarMalformatException {
         if (TarFileOutputStream.debug) {
@@ -278,8 +264,11 @@ public class TarGenerator {
             // Misleading, yes.  Anything better we can do?  No.
             int magicStart = TarHeaderField.magic.getStart();
 
-            // UStar magic field
-            System.arraycopy(ustarBytes, 0, HEADER_TEMPLATE, magicStart + 0, ustarBytes.length);
+            for (int i = 0; i < ustarBytes.length; i++) {
+
+                // UStar magic field
+                HEADER_TEMPLATE[magicStart + i] = ustarBytes[i];
+            }
 
             HEADER_TEMPLATE[263] = '0';
             HEADER_TEMPLATE[264] = '0';
@@ -295,14 +284,16 @@ public class TarGenerator {
             int    stop  = field.getStop();
             byte[] ba;
 
-            ba = newValue.getBytes(StandardCharsets.ISO_8859_1);
+            ba = newValue.getBytes(Charset.forName("ISO-8859-1"));
 
             if (ba.length > stop - start) {
                 throw new TarMalformatException(
                     RB.tar_field_toobig.getString(field.toString(), newValue));
             }
 
-            System.arraycopy(ba, 0, target, start + 0, ba.length);
+            for (int i = 0; i < ba.length; i++) {
+                target[start + i] = ba[i];
+            }
         }
 
         static protected void clearField(TarHeaderField field, byte[] target) {
@@ -395,10 +386,6 @@ public class TarGenerator {
 
         /**
          * This creates a 'x' entry for a 0/\0 entry.
-         *
-         * @throws IOException on access failure
-         * @throws TarMalformatException if malformed
-         * @return TarEntrySupplicant
          */
         public TarEntrySupplicant makeXentry()
                 throws IOException, TarMalformatException {
@@ -421,13 +408,6 @@ public class TarGenerator {
          * After instantiating a TarEntrySupplicant, the user must either invoke
          * write() or close(), to release system resources on the input
          * File/Stream.
-         *
-         * @param path String
-         * @param file File
-         * @param tarStream TarFileOutputStream
-         * @param paxThreshold long
-         * @throws FileNotFoundException if not found
-         * @throws TarMalformatException if malformed
          */
         public TarEntrySupplicant(String path, File file,
                                   TarFileOutputStream tarStream,
@@ -492,16 +472,10 @@ public class TarGenerator {
          * RAM before anything is written to disk.
          * </P>
          *
-         * @param path String
-         * @param origStream InputStream
          * @param maxBytes This method will fail if more than maxBytes bytes
          *                 are supplied on the specified InputStream.
          *                 As the type of this parameter enforces, the max
          *                 size you can request is 2GB.
-         * @param typeFlag char
-         * @param tarStream TarFileOutputStream
-         * @throws IOException on access failure
-         * @throws TarMalformatException if malformed
          */
         public TarEntrySupplicant(String path, InputStream origStream,
                                   int maxBytes, char typeFlag,
@@ -616,9 +590,6 @@ public class TarGenerator {
          * Writes entire entry to this object's tarStream.
          *
          * This method is guaranteed to close the supplicant's input stream.
-         *
-         * @throws IOException on access failure
-         * @throws TarMalformatException if malformed
          */
         public void write() throws IOException, TarMalformatException {
             int i;
@@ -694,9 +665,6 @@ public class TarGenerator {
          * privileges for "other" (last nibble in file Mode), but no ability
          * to detect the same.
          * </P>
-         *
-         * @param file File
-         * @return String
          */
         static protected String getLameMode(File file) {
             int umod = 0;

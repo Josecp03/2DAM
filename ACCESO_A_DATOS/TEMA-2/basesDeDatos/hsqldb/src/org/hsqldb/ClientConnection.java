@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,11 @@ package org.hsqldb;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-
 import java.net.Socket;
-
 import java.text.SimpleDateFormat;
-
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import org.hsqldb.error.Error;
@@ -59,7 +57,7 @@ import org.hsqldb.rowio.RowOutputInterface;
 import org.hsqldb.server.HsqlSocketFactory;
 import org.hsqldb.types.BlobDataID;
 import org.hsqldb.types.ClobDataID;
-import org.hsqldb.types.HsqlDateTime;
+import org.hsqldb.types.TimestampData;
 
 /**
  * Base remote session proxy implementation. Uses instances of Result to
@@ -67,7 +65,7 @@ import org.hsqldb.types.HsqlDateTime;
  * protocol.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.7.2
  */
 public class ClientConnection implements SessionInterface, Cloneable {
@@ -106,8 +104,9 @@ public class ClientConnection implements SessionInterface, Cloneable {
     //
     private boolean  isReadOnlyDefault = false;
     private boolean  isAutoCommit      = true;
-    private TimeZone timeZone;
+    private int      zoneSeconds;
     private Scanner  scanner;
+    private String   zoneString;
     private Calendar calendar;
     private Calendar calendarGMT;
     SimpleDateFormat simpleDateFormatGMT;
@@ -128,16 +127,10 @@ public class ClientConnection implements SessionInterface, Cloneable {
     /**
      * Establishes a connection to the server.
      */
-    public ClientConnection(
-            String host,
-            int port,
-            String path,
-            String database,
-            boolean isTLS,
-            boolean isTLSWrapper,
-            String user,
-            String password,
-            TimeZone timeZone) {
+    public ClientConnection(String host, int port, String path,
+                            String database, boolean isTLS,
+                            boolean isTLSWrapper, String user,
+                            String password, int timeZoneSeconds) {
 
         this.host         = host;
         this.port         = port;
@@ -145,17 +138,14 @@ public class ClientConnection implements SessionInterface, Cloneable {
         this.database     = database;
         this.isTLS        = isTLS;
         this.isTLSWrapper = isTLSWrapper;
-        this.timeZone     = timeZone;
+        this.zoneSeconds  = timeZoneSeconds;
+        this.zoneString   = TimeZone.getDefault().getID();
 
         initStructures();
         initConnection(host, port, isTLS);
 
-        Result login = Result.newConnectionAttemptRequest(
-            user,
-            password,
-            database,
-            timeZone.getID(),
-            timeZone.getOffset(System.currentTimeMillis()) / 1000);
+        Result login = Result.newConnectionAttemptRequest(user, password,
+            database, zoneString, timeZoneSeconds);
         Result resultIn = execute(login);
 
         if (resultIn.isError()) {
@@ -177,7 +167,8 @@ public class ClientConnection implements SessionInterface, Cloneable {
         this.database     = other.database;
         this.isTLS        = other.isTLS;
         this.isTLSWrapper = other.isTLSWrapper;
-        this.timeZone     = other.timeZone;
+        this.zoneSeconds  = other.zoneSeconds;
+        this.zoneString   = other.zoneString;
 
         //
         this.sessionID              = other.sessionID;
@@ -211,12 +202,13 @@ public class ClientConnection implements SessionInterface, Cloneable {
 
         try {
             if (isTLSWrapper) {
-                socket = HsqlSocketFactory.getInstance(false)
-                                          .createSocket(host, port);
+                socket =
+                    HsqlSocketFactory.getInstance(false).createSocket(host,
+                                                  port);
             }
 
-            socket = HsqlSocketFactory.getInstance(isTLS)
-                                      .createSocket(socket, host, port);
+            socket = HsqlSocketFactory.getInstance(isTLS).createSocket(socket,
+                                                   host, port);
 
             socket.setTcpNoDelay(true);
 
@@ -229,10 +221,8 @@ public class ClientConnection implements SessionInterface, Cloneable {
 
             // The details from "e" should not be thrown away here.  This is
             // very useful info for end users to diagnose the runtime problem.
-            throw new HsqlException(
-                e,
-                Error.getStateString(ErrorCode.X_08001),
-                -ErrorCode.X_08001);
+            throw new HsqlException(e, Error.getStateString(ErrorCode.X_08001),
+                                    -ErrorCode.X_08001);
         }
     }
 
@@ -260,14 +250,12 @@ public class ClientConnection implements SessionInterface, Cloneable {
 
             return read();
         } catch (Throwable e) {
-            throw Error.error(e, ErrorCode.X_08006, e.toString());
+            throw Error.error(ErrorCode.X_08006, e.toString());
         }
     }
 
-    public synchronized RowSetNavigatorClient getRows(
-            long navigatorId,
-            int offset,
-            int size) {
+    public synchronized RowSetNavigatorClient getRows(long navigatorId,
+            int offset, int size) {
 
         try {
             resultOut.setResultType(ResultConstants.REQUESTDATA);
@@ -279,7 +267,7 @@ public class ClientConnection implements SessionInterface, Cloneable {
 
             return (RowSetNavigatorClient) result.getNavigator();
         } catch (Throwable e) {
-            throw Error.error(e, ErrorCode.X_08006, e.toString());
+            throw Error.error(ErrorCode.X_08006, e.toString());
         }
     }
 
@@ -310,25 +298,6 @@ public class ClientConnection implements SessionInterface, Cloneable {
         isClosed = true;
     }
 
-    public void setAttributeFromResult(Result result) {
-
-        Object[] data = result.getSingleRowData();
-        int      id   = (Integer) data[AttributePos.INFO_ID];
-
-        switch (id) {
-
-            case Attributes.INFO_AUTOCOMMIT :
-                isAutoCommit = (Boolean) data[AttributePos.INFO_BOOLEAN];
-                break;
-
-            case Attributes.INFO_TIMEZONE :
-                String zoneID = (String) data[AttributePos.INFO_VARCHAR];
-
-                timeZone = TimeZone.getTimeZone(zoneID);
-                break;
-        }
-    }
-
     public synchronized Object getAttribute(int id) {
 
         resultOut.setResultType(ResultConstants.GETSESSIONATTR);
@@ -340,27 +309,21 @@ public class ClientConnection implements SessionInterface, Cloneable {
             throw Error.error(in);
         }
 
-        return getAttributeFromData(in, id);
-    }
-
-    public static Object getAttributeFromData(Result result, int id) {
-
-        Object[] data = result.getSingleRowData();
+        Object[] data = in.getSingleRowData();
 
         switch (id) {
 
-            case Attributes.INFO_AUTOCOMMIT :
-            case Attributes.INFO_CONNECTION_READONLY :
-                return data[AttributePos.INFO_BOOLEAN];
+            case SessionInterface.INFO_AUTOCOMMIT :
+                return data[SessionInterface.INFO_BOOLEAN];
 
-            case Attributes.INFO_ISOLATION :
-                return data[AttributePos.INFO_INTEGER];
+            case SessionInterface.INFO_CONNECTION_READONLY :
+                return data[SessionInterface.INFO_BOOLEAN];
 
-            case Attributes.INFO_CATALOG :
-                return data[AttributePos.INFO_VARCHAR];
+            case SessionInterface.INFO_ISOLATION :
+                return data[SessionInterface.INFO_INTEGER];
 
-            case Attributes.INFO_TIMEZONE :
-                return data[AttributePos.INFO_VARCHAR];
+            case SessionInterface.INFO_CATALOG :
+                return data[SessionInterface.INFO_VARCHAR];
         }
 
         return null;
@@ -368,7 +331,29 @@ public class ClientConnection implements SessionInterface, Cloneable {
 
     public synchronized void setAttribute(int id, Object value) {
 
-        setAttributeResult(resultOut, id, value);
+        resultOut.setResultType(ResultConstants.SETSESSIONATTR);
+
+        Object[] data = resultOut.getSingleRowData();
+
+        data[SessionInterface.INFO_ID] = ValuePool.getInt(id);
+
+        switch (id) {
+
+            case SessionInterface.INFO_AUTOCOMMIT :
+            case SessionInterface.INFO_CONNECTION_READONLY :
+                data[SessionInterface.INFO_BOOLEAN] = value;
+                break;
+
+            case SessionInterface.INFO_ISOLATION :
+                data[SessionInterface.INFO_INTEGER] = value;
+                break;
+
+            case SessionInterface.INFO_CATALOG :
+                data[SessionInterface.INFO_VARCHAR] = value;
+                break;
+
+            default :
+        }
 
         Result resultIn = execute(resultOut);
 
@@ -377,46 +362,9 @@ public class ClientConnection implements SessionInterface, Cloneable {
         }
     }
 
-    public static Result setAttributeResult(
-            Result result,
-            int id,
-            Object value) {
-
-        if (result == null) {
-            result = Result.newSessionAttributesResult();
-        }
-
-        result.setResultType(ResultConstants.SETSESSIONATTR);
-
-        Object[] data = result.getSingleRowData();
-
-        data[AttributePos.INFO_ID] = ValuePool.getInt(id);
-
-        switch (id) {
-
-            case Attributes.INFO_AUTOCOMMIT :
-            case Attributes.INFO_CONNECTION_READONLY :
-                data[AttributePos.INFO_BOOLEAN] = value;
-                break;
-
-            case Attributes.INFO_ISOLATION :
-                data[AttributePos.INFO_INTEGER] = value;
-                break;
-
-            case Attributes.INFO_CATALOG :
-            case Attributes.INFO_TIMEZONE :
-                data[AttributePos.INFO_VARCHAR] = value;
-                break;
-
-            default :
-        }
-
-        return result;
-    }
-
     public synchronized boolean isReadOnlyDefault() {
 
-        Object info = getAttribute(Attributes.INFO_CONNECTION_READONLY);
+        Object info = getAttribute(SessionInterface.INFO_CONNECTION_READONLY);
 
         isReadOnlyDefault = ((Boolean) info).booleanValue();
 
@@ -426,11 +374,9 @@ public class ClientConnection implements SessionInterface, Cloneable {
     public synchronized void setReadOnlyDefault(boolean mode) {
 
         if (mode != isReadOnlyDefault) {
-            setAttribute(
-                Attributes.INFO_CONNECTION_READONLY,
-                mode
-                ? Boolean.TRUE
-                : Boolean.FALSE);
+            setAttribute(SessionInterface.INFO_CONNECTION_READONLY,
+                         mode ? Boolean.TRUE
+                              : Boolean.FALSE);
 
             isReadOnlyDefault = mode;
         }
@@ -438,7 +384,7 @@ public class ClientConnection implements SessionInterface, Cloneable {
 
     public synchronized boolean isAutoCommit() {
 
-        Object info = getAttribute(Attributes.INFO_AUTOCOMMIT);
+        Object info = getAttribute(SessionInterface.INFO_AUTOCOMMIT);
 
         isAutoCommit = ((Boolean) info).booleanValue();
 
@@ -448,22 +394,21 @@ public class ClientConnection implements SessionInterface, Cloneable {
     public synchronized void setAutoCommit(boolean mode) {
 
         if (mode != isAutoCommit) {
-            setAttribute(
-                Attributes.INFO_AUTOCOMMIT,
-                mode
-                ? Boolean.TRUE
-                : Boolean.FALSE);
+            setAttribute(SessionInterface.INFO_AUTOCOMMIT, mode ? Boolean.TRUE
+                                                                : Boolean
+                                                                .FALSE);
 
             isAutoCommit = mode;
         }
     }
 
     public synchronized void setIsolationDefault(int level) {
-        setAttribute(Attributes.INFO_ISOLATION, ValuePool.getInt(level));
+        setAttribute(SessionInterface.INFO_ISOLATION, ValuePool.getInt(level));
     }
 
     public synchronized int getIsolation() {
-        Object info = getAttribute(Attributes.INFO_ISOLATION);
+
+        Object info = getAttribute(SessionInterface.INFO_ISOLATION);
 
         return ((Integer) info).intValue();
     }
@@ -480,9 +425,8 @@ public class ClientConnection implements SessionInterface, Cloneable {
 
     public synchronized void prepareCommit() {
 
-        resultOut.setAsTransactionEndRequest(
-            ResultConstants.PREPARECOMMIT,
-            null);
+        resultOut.setAsTransactionEndRequest(ResultConstants.PREPARECOMMIT,
+                                             null);
 
         Result in = execute(resultOut);
 
@@ -504,7 +448,8 @@ public class ClientConnection implements SessionInterface, Cloneable {
 
     public synchronized void rollback(boolean chain) {
 
-        resultOut.setAsTransactionEndRequest(ResultConstants.TX_ROLLBACK, null);
+        resultOut.setAsTransactionEndRequest(ResultConstants.TX_ROLLBACK,
+                                             null);
 
         Result in = execute(resultOut);
 
@@ -516,8 +461,7 @@ public class ClientConnection implements SessionInterface, Cloneable {
     public synchronized void rollbackToSavepoint(String name) {
 
         resultOut.setAsTransactionEndRequest(
-            ResultConstants.TX_SAVEPOINT_NAME_ROLLBACK,
-            name);
+            ResultConstants.TX_SAVEPOINT_NAME_ROLLBACK, name);
 
         Result in = execute(resultOut);
 
@@ -539,8 +483,7 @@ public class ClientConnection implements SessionInterface, Cloneable {
     public synchronized void releaseSavepoint(String name) {
 
         resultOut.setAsTransactionEndRequest(
-            ResultConstants.TX_SAVEPOINT_NAME_RELEASE,
-            name);
+            ResultConstants.TX_SAVEPOINT_NAME_RELEASE, name);
 
         Result in = execute(resultOut);
 
@@ -585,13 +528,11 @@ public class ClientConnection implements SessionInterface, Cloneable {
         databaseID = resultIn.getDatabaseId();
     }
 
-    protected void write(Result r) throws IOException,
-            HsqlException {
+    protected void write(Result r) throws IOException, HsqlException {
         r.write(this, dataOutput, rowOut);
     }
 
-    protected Result read() throws IOException,
-                                   HsqlException {
+    protected Result read() throws IOException, HsqlException {
 
         Result result = Result.newResult(dataInput, rowIn);
 
@@ -625,12 +566,14 @@ public class ClientConnection implements SessionInterface, Cloneable {
     }
 
     public BlobDataID createBlob(long length) {
+
         BlobDataID blob = new BlobDataID(getLobId());
 
         return blob;
     }
 
     public ClobDataID createClob(long length) {
+
         ClobDataID clob = new ClobDataID(getLobId());
 
         return clob;
@@ -655,7 +598,9 @@ public class ClientConnection implements SessionInterface, Cloneable {
     public Calendar getCalendar() {
 
         if (calendar == null) {
-            calendar = new GregorianCalendar(timeZone);
+            TimeZone zone = TimeZone.getTimeZone(zoneString);
+
+            calendar = new GregorianCalendar(zone);
         }
 
         return calendar;
@@ -664,9 +609,8 @@ public class ClientConnection implements SessionInterface, Cloneable {
     public Calendar getCalendarGMT() {
 
         if (calendarGMT == null) {
-            calendarGMT = new GregorianCalendar(
-                TimeZone.getTimeZone("GMT"),
-                HsqlDateTime.defaultLocale);
+            calendarGMT = new GregorianCalendar(TimeZone.getTimeZone("GMT"),
+                                                HsqlDateTime.defaultLocale);
 
             calendarGMT.setLenient(false);
         }
@@ -677,13 +621,10 @@ public class ClientConnection implements SessionInterface, Cloneable {
     public SimpleDateFormat getSimpleDateFormatGMT() {
 
         if (simpleDateFormatGMT == null) {
-            simpleDateFormatGMT = new SimpleDateFormat(
-                "MMMM",
-                HsqlDateTime.defaultLocale);
+            simpleDateFormatGMT = new SimpleDateFormat("MMMM", Locale.ENGLISH);
 
-            Calendar cal = new GregorianCalendar(
-                TimeZone.getTimeZone("GMT"),
-                HsqlDateTime.defaultLocale);
+            Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"),
+                                                 HsqlDateTime.defaultLocale);
 
             cal.setLenient(false);
             simpleDateFormatGMT.setCalendar(cal);
@@ -692,12 +633,17 @@ public class ClientConnection implements SessionInterface, Cloneable {
         return simpleDateFormatGMT;
     }
 
-    public TimeZone getTimeZone() {
-        return timeZone;
+    public TimestampData getCurrentDate() {
+
+        long currentMillis = System.currentTimeMillis();
+
+        currentMillis = HsqlDateTime.getNormalisedDate(currentMillis);
+
+        return new TimestampData(currentMillis / 1000);
     }
 
     public int getZoneSeconds() {
-        return timeZone.getOffset(System.currentTimeMillis()) / 1000;
+        return zoneSeconds;
     }
 
     public int getStreamBlockSize() {
@@ -709,10 +655,7 @@ public class ClientConnection implements SessionInterface, Cloneable {
         if (clientProperties == null) {
             if (clientPropertiesString.length() > 0) {
                 clientProperties = HsqlProperties.delimitedArgPairsToProps(
-                    clientPropertiesString,
-                    "=",
-                    ";",
-                    null);
+                    clientPropertiesString, "=", ";", null);
             } else {
                 clientProperties = new HsqlProperties();
             }

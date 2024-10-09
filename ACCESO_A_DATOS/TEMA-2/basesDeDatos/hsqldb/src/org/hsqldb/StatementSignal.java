@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ package org.hsqldb;
 
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
-import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.lib.OrderedHashSet;
 import org.hsqldb.result.Result;
 
@@ -41,7 +40,7 @@ import org.hsqldb.result.Result;
  * Implementation of Statement for simple PSM signal statements.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.3.3
  * @since 1.9.0
  */
 public class StatementSignal extends Statement {
@@ -53,7 +52,7 @@ public class StatementSignal extends Statement {
 
         super(type, StatementTypes.X_SQL_CONTROL);
 
-        references             = new OrderedHashSet<>();
+        references             = new OrderedHashSet();
         isTransactionStatement = false;
         this.sqlState          = sqlState;
         this.messageExpression = message;
@@ -66,23 +65,15 @@ public class StatementSignal extends Statement {
         switch (type) {
 
             case StatementTypes.SIGNAL :
-                sb.append(Tokens.T_SIGNAL)
-                  .append(' ')
-                  .append(Tokens.T_SQLSTATE)
-                  .append(' ')
-                  .append('\'')
-                  .append(sqlState)
-                  .append('\'');
+                sb.append(Tokens.T_SIGNAL).append(' ');
+                sb.append(Tokens.T_SQLSTATE);
+                sb.append(' ').append('\'').append(sqlState).append('\'');
                 break;
 
             case StatementTypes.RESIGNAL :
-                sb.append(Tokens.T_RESIGNAL)
-                  .append(' ')
-                  .append(Tokens.T_SQLSTATE)
-                  .append(' ')
-                  .append('\'')
-                  .append(sqlState)
-                  .append('\'');
+                sb.append(Tokens.T_RESIGNAL).append(' ');
+                sb.append(Tokens.T_SQLSTATE);
+                sb.append(' ').append('\'').append(sqlState).append('\'');
                 break;
         }
 

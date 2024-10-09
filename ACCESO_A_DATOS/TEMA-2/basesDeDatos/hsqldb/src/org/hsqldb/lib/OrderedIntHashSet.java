@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,10 @@ package org.hsqldb.lib;
 /**
  * A list which is also a set of int primitives which maintains the insertion
  * order of the elements and allows access by index. Iterators return the keys
- * in the index order.
+ * in the index order.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public class OrderedIntHashSet extends IntHashSet {
@@ -46,9 +46,8 @@ public class OrderedIntHashSet extends IntHashSet {
         this(8);
     }
 
-    public OrderedIntHashSet(
-            int initialCapacity)
-            throws IllegalArgumentException {
+    public OrderedIntHashSet(int initialCapacity) throws IllegalArgumentException {
+
         super(initialCapacity);
 
         isList = true;
@@ -73,21 +72,8 @@ public class OrderedIntHashSet extends IntHashSet {
         addAll(elementsB);
     }
 
-    public OrderedIntHashSet(
-            int[] elementsA,
-            int[] elementsB,
-            int[] elementsC) {
-
-        super(elementsA.length + elementsB.length + elementsC.length);
-
-        isList = true;
-
-        addAll(elementsA);
-        addAll(elementsB);
-        addAll(elementsC);
-    }
-
-    public boolean insert(int index, int key) throws IndexOutOfBoundsException {
+    public boolean insert(int index,
+                          int key) throws IndexOutOfBoundsException {
 
         if (index < 0 || index > size()) {
             throw new IndexOutOfBoundsException();
@@ -109,7 +95,6 @@ public class OrderedIntHashSet extends IntHashSet {
     }
 
     public void removeEntry(int index) throws IndexOutOfBoundsException {
-
         checkRange(index);
 
         int key = intKeyTable[index];
@@ -118,6 +103,7 @@ public class OrderedIntHashSet extends IntHashSet {
     }
 
     public int get(int index) {
+
         checkRange(index);
 
         return intKeyTable[index];
@@ -155,6 +141,7 @@ public class OrderedIntHashSet extends IntHashSet {
     }
 
     private void checkRange(int i) {
+
         if (i < 0 || i >= size()) {
             throw new IndexOutOfBoundsException();
         }

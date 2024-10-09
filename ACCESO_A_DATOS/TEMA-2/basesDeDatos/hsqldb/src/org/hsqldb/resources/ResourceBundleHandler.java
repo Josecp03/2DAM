@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 package org.hsqldb.resources;
 
 import java.lang.reflect.Method;
-
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -64,15 +63,14 @@ public final class ResourceBundleHandler {
     /** The Locale used internally to fetch resource bundles. */
     private static Locale locale = Locale.getDefault();
 
-    /** Map:  Integer object handle maps to: {@code ResourceBundle} object. */
-    private static HashMap<String, Integer> bundleHandleMap = new HashMap<>();
+    /** Map:  Integer object handle => <code>ResourceBundle</code> object. */
+    private static HashMap bundleHandleMap = new HashMap();
 
-    /** List whose elements are {@code ResourceBundle} objects */
-    private static HsqlArrayList<ResourceBundle> bundleList =
-        new HsqlArrayList<>();
+    /** List whose elements are <code>ResourceBundle</code> objects */
+    private static HsqlArrayList bundleList = new HsqlArrayList();
 
     /**
-     * The resource path prefix of the {@code ResourceBundle} objects
+     * The resource path prefix of the <code>ResourceBundle</code> objects
      * handled by this class.
      */
     private static final String prefix = "org.hsqldb.resources.";
@@ -89,6 +87,7 @@ public final class ResourceBundleHandler {
      * @return Value of property locale.
      */
     public static Locale getLocale() {
+
         synchronized (mutex) {
             return locale;
         }
@@ -112,13 +111,13 @@ public final class ResourceBundleHandler {
     }
 
     /**
-     * Retrieves an {@code int} handle to the {@code ResourceBundle}
+     * Retrieves an <code>int</code> handle to the <code>ResourceBundle</code>
      * object corresponding to the specified name and current
-     * {@code Locale}, using the specified {@code ClassLoader}. <p>
+     * <code>Locale</code>, using the specified <code>ClassLoader</code>. <p>
      *
-     * @return {@code int} handle to the {@code ResourceBundle}
+     * @return <code>int</code> handle to the <code>ResourceBundle</code>
      *        object corresponding to the specified name and
-     *        current {@code Locale}, or -1 if no such bundle
+     *        current <code>Locale</code>, or -1 if no such bundle
      *        can be found
      * @param cl The ClassLoader to use in the search
      * @param name of the desired bundle
@@ -134,7 +133,7 @@ public final class ResourceBundleHandler {
 
         synchronized (mutex) {
             bundleKey    = locale.toString() + bundleName;
-            bundleHandle = bundleHandleMap.get(bundleKey);
+            bundleHandle = (Integer) bundleHandleMap.get(bundleKey);
 
             if (bundleHandle == null) {
                 bundle = getBundle(bundleName, locale, cl);
@@ -151,15 +150,15 @@ public final class ResourceBundleHandler {
     }
 
     /**
-     * Retrieves, from the {@code ResourceBundle} object corresponding
-     * to the specified handle, the {@code String} value corresponding
-     * to the specified key.  {@code null} is retrieved if either there
-     *  is no {@code ResourceBundle} object for the handle or there is no
-     * {@code String} value for the specified key. <p>
+     * Retrieves, from the <code>ResourceBundle</code> object corresponding
+     * to the specified handle, the <code>String</code> value corresponding
+     * to the specified key.  <code>null</code> is retrieved if either there
+     *  is no <code>ResourceBundle</code> object for the handle or there is no
+     * <code>String</code> value for the specified key. <p>
      *
-     * @param handle an {@code int} handle to a
-     *      {@code ResourceBundle} object
-     * @param key A {@code String} key to a {@code String} value
+     * @param handle an <code>int</code> handle to a
+     *      <code>ResourceBundle</code> object
+     * @param key A <code>String</code> key to a <code>String</code> value
      * @return The String value corresponding to the specified handle and key.
      */
     public static String getString(int handle, String key) {
@@ -171,7 +170,7 @@ public final class ResourceBundleHandler {
             if (handle < 0 || handle >= bundleList.size() || key == null) {
                 bundle = null;
             } else {
-                bundle = bundleList.get(handle);
+                bundle = (ResourceBundle) bundleList.get(handle);
             }
         }
 
@@ -194,11 +193,13 @@ public final class ResourceBundleHandler {
      */
     private static Method getNewGetBundleMethod() {
 
-        Class<ResourceBundle> clazz;
-        Class[]               args;
+        Class   clazz;
+        Class[] args;
 
         clazz = ResourceBundle.class;
-        args  = new Class[]{ String.class, Locale.class, ClassLoader.class };
+        args  = new Class[] {
+            String.class, Locale.class, ClassLoader.class
+        };
 
         try {
             return clazz.getMethod("getBundle", args);
@@ -221,12 +222,10 @@ public final class ResourceBundleHandler {
      * @param locale the locale for which a resource bundle is desired
      * @param cl the class loader from which to load the resource bundle
      */
-    public static ResourceBundle getBundle(
-            String name,
-            Locale locale,
-            ClassLoader cl)
-            throws NullPointerException,
-                   MissingResourceException {
+    public static ResourceBundle getBundle(String name, Locale locale,
+                                           ClassLoader cl)
+                                           throws NullPointerException,
+                                               MissingResourceException {
 
         if (cl == null) {
             return ResourceBundle.getBundle(name, locale);
@@ -234,9 +233,10 @@ public final class ResourceBundleHandler {
             return ResourceBundle.getBundle(name, locale);
         } else {
             try {
-                return (ResourceBundle) newGetBundleMethod.invoke(
-                    null,
-                    new Object[]{ name, locale, cl });
+                return (ResourceBundle) newGetBundleMethod.invoke(null,
+                        new Object[] {
+                    name, locale, cl
+                });
             } catch (Exception e) {
                 return ResourceBundle.getBundle(name, locale);
             }

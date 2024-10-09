@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,24 +66,29 @@ public class IndexStats {
     public long            loopCount;
     public long            goodRowCount;
     public boolean         reindexed;    // set after a reindex
-    HsqlArrayList<String>  unorderedList = new HsqlArrayList<>();
+    HsqlArrayList          unorderedList = new HsqlArrayList();
 
     public static Result newEmptyResult() {
 
-        String[] names  = new String[]{ "TABLE_NAME", "INDEX_NAME", "INFO" };
-        Type[] types = new Type[]{ Type.SQL_VARCHAR_DEFAULT,
-                                   TypeInvariants.SQL_IDENTIFIER,
-                                   Type.SQL_VARCHAR_DEFAULT };
-        Result   result = Result.newMultiColumnResult(names, types);
+        String[] names = new String[] {
+            "TABLE_NAME", "INDEX_NAME", "INFO"
+        };
+        Type[]   types = new Type[] {
+            Type.SQL_VARCHAR_DEFAULT, TypeInvariants.SQL_IDENTIFIER,
+            Type.SQL_VARCHAR_DEFAULT
+        };
+        Result result = Result.newMultiColumnResult(names, types);
 
         return result;
     }
 
     public void addTableStats(Result result) {
 
-        Object[] data = new Object[]{
-            ((Table) index.getTable()).getName().getSchemaQualifiedStatementName(),
-            "", "rows " + store.elementCount() };
+        Object[] data = new Object[] {
+            ((Table) index.getTable()).getName()
+                .getSchemaQualifiedStatementName(),
+            "", "rows " + store.elementCount()
+        };
 
         result.navigator.add(data);
     }
@@ -91,28 +96,36 @@ public class IndexStats {
     public void addStats(Result result) {
 
         {
-            Object[] data = new Object[]{
-                ((Table) index.getTable()).getName().getSchemaQualifiedStatementName(),
+            Object[] data = new Object[] {
+                ((Table) index.getTable()).getName()
+                    .getSchemaQualifiedStatementName(),
                 index.getName().getStatementName(),
-                "readable rows " + goodRowCount };
+                "readable rows " + goodRowCount
+            };
 
             result.navigator.add(data);
         }
 
         if (errorCount != 0) {
-            Object[] data = new Object[]{ "", "", "error rows " + errorCount };
+            Object[] data = new Object[] {
+                "", "", "error rows " + errorCount
+            };
 
             result.navigator.add(data);
         }
 
         if (loopCount != 0) {
-            Object[] data = new Object[]{ "", "", "loop rows " + loopCount };
+            Object[] data = new Object[] {
+                "", "", "loop rows " + loopCount
+            };
 
             result.navigator.add(data);
         }
 
         for (int i = 0; i < unorderedList.size(); i++) {
-            Object[] data = new Object[]{ "", "", unorderedList.get(i) };
+            Object[] data = new Object[] {
+                "", "", (Object) unorderedList.get(i)
+            };
 
             result.navigator.add(data);
         }
@@ -121,10 +134,11 @@ public class IndexStats {
     public void addReindexedStats(Result result) {
 
         {
-            Object[] data = new Object[]{
-                ((Table) index.getTable()).getName().getSchemaQualifiedStatementName(),
-                index.getName().getStatementName(),
-                "reindexed" };
+            Object[] data = new Object[] {
+                ((Table) index.getTable()).getName()
+                    .getSchemaQualifiedStatementName(),
+                index.getName().getStatementName(), "reindexed"
+            };
 
             result.navigator.add(data);
         }

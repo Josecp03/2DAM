@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import org.hsqldb.lib.OrderedHashSet;
  * SQL schema object for SYSNONYM
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.9.0
  */
 public class ReferenceObject implements SchemaObject {
@@ -72,28 +72,29 @@ public class ReferenceObject implements SchemaObject {
         return name.schema.owner;
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
 
-        OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
+        OrderedHashSet set = new OrderedHashSet();
 
         set.add(target);
 
         return set;
     }
 
+    public OrderedHashSet getComponents() {
+        return null;
+    }
+
+    public void compile(Session session, SchemaObject parentObject) {}
+
     public String getSQL() {
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder();
 
-        sb.append(Tokens.T_CREATE)
-          .append(' ')
-          .append(Tokens.T_SYNONYM)
-          .append(' ')
-          .append(name.getSchemaQualifiedStatementName())
-          .append(' ')
-          .append(Tokens.T_FOR)
-          .append(' ')
-          .append(target.getSchemaQualifiedStatementName());
+        sb.append(Tokens.T_CREATE).append(' ').append(Tokens.T_SYNONYM);
+        sb.append(' ').append(name.getSchemaQualifiedStatementName());
+        sb.append(' ').append(Tokens.T_FOR).append(' ');
+        sb.append(target.getSchemaQualifiedStatementName());
 
         return sb.toString();
     }

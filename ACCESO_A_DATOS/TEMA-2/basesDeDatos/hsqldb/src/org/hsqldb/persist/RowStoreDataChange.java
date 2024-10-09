@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 
 package org.hsqldb.persist;
 
+import java.io.IOException;
+
 import org.hsqldb.HsqlException;
 import org.hsqldb.Row;
 import org.hsqldb.RowDiskDataChange;
@@ -58,10 +60,8 @@ public class RowStoreDataChange extends RowStoreAVLHybrid {
         super.changeToDiskTable(session);
     }
 
-    public CachedObject getNewCachedObject(
-            Session session,
-            Object object,
-            boolean tx) {
+    public CachedObject getNewCachedObject(Session session, Object object,
+                                           boolean tx) {
 
         Row row = new RowDiskDataChange(table, (Object[]) object, this, null);
 

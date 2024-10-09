@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
 
 package org.hsqldb;
 
-import java.util.TimeZone;
-
 import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.Session.TimeoutManager;
 import org.hsqldb.dbinfo.DatabaseInformation;
@@ -41,7 +39,6 @@ import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.FrameworkLogger;
 import org.hsqldb.lib.HsqlArrayList;
 import org.hsqldb.lib.HsqlTimer;
-import org.hsqldb.lib.List;
 import org.hsqldb.lib.OrderedHashMap;
 import org.hsqldb.map.ValuePool;
 import org.hsqldb.persist.HsqlDatabaseProperties;
@@ -64,7 +61,7 @@ import org.hsqldb.types.Collation;
  * It holds the data structures that form an HSQLDB database instance.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.1
  * @since 1.9.0
  */
 public class Database {
@@ -113,20 +110,18 @@ public class Database {
     public boolean                sqlIgnoreCase          = false;
     public boolean                sqlLiveObject          = false;
     public boolean                sqlLongvarIsLob        = false;
-    public boolean                sqlLowerCaseIdentifier = false;
     public boolean                sqlNullsFirst          = true;
     public boolean                sqlNullsOrder          = true;
-    public int                    sqlMaxRecursive        = 256;
+    public boolean                sqlSysIndexNames       = false;
     public boolean                sqlRegularNames        = true;
+    public boolean                sqlTranslateTTI        = true;
+    public boolean                sqlUniqueNulls         = true;
+    public boolean                sqlLowerCaseIdentifier = false;
     public boolean                sqlSyntaxDb2           = false;
     public boolean                sqlSyntaxMss           = false;
     public boolean                sqlSyntaxMys           = false;
     public boolean                sqlSyntaxOra           = false;
     public boolean                sqlSyntaxPgs           = false;
-    public boolean                sqlSysIndexNames       = false;
-    public boolean                sqlTranslateTTI        = true;
-    public boolean                sqlTruncateTrailing    = true;
-    public boolean                sqlUniqueNulls         = true;
     public int                    recoveryMode           = 0;
     private boolean               isReferentialIntegrity = true;
     public HsqlDatabaseProperties databaseProperties;
@@ -182,11 +177,8 @@ public class Database {
      *      combination is illegal or unavailable, or the database files the
      *      name and path resolves to are in use by another process
      */
-    Database(
-            DatabaseType type,
-            String path,
-            String canonicalPath,
-            HsqlProperties props) {
+    Database(DatabaseType type, String path, String canonicalPath,
+             HsqlProperties props) {
 
         setState(Database.DATABASE_SHUTDOWN);
 
@@ -201,11 +193,10 @@ public class Database {
         }
 
         logger = new Logger(this);
-        shutdownOnNoConnection = urlProperties.isPropertyTrue(
-            HsqlDatabaseProperties.url_shutdown);
+        shutdownOnNoConnection =
+            urlProperties.isPropertyTrue(HsqlDatabaseProperties.url_shutdown);
         recoveryMode = urlProperties.getIntegerProperty(
-            HsqlDatabaseProperties.url_recover,
-            0);
+            HsqlDatabaseProperties.url_recover, 0);
     }
 
     /**
@@ -227,7 +218,7 @@ public class Database {
      */
     void reopen() {
 
-        boolean isNew;
+        boolean isNew = false;
 
         setState(DATABASE_OPENING);
 
@@ -254,18 +245,19 @@ public class Database {
             checkpointRunner = new CheckpointRunner();
             timeoutRunner    = new TimeoutRunner();
         } catch (Throwable e) {
-            logger.logSevereEvent("could not reopen database", e);
             logger.close(Database.CLOSEMODE_IMMEDIATELY);
             logger.releaseLock();
             setState(DATABASE_SHUTDOWN);
             clearStructures();
             DatabaseManager.removeDatabase(this);
 
-            if (e instanceof HsqlException) {
-                throw(e);
-            } else {
-                throw(Error.error(ErrorCode.GENERAL_ERROR, e));
+            if (!(e instanceof HsqlException)) {
+                e = Error.error(ErrorCode.GENERAL_ERROR, e);
             }
+
+            logger.logSevereEvent("could not reopen database", e);
+
+            throw (HsqlException) e;
         }
 
         setState(DATABASE_ONLINE);
@@ -301,21 +293,20 @@ public class Database {
 
     public void createObjectStructures() {
 
-        nameManager               = new HsqlNameManager(this);
-        databaseUniqueName = nameManager.newHsqlName(
-            "",
-            false,
-            SchemaObject.DATABASE);
-        lobManager                = new LobManager(this);
-        granteeManager            = new GranteeManager(this);
-        userManager               = new UserManager(this);
-        schemaManager             = new SchemaManager(this);
-        persistentStoreCollection = new PersistentStoreCollectionDatabase(this);
-        isReferentialIntegrity    = true;
-        sessionManager            = new SessionManager(this);
-        collation                 = Collation.newDatabaseInstance();
+        nameManager = new HsqlNameManager(this);
+        databaseUniqueName = nameManager.newHsqlName("", false,
+                SchemaObject.DATABASE);
+        lobManager     = new LobManager(this);
+        granteeManager = new GranteeManager(this);
+        userManager    = new UserManager(this);
+        schemaManager  = new SchemaManager(this);
+        persistentStoreCollection =
+            new PersistentStoreCollectionDatabase(this);
+        isReferentialIntegrity = true;
+        sessionManager         = new SessionManager(this);
+        collation              = Collation.newDatabaseInstance();
         dbInfo = DatabaseInformation.newDatabaseInformation(this);
-        txManager                 = new TransactionManager2PL(this);
+        txManager              = new TransactionManager2PL(this);
 
         lobManager.createSchema();
         sessionManager.getSysLobSession().setSchema(SqlInvariants.LOBS_SCHEMA);
@@ -397,10 +388,8 @@ public class Database {
      *
      * Throws if username or password is invalid.
      */
-    synchronized Session connect(
-            String username,
-            String password,
-            TimeZone zone) {
+    synchronized Session connect(String username, String password,
+                                 String zoneString, int timeZoneSeconds) {
 
         if (getState() != DATABASE_ONLINE) {
             throw Error.error(ErrorCode.X_08001);
@@ -411,12 +400,8 @@ public class Database {
         }
 
         User user = userManager.getUser(username, password);
-        Session session = sessionManager.newSession(
-            this,
-            user,
-            databaseReadOnly,
-            true,
-            zone);
+        Session session = sessionManager.newSession(this, user,
+            databaseReadOnly, true, zoneString, timeZoneSeconds);
 
         return session;
     }
@@ -505,6 +490,7 @@ public class Database {
     }
 
     public void setRegularNames(boolean mode) {
+
         sqlRegularNames = mode;
 
         nameManager.setSqlRegularNames(mode);
@@ -558,20 +544,12 @@ public class Database {
         sqlConvertTruncate = mode;
     }
 
-    public void setTruncateTrailing(boolean mode) {
-        sqlTruncateTrailing = mode;
-    }
-
     public void setDoubleNaN(boolean mode) {
         sqlDoubleNaN = mode;
     }
 
     public void setAvgScale(int scale) {
         sqlAvgScale = scale;
-    }
-
-    public void setMaxRecursive(int value) {
-        sqlMaxRecursive = value;
     }
 
     public void setLongVarIsLob(boolean mode) {
@@ -624,7 +602,7 @@ public class Database {
     }
 
     /**
-     *  Closes this Database using the specified mode.
+     *  Closes this Database using the specified mode. <p>
      *
      * <ol>
      *  <LI> closemode -1 performs SHUTDOWN IMMEDIATELY, equivalent
@@ -672,8 +650,8 @@ public class Database {
             if (result && closemode == CLOSEMODE_COMPACT) {
                 clearStructures();
                 reopen();
-                txManager.setSystemChangeNumber(
-                    txManager.getSystemChangeNumber() + 1);
+                txManager.setGlobalChangeTimestamp(
+                    txManager.getGlobalChangeTimestamp() + 1);
                 setState(DATABASE_CLOSING);
                 sessionManager.closeAllSessions();
                 logger.close(CLOSEMODE_NORMAL);
@@ -736,12 +714,13 @@ public class Database {
         }
     }
 
-    public List<String> getSettingsSQLArray() {
+    public String[] getSettingsSQL() {
 
-        HsqlArrayList<String> list = new HsqlArrayList<>();
-        StringBuilder         sb   = new StringBuilder();
+        HsqlArrayList list = new HsqlArrayList();
+        StringBuilder sb   = new StringBuilder();
 
-        if (!getCatalogName().name.equals(SqlInvariants.DEFAULT_CATALOG_NAME)) {
+        if (!getCatalogName().name.equals(
+                SqlInvariants.DEFAULT_CATALOG_NAME)) {
             String name = getCatalogName().statementName;
 
             sb.append("ALTER CATALOG PUBLIC RENAME TO ").append(name);
@@ -751,28 +730,28 @@ public class Database {
 
         list.add(collation.getDatabaseCollationSQL());
 
-        OrderedHashMap<String, Table> lobTables = schemaManager.getTables(
-            SqlInvariants.LOBS_SCHEMA);
+        OrderedHashMap lobTables =
+            schemaManager.getTables(SqlInvariants.LOBS_SCHEMA);
 
         for (int i = 0; i < lobTables.size(); i++) {
-            Table table = lobTables.get(i);
+            Table table = (Table) lobTables.get(i);
 
             if (table.isCached()) {
-                sb.append(Tokens.T_SET)
-                  .append(' ')
-                  .append(Tokens.T_TABLE)
-                  .append(' ')
-                  .append(table.getName().getSchemaQualifiedStatementName())
-                  .append(' ')
-                  .append(Tokens.T_TYPE)
-                  .append(' ')
-                  .append(Tokens.T_CACHED);
+                sb.append(Tokens.T_SET).append(' ').append(Tokens.T_TABLE);
+                sb.append(' ');
+                sb.append(table.getName().getSchemaQualifiedStatementName());
+                sb.append(' ').append(Tokens.T_TYPE).append(' ');
+                sb.append(Tokens.T_CACHED);
                 list.add(sb.toString());
                 sb.setLength(0);
             }
         }
 
-        return list;
+        String[] array = new String[list.size()];
+
+        list.toArray(array);
+
+        return array;
     }
 
     /**
@@ -783,15 +762,15 @@ public class Database {
         Result r = Result.newSingleColumnResult("COMMAND");
 
         // properties
-        List<String> list = logger.getPropertiesSQLArray(indexRoots);
+        String[] list = logger.getPropertiesSQL(indexRoots);
 
         r.addRows(list);
 
-        list = getSettingsSQLArray();
+        list = getSettingsSQL();
 
         r.addRows(list);
 
-        list = granteeManager.getSQLArray();
+        list = granteeManager.getSQL();
 
         r.addRows(list);
 
@@ -801,34 +780,34 @@ public class Database {
         r.addRows(list);
 
         // table spaces
-        list = schemaManager.getTableSpaceSQLArray();
+        list = schemaManager.getTableSpaceSQL();
 
         r.addRows(list);
 
         // index roots
         if (indexRoots) {
-            list = schemaManager.getIndexRootsSQLArray();
+            list = schemaManager.getIndexRootsSQL();
 
             r.addRows(list);
         }
 
         // text headers - readonly - clustered
-        list = schemaManager.getTablePropsSQLArray(!indexRoots);
+        list = schemaManager.getTablePropsSQL(!indexRoots);
 
         r.addRows(list);
 
         // password complexity
-        list = userManager.getAuthenticationSQLArray();
+        list = userManager.getAuthenticationSQL();
 
         r.addRows(list);
 
         // user session start schema names
-        list = userManager.getInitialSchemaSQLArray();
+        list = userManager.getInitialSchemaSQL();
 
         r.addRows(list);
 
         // grantee rights
-        list = granteeManager.getRightsSQLArray();
+        list = granteeManager.getRightsSQL();
 
         r.addRows(list);
 
@@ -858,15 +837,14 @@ public class Database {
 
         public void run() {
 
-            Statement checkpoint = ParserCommand.getAutoCheckpointStatement(
-                Database.this);
+            Statement checkpoint =
+                ParserCommand.getAutoCheckpointStatement(Database.this);
             Session sysSession = sessionManager.newSysSession();
 
             try {
-                sysSession.executeCompiledStatement(
-                    checkpoint,
-                    ValuePool.emptyObjectArray,
-                    0);
+                sysSession.executeCompiledStatement(checkpoint,
+                                                    ValuePool.emptyObjectArray,
+                                                    0);
             } catch (Throwable e) {
 
                 // ignore exceptions
@@ -883,7 +861,6 @@ public class Database {
 
         public void start() {
 
-            // started only when maxLogSize is reached in file: or when deleted lobs exceed maxLogSize in mem:
             synchronized (this) {
                 if (waiting) {
                     return;
@@ -910,31 +887,31 @@ public class Database {
      *
      * The runner is called at second intervals. It handles the countdown for
      * each session currently running a statement with timeout. If timeout
-     * is reached, the runner aborts the statement.
+     * is reached, the runner aborts the statement.<p>
      */
     static class TimeoutRunner implements Runnable {
 
-        private Object                        timerTask;
-        private HsqlArrayList<TimeoutManager> timeoutList;
-        int                                   abortCount;
+        private Object        timerTask;
+        private HsqlArrayList timeoutList;
+        int                   abortCount;
 
         public void run() {
 
             try {
                 synchronized (this) {
-                    long systemMillis = System.currentTimeMillis();
-
                     for (int i = 0; i < timeoutList.size(); i++) {
-                        TimeoutManager timeOut = timeoutList.get(i);
+                        TimeoutManager timeOut =
+                            (TimeoutManager) timeoutList.get(i);
 
                         if (timeOut.isClosed()) {
                             timeoutList.remove(i);
 
                             i--;
+
                             continue;
                         }
 
-                        boolean result = timeOut.checkTimeout(systemMillis);
+                        boolean result = timeOut.checkTimeout();
 
                         if (result) {
                             abortCount++;
@@ -975,13 +952,10 @@ public class Database {
 
         private void start() {
 
-            timeoutList = new HsqlArrayList<>();
-            timerTask = DatabaseManager.getTimer()
-                                       .schedulePeriodicallyAfter(
-                                           1000,
-                                           1000,
-                                           this,
-                                           true);
+            timeoutList = new HsqlArrayList();
+            timerTask =
+                DatabaseManager.getTimer().schedulePeriodicallyAfter(1000,
+                    1000, this, true);
         }
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,7 @@ package org.hsqldb.lib;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
 import java.text.SimpleDateFormat;
-
 import java.util.Date;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
@@ -53,41 +51,34 @@ import java.util.logging.LogRecord;
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  */
 public class BasicTextJdkLogFormatter extends Formatter {
+    public static final String LS = System.getProperty("line.separator");
+    protected boolean withTime = true;
 
-    public static final String LS       = System.getProperty("line.separator");
-    protected boolean          withTime = true;
-    protected SimpleDateFormat sdf = new SimpleDateFormat(
-        "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    protected SimpleDateFormat sdf =
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
 
     public BasicTextJdkLogFormatter(boolean withTime) {
         this.withTime = withTime;
     }
 
     public BasicTextJdkLogFormatter() {
-
         // Intentionally empty
     }
 
     public String format(LogRecord record) {
-
         StringBuilder sb = new StringBuilder();
-
         if (withTime) {
-            sb.append(sdf.format(new Date(record.getMillis()))).append("  ");
+            sb.append(sdf.format(new Date(record.getMillis())) + "  ");
         }
-
-        sb.append(record.getLevel()).append("  ").append(formatMessage(record));
-
+        sb.append(record.getLevel() + "  " + formatMessage(record));
         if (record.getThrown() != null) {
             StringWriter sw = new StringWriter();
-
             record.getThrown().printStackTrace(new PrintWriter(sw));
-            sb.append(LS).append(sw);
+            sb.append(LS + sw);
         }
-
-        // This uses platform-specific line-separator, the same as SimpleLogger does.
-        sb.append(LS);
-
-        return sb.toString();
+        return sb.toString() + LS;
+        // This uses platform-specific line-separator, the same as
+        // SimpleLogger does.
     }
 }

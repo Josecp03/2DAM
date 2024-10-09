@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@
 package org.hsqldb.util;
 
 import java.io.Serializable;
-
+import java.sql.SQLException;
 import java.util.Hashtable;
 
 // fredt@users 20011220 - patch 481239 by xponsard@users - enhancements
@@ -97,12 +97,8 @@ class TransferTable implements Serializable {
     SQLStatements   Stmts = null;
     Traceable       tracer;
 
-    TransferTable(
-            DataAccessPoint src,
-            String name,
-            String schema,
-            String type,
-            Traceable t) {
+    TransferTable(DataAccessPoint src, String name, String schema,
+                  String type, Traceable t) {
 
         Stmts         = new SQLStatements();
         sourceDb      = src;
@@ -118,14 +114,15 @@ class TransferTable implements Serializable {
         tracer                   = t;
 
         if (Stmts.sType.compareTo("TABLE") == 0) {
-            Stmts.sSourceSelect = "SELECT * FROM " + src.helper.formatName(
-                Stmts.sSourceTable);
+            Stmts.sSourceSelect = "SELECT * FROM "
+                                  + src.helper.formatName(Stmts.sSourceTable);
         } else if (Stmts.sType.compareTo("VIEW") == 0) {
             Stmts.sSourceSelect = "";
         }
     }
 
     void setDest(String _Schema, DataAccessPoint dest) {
+
         destDb = dest;
 
         dest.helper.setSchema(_Schema);
@@ -134,10 +131,8 @@ class TransferTable implements Serializable {
     /**
      * extractTableStructure
      */
-    void extractTableStructure(
-            DataAccessPoint Source,
-            DataAccessPoint Destination)
-            throws Exception {
+    void extractTableStructure(DataAccessPoint Source,
+                               DataAccessPoint Destination) throws Exception {
         initTypes();
         Source.getTableStructure(this, Destination);
     }
@@ -152,7 +147,7 @@ class TransferTable implements Serializable {
             } catch (Exception e) {}
         }
 
-        if (!Stmts.bTransfer) {
+        if (Stmts.bTransfer == false) {
             tracer.trace("Table " + Stmts.sSourceTable + " not transfered");
 
             return;
@@ -171,14 +166,12 @@ class TransferTable implements Serializable {
                 int nextsemicolon = Stmts.sDestDropIndex.indexOf(';');
 
                 while (nextsemicolon > lastsemicolon) {
-                    Statement = Stmts.sDestDropIndex.substring(
-                        lastsemicolon,
-                        nextsemicolon);
+                    Statement = Stmts.sDestDropIndex.substring(lastsemicolon,
+                            nextsemicolon);
 
                     while (Statement.charAt(Statement.length() - 1) == ';') {
-                        Statement = Statement.substring(
-                            0,
-                            Statement.length() - 1);
+                        Statement = Statement.substring(0, Statement.length()
+                                                        - 1);
                     }
 
                     try {
@@ -205,14 +198,12 @@ class TransferTable implements Serializable {
                 int nextsemicolon = Stmts.sDestDelete.indexOf(';');
 
                 while (nextsemicolon > lastsemicolon) {
-                    Statement = Stmts.sDestDelete.substring(
-                        lastsemicolon,
-                        nextsemicolon);
+                    Statement = Stmts.sDestDelete.substring(lastsemicolon,
+                            nextsemicolon);
 
                     while (Statement.charAt(Statement.length() - 1) == ';') {
-                        Statement = Statement.substring(
-                            0,
-                            Statement.length() - 1);
+                        Statement = Statement.substring(0, Statement.length()
+                                                        - 1);
                     }
 
                     try {
@@ -223,8 +214,9 @@ class TransferTable implements Serializable {
                     }
 
                     lastsemicolon = nextsemicolon + 1;
-                    nextsemicolon = lastsemicolon + Stmts.sDestDelete.substring(
-                        lastsemicolon).indexOf(';');
+                    nextsemicolon = lastsemicolon
+                                    + Stmts.sDestDelete.substring(
+                                        lastsemicolon).indexOf(';');
                 }
             }
 
@@ -238,14 +230,12 @@ class TransferTable implements Serializable {
                 int nextsemicolon = Stmts.sDestDrop.indexOf(';');
 
                 while (nextsemicolon > lastsemicolon) {
-                    Statement = Stmts.sDestDrop.substring(
-                        lastsemicolon,
-                        nextsemicolon);
+                    Statement = Stmts.sDestDrop.substring(lastsemicolon,
+                                                          nextsemicolon);
 
                     while (Statement.charAt(Statement.length() - 1) == ';') {
-                        Statement = Statement.substring(
-                            0,
-                            Statement.length() - 1);
+                        Statement = Statement.substring(0, Statement.length()
+                                                        - 1);
                     }
 
                     try {
@@ -256,8 +246,9 @@ class TransferTable implements Serializable {
                     }
 
                     lastsemicolon = nextsemicolon + 1;
-                    nextsemicolon = lastsemicolon + Stmts.sDestDrop.substring(
-                        lastsemicolon).indexOf(';');
+                    nextsemicolon = lastsemicolon
+                                    + Stmts.sDestDrop.substring(
+                                        lastsemicolon).indexOf(';');
                 }
             }
 
@@ -271,22 +262,21 @@ class TransferTable implements Serializable {
                 int nextsemicolon = Stmts.sDestCreate.indexOf(';');
 
                 while (nextsemicolon > lastsemicolon) {
-                    Statement = Stmts.sDestCreate.substring(
-                        lastsemicolon,
-                        nextsemicolon);
+                    Statement = Stmts.sDestCreate.substring(lastsemicolon,
+                            nextsemicolon);
 
                     while (Statement.charAt(Statement.length() - 1) == ';') {
-                        Statement = Statement.substring(
-                            0,
-                            Statement.length() - 1);
+                        Statement = Statement.substring(0, Statement.length()
+                                                        - 1);
                     }
 
                     tracer.trace("Executing " + Statement);
                     destDb.execute(Statement);
 
                     lastsemicolon = nextsemicolon + 1;
-                    nextsemicolon = lastsemicolon + Stmts.sDestCreate.substring(
-                        lastsemicolon).indexOf(';');
+                    nextsemicolon = lastsemicolon
+                                    + Stmts.sDestCreate.substring(
+                                        lastsemicolon).indexOf(';');
                 }
             }
         } catch (Exception e) {
@@ -296,7 +286,7 @@ class TransferTable implements Serializable {
                 }
             } catch (Exception e1) {}
 
-            throw(e);
+            throw (e);
         }
 
         if (!destDb.getAutoCommit()) {
@@ -350,7 +340,7 @@ class TransferTable implements Serializable {
                 }
             } catch (Exception e1) {}
 
-            throw(e);
+            throw (e);
         }
 
         if (!destDb.getAutoCommit()) {
@@ -372,7 +362,7 @@ class TransferTable implements Serializable {
             } catch (Exception e) {}
         }
 
-        if (!Stmts.bTransfer) {
+        if (Stmts.bTransfer == false) {
             tracer.trace("Table " + Stmts.sSourceTable + " not transfered");
 
             return;
@@ -391,14 +381,12 @@ class TransferTable implements Serializable {
                 int nextsemicolon = Stmts.sDestCreateIndex.indexOf(';');
 
                 while (nextsemicolon > lastsemicolon) {
-                    Statement = Stmts.sDestCreateIndex.substring(
-                        lastsemicolon,
-                        nextsemicolon);
+                    Statement = Stmts.sDestCreateIndex.substring(lastsemicolon,
+                            nextsemicolon);
 
                     while (Statement.charAt(Statement.length() - 1) == ';') {
-                        Statement = Statement.substring(
-                            0,
-                            Statement.length() - 1);
+                        Statement = Statement.substring(0, Statement.length()
+                                                        - 1);
                     }
 
                     try {
@@ -425,14 +413,12 @@ class TransferTable implements Serializable {
                 int nextsemicolon = Stmts.sDestAlter.indexOf(';');
 
                 while (nextsemicolon > lastsemicolon) {
-                    Statement = Stmts.sDestAlter.substring(
-                        lastsemicolon,
-                        nextsemicolon);
+                    Statement = Stmts.sDestAlter.substring(lastsemicolon,
+                                                           nextsemicolon);
 
                     while (Statement.charAt(Statement.length() - 1) == ';') {
-                        Statement = Statement.substring(
-                            0,
-                            Statement.length() - 1);
+                        Statement = Statement.substring(0, Statement.length()
+                                                        - 1);
                     }
 
                     try {
@@ -443,8 +429,9 @@ class TransferTable implements Serializable {
                     }
 
                     lastsemicolon = nextsemicolon + 1;
-                    nextsemicolon = lastsemicolon + Stmts.sDestAlter.substring(
-                        lastsemicolon).indexOf(';');
+                    nextsemicolon = lastsemicolon
+                                    + Stmts.sDestAlter.substring(
+                                        lastsemicolon).indexOf(';');
                 }
             }
         } catch (Exception e) {
@@ -454,7 +441,7 @@ class TransferTable implements Serializable {
                 }
             } catch (Exception e1) {}
 
-            throw(e);
+            throw (e);
         }
 
         if (!destDb.getAutoCommit()) {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import org.hsqldb.Database;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.ArrayUtil;
-import org.hsqldb.lib.EventLogInterface;
 import org.hsqldb.lib.HsqlByteArrayInputStream;
 import org.hsqldb.lib.HsqlByteArrayOutputStream;
 
@@ -50,7 +49,7 @@ import org.hsqldb.lib.HsqlByteArrayOutputStream;
  * CACHED table storage.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version  2.7.0
+ * @version 2.6.0
  * @since  1.7.2
  */
 final class RAFile implements RandomAccessInterface {
@@ -90,12 +89,9 @@ final class RAFile implements RandomAccessInterface {
      * seekPosition is the position in seek() calls or after reading or writing
      * realPosition is the file position
      */
-    static RandomAccessInterface newScaledRAFile(
-            Database database,
-            String name,
-            boolean readonly,
-            int type)
-            throws IOException {
+    static RandomAccessInterface newScaledRAFile(Database database,
+            String name, boolean readonly,
+            int type) throws FileNotFoundException, IOException {
 
         if (type == DATA_FILE_JAR) {
             return new RAFileInJar(name);
@@ -108,31 +104,26 @@ final class RAFile implements RandomAccessInterface {
             long         length = fi.length();
 
             if (length > database.logger.propNioMaxSize) {
-                return new RAFile(database.logger, name, readonly, true, false);
+                return new RAFile(database.logger, name, readonly, true,
+                                  false);
             }
 
             return new RAFileHybrid(database, name, readonly);
         }
     }
 
-    RAFile(
-            EventLogInterface logger,
-            String name,
-            boolean readonly,
+    RAFile(EventLogInterface logger, String name, boolean readonly,
             boolean extendLengthToBlock,
-            boolean commitOnChange)
-            throws IOException {
+            boolean commitOnChange) throws FileNotFoundException, IOException {
 
         this.logger       = logger;
         this.fileName     = name;
         this.readOnly     = readonly;
         this.extendLength = extendLengthToBlock;
 
-        String accessMode = readonly
-                            ? "r"
-                            : commitOnChange
-                              ? "rws"
-                              : "rw";
+        String accessMode = readonly ? "r"
+                                     : commitOnChange ? "rws"
+                                                      : "rw";
 
         this.file      = new RandomAccessFile(name, accessMode);
         buffer         = new byte[bufferSize];
@@ -183,9 +174,8 @@ final class RAFile implements RandomAccessInterface {
             bufferOffset = filePos;
         } catch (IOException e) {
             resetPointer();
-            logger.logWarningEvent(
-                "Read Error " + filePos + " " + readLength,
-                e);
+            logger.logWarningEvent("Read Error " + filePos + " " + readLength,
+                                   e);
 
             throw e;
         }
@@ -303,12 +293,14 @@ final class RAFile implements RandomAccessInterface {
     }
 
     public void writeInt(int i) throws IOException {
+
         vbao.reset();
         vbao.writeInt(i);
         write(valueBuffer, 0, 4);
     }
 
     public void writeLong(long i) throws IOException {
+
         vbao.reset();
         vbao.writeLong(i);
         write(valueBuffer, 0, 8);
@@ -371,14 +363,8 @@ final class RAFile implements RandomAccessInterface {
 
     private int writeToBuffer(byte[] b, int off, int len) {
 
-        int count = ArrayUtil.copyBytes(
-            seekPosition - off,
-            b,
-            off,
-            len,
-            bufferOffset,
-            buffer,
-            buffer.length);
+        int count = ArrayUtil.copyBytes(seekPosition - off, b, off, len,
+                                        bufferOffset, buffer, buffer.length);
 
         return count;
     }
@@ -401,9 +387,8 @@ final class RAFile implements RandomAccessInterface {
             scaleUp = 12;
         }
 
-        position = ArrayUtil.getBinaryNormalisedCeiling(
-            position,
-            bufferScale + scaleUp);
+        position = ArrayUtil.getBinaryNormalisedCeiling(position,
+                bufferScale + scaleUp);
 
         return position;
     }
@@ -436,7 +421,7 @@ final class RAFile implements RandomAccessInterface {
         try {
             seekPosition = 0;
             fileLength   = length();
-            bufferOffset = -buffer.length;    // invalid buffer
+            bufferOffset = -buffer.length; // invalid buffer
         } catch (Throwable e) {}
     }
 }

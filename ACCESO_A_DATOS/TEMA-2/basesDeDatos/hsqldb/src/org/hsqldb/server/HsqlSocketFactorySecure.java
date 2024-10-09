@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,9 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
 import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-
 import javax.net.ssl.HandshakeCompletedEvent;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLServerSocket;
@@ -62,27 +60,27 @@ import org.hsqldb.lib.StringConverter;
  * @since 1.7.2
  */
 public final class HsqlSocketFactorySecure extends HsqlSocketFactory
-        implements HandshakeCompletedListener {
+implements HandshakeCompletedListener {
 
 // --------------------------------- members -----------------------------------
 
     /** The underlying socket factory implementation. */
-    Object socketFactory;
+    protected Object socketFactory;
 
     /** The underlying server socket factory implementation. */
-    Object serverSocketFactory;
+    protected Object serverSocketFactory;
 
     /**
      * Monitor object to guard against concurrent modification
      * of the underlying socket factory implementation member.
      */
-    final Object socket_factory_mutex = new Object();
+    protected final Object socket_factory_mutex = new Object();
 
     /**
      * Monitor object to guard against concurrent modification of
      * the underlying server socket factory implementation member.
      */
-    final Object server_socket_factory_mutex = new Object();
+    protected final Object server_socket_factory_mutex = new Object();
 
 // ------------------------------ constructors ---------------------------------
 
@@ -90,7 +88,7 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
      * External construction disabled.  New factory instances are retrieved
      * through the newHsqlSocketFactory method instead.
      */
-    HsqlSocketFactorySecure() {
+    protected HsqlSocketFactorySecure() throws Exception {
         super();
     }
 
@@ -142,19 +140,15 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
      * @param port the port to which to bind the secure ServerSocket
      * @throws Exception if a network or security provider error occurs
      */
-    public ServerSocket createServerSocket(
-            int port,
-            String address)
-            throws Exception {
+    public ServerSocket createServerSocket(int port,
+                                           String address) throws Exception {
 
         SSLServerSocket ss;
         InetAddress     addr;
 
         addr = InetAddress.getByName(address);
         ss = (SSLServerSocket) getServerSocketFactoryImpl().createServerSocket(
-            port,
-            128,
-            addr);
+            port, 128, addr);
 
         if (Error.TRACESYSTEMOUT) {
             Error.printSystemOut("[" + this + "]: createServerSocket()");
@@ -191,11 +185,8 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
      * @param port the server port
      * @throws Exception if a network or security provider error occurs
      */
-    public Socket createSocket(
-            Socket socket,
-            String host,
-            int port)
-            throws Exception {
+    public Socket createSocket(Socket socket, String host,
+                               int port) throws Exception {
 
         SSLSocket sslSocket;
 
@@ -203,11 +194,8 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
             return createSocket(host, port);
         }
 
-        sslSocket = (SSLSocket) getSocketFactoryImpl().createSocket(
-            socket,
-            host,
-            port,
-            true);
+        sslSocket = (SSLSocket) getSocketFactoryImpl().createSocket(socket,
+                host, port, true);
 
         sslSocket.addHandshakeCompletedListener(this);
         sslSocket.startHandshake();
@@ -289,9 +277,11 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
     /**
      * Retrieves the underlying javax.net.ssl.SSLServerSocketFactory.
      *
+     * @throws Exception if there is a problem retrieving the
+     *      underlying factory
      * @return the underlying javax.net.ssl.SSLServerSocketFactory
      */
-    SSLServerSocketFactory getServerSocketFactoryImpl() {
+    protected SSLServerSocketFactory getServerSocketFactoryImpl() {
 
         Object factory;
 
@@ -310,9 +300,11 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
     /**
      * Retrieves the underlying javax.net.ssl.SSLSocketFactory.
      *
+     * @throws Exception if there is a problem retrieving the
+     *      underlying factory
      * @return the underlying javax.net.ssl.SSLSocketFactory
      */
-    SSLSocketFactory getSocketFactoryImpl() {
+    protected SSLSocketFactory getSocketFactoryImpl() {
 
         Object factory;
 
@@ -338,7 +330,7 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
      * @param session SSLSession used on the connection to host
      * @throws Exception if the certificate chain cannot be verified
      */
-    void verify(String host, SSLSession session) throws Exception {
+    protected void verify(String host, SSLSession session) throws Exception {
 
         Certificate[]   chain;
         X509Certificate certificate;
@@ -349,7 +341,6 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
         int             end;
 
         chain = session.getPeerCertificates();
-
         if (chain == null || chain.length == 0) {
             throw new UnknownHostException(
                 Error.getMessage(ErrorCode.M_SERVER_SECURE_VERIFY_1));
@@ -372,13 +363,10 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
 
         start += 3;
         end   = DN.indexOf(',', start);
-        CN    = DN.substring(
-            start,
-            (end > -1)
-            ? end
-            : DN.length());
+        CN    = DN.substring(start, (end > -1) ? end
+                                               : DN.length());
 
-        if (CN.isEmpty()) {
+        if (CN.length() < 1) {
             throw new UnknownHostException(
                 Error.getMessage(ErrorCode.M_SERVER_SECURE_VERIFY_2));
         }
@@ -387,9 +375,10 @@ public final class HsqlSocketFactorySecure extends HsqlSocketFactory
 
             // TLS_HOSTNAME_MISMATCH
             throw new UnknownHostException(
-                Error.getMessage(ErrorCode.M_SERVER_SECURE_VERIFY_3,
-                                 0,
-                                 new String[]{ CN, host }));
+                Error.getMessage(
+                    ErrorCode.M_SERVER_SECURE_VERIFY_3, 0, new String[] {
+                CN, host
+            }));
         }
     }
 

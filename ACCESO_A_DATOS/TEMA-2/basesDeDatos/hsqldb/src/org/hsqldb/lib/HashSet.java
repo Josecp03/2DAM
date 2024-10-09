@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.hsqldb.map.BaseHashMap;
  * This class does not store null keys.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.7.2
  */
 public class HashSet<E> extends BaseHashMap implements Set<E> {
@@ -47,39 +47,26 @@ public class HashSet<E> extends BaseHashMap implements Set<E> {
     }
 
     public HashSet(int initialCapacity) throws IllegalArgumentException {
-
-        super(
-            initialCapacity,
-            BaseHashMap.objectKeyOrValue,
-            BaseHashMap.noKeyOrValue,
-            false);
+        super(initialCapacity, BaseHashMap.objectKeyOrValue,
+              BaseHashMap.noKeyOrValue, false);
     }
 
-    public HashSet(
-            int initialCapacity,
-            ObjectComparator<E> comparator)
-            throws IllegalArgumentException {
+    public HashSet(int initialCapacity,
+                   ObjectComparator comparator)
+                   throws IllegalArgumentException {
+
         this(initialCapacity);
 
         this.comparator = comparator;
     }
 
-    public HashSet(E[] valueList) {
-
-        this(valueList.length);
-
-        for (int i = 0; i < valueList.length; i++) {
-            add(valueList[i]);
-        }
-    }
-
     public boolean contains(Object key) {
-        return super.containsObjectKey(key);
+        return super.containsKey(key);
     }
 
-    public boolean containsAll(Collection<E> col) {
+    public boolean containsAll(Collection<?> col) {
 
-        Iterator<E> it = col.iterator();
+        Iterator<?> it = col.iterator();
 
         while (it.hasNext()) {
             if (contains(it.next())) {
@@ -92,9 +79,6 @@ public class HashSet<E> extends BaseHashMap implements Set<E> {
         return true;
     }
 
-    /** returns existing value or null if added
-     *  can be used as an Object cache
-     */
     public E getOrAdd(E key) {
 
         if (key == null) {
@@ -134,7 +118,6 @@ public class HashSet<E> extends BaseHashMap implements Set<E> {
      * @return true if added
      */
     public boolean add(E key) {
-
         if (key == null) {
             throw new NullPointerException();
         }
@@ -200,13 +183,13 @@ public class HashSet<E> extends BaseHashMap implements Set<E> {
      * @param key Object to remove
      * @return true if removed
      */
-    public boolean remove(E key) {
+    public boolean remove(Object key) {
 
         if (key == null) {
             throw new NullPointerException();
         }
 
-        return super.removeObject(key, false) != null;
+        return (Boolean) super.remove(0, 0, key, null, false, false);
     }
 
     /**
@@ -215,16 +198,32 @@ public class HashSet<E> extends BaseHashMap implements Set<E> {
      * @param c Collection of elements to remove
      * @return true if all removed
      */
-    public boolean removeAll(Collection<E> c) {
+    public boolean removeAll(Collection<?> c) {
 
-        Iterator<E> it     = c.iterator();
-        boolean     result = true;
+        Iterator<?> it = c.iterator();
+        boolean  result = true;
 
         while (it.hasNext()) {
             result &= remove(it.next());
         }
 
         return result;
+    }
+
+    public boolean retainAll(Collection<?> c) {
+
+        boolean changed = false;
+
+        Iterator<?> it = iterator();
+
+        while (it.hasNext()) {
+            if (!c.contains(it.next())) {
+                it.remove();
+                changed = true;
+            }
+        }
+
+        return changed;
     }
 
     /**
@@ -244,14 +243,11 @@ public class HashSet<E> extends BaseHashMap implements Set<E> {
         return result;
     }
 
-    public int capacity() {
-        return super.capacity();
-    }
-
     public int getCommonElementCount(Set<E> other) {
 
-        int         count = 0;
-        Iterator<E> it    = iterator();
+        int count = 0;
+
+        Iterator<E> it = iterator();
 
         while (it.hasNext()) {
             if (other.contains(it.next())) {
@@ -282,21 +278,19 @@ public class HashSet<E> extends BaseHashMap implements Set<E> {
      */
     public String toString() {
 
-        Iterator<E>   it = iterator();
+        Iterator      it = iterator();
         StringBuilder sb = new StringBuilder();
 
-        sb.append('[');
-
         while (it.hasNext()) {
-            if (sb.length() > 1) {
+            if (sb.length() > 0) {
                 sb.append(", ");
+            } else {
+                sb.append('[');
             }
 
             sb.append(it.next());
         }
 
-        sb.append(']');
-
-        return sb.toString();
+        return sb.toString() + ']';
     }
 }

@@ -1,80 +1,8 @@
-/*
- * For work developed by the HSQL Development Group:
- *
- * Copyright (c) 2001-2024, The HSQL Development Group
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- *
- * Neither the name of the HSQL Development Group nor the names of its
- * contributors may be used to endorse or promote products derived from this
- * software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL HSQL DEVELOPMENT GROUP, HSQLDB.ORG,
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- *
- * For work originally developed by the Hypersonic SQL Group:
- *
- * Copyright (c) 1995-2000, The Hypersonic SQL Group.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- *
- * Neither the name of the Hypersonic SQL Group nor the names of its
- * contributors may be used to endorse or promote products derived from this
- * software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE HYPERSONIC SQL GROUP,
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * This software consists of voluntary contributions made by many individuals
- * on behalf of the Hypersonic SQL Group.
- */
-
-
 package org.hsqldb.server;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import java.util.TimeZone;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -100,7 +28,7 @@ import org.hsqldb.rowio.RowOutputBinary;
 // fredt@users 20041112 - patch by William Crick - use web_inf directory
 
 /**
- * Servlet can act as an interface between the client and the database for
+ * Servlet can act as an interface between the client and the database for the
  * the client / server mode of HSQL Database Engine. It uses the HTTP protocol
  * for communication. This class is not required if the included HSQLDB
  * Weberver is used on the server host. But if the host is running a J2EE
@@ -132,7 +60,7 @@ import org.hsqldb.rowio.RowOutputBinary;
  * calls are supported.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.6.0
  * @since 1.6.2
  */
 public class Servlet extends HttpServlet {
@@ -157,18 +85,16 @@ public class Servlet extends HttpServlet {
         }
 
 // begin WEB-INF patch */
-        String useWebInfStr = getInitParameter(
-            "hsqldb.server.use_web-inf_path");
+        String useWebInfStr =
+            getInitParameter("hsqldb.server.use_web-inf_path");
 
         if (!dbStr.equals(".") && "true".equalsIgnoreCase(useWebInfStr)) {
             String realPath = getServletContext().getRealPath("/");
-
             // bug #1350 to work with Tomcat 8 and above
             if (realPath != null) {
                 if (!realPath.endsWith("/")) {
                     realPath += '/';
                 }
-
                 dbStr = realPath + "WEB-INF/" + dbStr;
             }
         }
@@ -208,14 +134,13 @@ public class Servlet extends HttpServlet {
         return lModified++;
     }
 
-    public void doGet(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException {
+    public void doGet(HttpServletRequest request,
+                      HttpServletResponse response)
+                      throws IOException, ServletException {
 
         String query = request.getQueryString();
 
-        if (query == null || query.isEmpty()) {
+        if ((query == null) || (query.length() == 0)) {
             response.setContentType("text/html");
 
             // fredt@users 20020130 - patch 1.7.0 by fredt
@@ -242,10 +167,9 @@ public class Servlet extends HttpServlet {
         }
     }
 
-    public void doPost(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException {
+    public void doPost(HttpServletRequest request,
+                       HttpServletResponse response)
+                       throws IOException, ServletException {
 
         DataInputStream  inStream = null;
         DataOutputStream dataOut  = null;
@@ -257,7 +181,8 @@ public class Servlet extends HttpServlet {
             long           sessionID  = inStream.readLong();
             int            mode       = inStream.readByte();
             RowInputBinary rowIn      = new RowInputBinary(BUFFER_SIZE);
-            Session session = DatabaseManager.getSession(databaseID, sessionID);
+            Session session = DatabaseManager.getSession(databaseID,
+                sessionID);
             Result resultIn = Result.newResult(session, mode, inStream, rowIn);
 
             resultIn.setDatabaseId(databaseID);
@@ -268,22 +193,22 @@ public class Servlet extends HttpServlet {
 
             if (type == ResultConstants.CONNECT) {
                 try {
-                    session = DatabaseManager.newSession(
-                        dbType,
-                        dbPath,
-                        resultIn.getMainString(),
-                        resultIn.getSubString(),
-                        new HsqlProperties(),
-                        TimeZone.getDefault());
-                    resultOut = Result.newConnectionAcknowledgeResponse(
-                        session);
+                    session =
+                        DatabaseManager.newSession(dbType, dbPath,
+                                                   resultIn.getMainString(),
+                                                   resultIn.getSubString(),
+                                                   new HsqlProperties(),
+                                                   resultIn.getZoneString(),
+                                                   resultIn.getUpdateCount());
+                    resultOut =
+                        Result.newConnectionAcknowledgeResponse(session);
                 } catch (HsqlException e) {
                     resultOut = Result.newErrorResult(e);
                 }
             } else if (type == ResultConstants.DISCONNECT
                        || type == ResultConstants.RESETSESSION) {
 
-                // Upon DISCONNECT 6 bytes are read by the ClientConnectionHTTP: mode (1 byte), a length (int), and an 'additional results (1 byte)
+                // Upon DISCONNECT 6 bytes are read by the ClientConnectionHTTP": mode (1 byte), a length (int), and an 'additional results (1 byte)
                 response.setHeader("Cache-Control", "no-cache");    // DB-traffic should not be cached by proxies
                 response.setContentType("application/octet-stream");
                 response.setContentLength(6);
@@ -291,9 +216,9 @@ public class Servlet extends HttpServlet {
                 // Only acquire output-stream after headers are set
                 dataOut = new DataOutputStream(response.getOutputStream());
 
-                dataOut.writeByte(ResultConstants.DISCONNECT);    // Mode
-                dataOut.writeInt(4);                              // Length Int of first result is always read! Minvalue is 4: It is the number of bytes of the current result (it includes the length of this Int itself)
-                dataOut.writeByte(ResultConstants.NONE);          // No Additional results
+                dataOut.writeByte(ResultConstants.DISCONNECT);      // Mode
+                dataOut.writeInt(4);                                // Length Int of first result is always read! Minvalue is 4: It is the number of bytes of the current result (it includes the length of this Int itself)
+                dataOut.writeByte(ResultConstants.NONE);            // No Additional results
                 dataOut.close();
 
                 return;
@@ -320,7 +245,7 @@ public class Servlet extends HttpServlet {
             RowOutputBinary  rowOut     = new RowOutputBinary(BUFFER_SIZE, 1);
 
             resultOut.write(session, tempOutput, rowOut);
-            response.setHeader("Cache-Control", "no-cache");      // DB-traffic should not be cached by proxies
+            response.setHeader("Cache-Control", "no-cache");        // DB-traffic should not be cached by proxies
             response.setContentType("application/octet-stream");
             response.setContentLength(memStream.size());
 

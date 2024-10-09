@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,9 +63,13 @@ public class CharArrayWriter {
             int read = reader.read(buffer, count, left);
 
             if (read == -1) {
-                reader.close();
+                if (left > 0) {
+                    reader.close();
 
-                throw new EOFException();
+                    throw new EOFException();
+                }
+
+                break;
             }
 
             left  -= read;
@@ -173,7 +177,6 @@ public class CharArrayWriter {
     }
 
     public void setSize(int newPos) {
-
         if (newPos > buffer.length) {
             throw new ArrayIndexOutOfBoundsException();
         }

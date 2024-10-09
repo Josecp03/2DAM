@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,27 +59,27 @@ import org.hsqldb.rowio.RowInputInterface;
 import org.hsqldb.types.LobData;
 import org.hsqldb.types.Type;
 
-/**
+/*
  * Base implementation of PersistentStore for different table types.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public abstract class RowStoreAVL implements PersistentStore {
 
-    Database                         database;
-    TableSpaceManager                tableSpace;
-    Index[]                          indexList    = Index.emptyArray;
-    CachedObject[]                   accessorList = CachedObject.emptyArray;
-    TableBase                        table;
-    long                             baseElementCount;
-    AtomicLong                       elementCount = new AtomicLong();
-    long                             storageSize;
-    boolean[]                        nullsList;
-    double[][]                       searchCost;
-    boolean                          isSchemaStore;
-    public LongKeyHashMap<RowAction> rowActionMap;
+    Database              database;
+    TableSpaceManager     tableSpace;
+    Index[]               indexList    = Index.emptyArray;
+    CachedObject[]        accessorList = CachedObject.emptyArray;
+    TableBase             table;
+    long                  baseElementCount;
+    AtomicLong            elementCount = new AtomicLong();
+    long                  storageSize;
+    boolean[]             nullsList;
+    double[][]            searchCost;
+    boolean               isSchemaStore;
+    public LongKeyHashMap rowActionMap;
 
     //
     ReadWriteLock lock;
@@ -133,11 +133,8 @@ public abstract class RowStoreAVL implements PersistentStore {
         return true;
     }
 
-    public boolean canRead(
-            Session session,
-            CachedObject object,
-            int mode,
-            int[] colMap) {
+    public boolean canRead(Session session, CachedObject object, int mode,
+                           int[] colMap) {
 
         RowAction action = ((Row) object).rowAction;
 
@@ -145,7 +142,7 @@ public abstract class RowStoreAVL implements PersistentStore {
             return true;
         }
 
-        return action.canRead(session, mode, colMap);
+        return action.canRead(session, mode);
     }
 
     public abstract CachedObject get(RowInputInterface in);
@@ -162,10 +159,8 @@ public abstract class RowStoreAVL implements PersistentStore {
         throw Error.runtimeError(ErrorCode.U_S0500, "RowStoreAVL");
     }
 
-    public abstract CachedObject getNewCachedObject(
-            Session session,
-            Object object,
-            boolean tx);
+    public abstract CachedObject getNewCachedObject(Session session,
+            Object object, boolean tx);
 
     public abstract void removeAll();
 
@@ -173,13 +168,12 @@ public abstract class RowStoreAVL implements PersistentStore {
 
     public abstract void commitPersistence(CachedObject object);
 
-    public RowAction addDeleteActionToRow(
-            Session session,
-            Row row,
-            int[] colMap,
-            boolean isMV) {
+    public RowAction addDeleteActionToRow(Session session, Row row,
+                                          int[] colMap, boolean isMV) {
+
         synchronized (row) {
-            return RowAction.addDeleteAction(session, table, this, row, colMap);
+            return RowAction.addDeleteAction(session, table, this, row,
+                                             colMap);
         }
     }
 
@@ -316,17 +310,11 @@ public abstract class RowStoreAVL implements PersistentStore {
         }
     }
 
-    public abstract void commitRow(
-            Session session,
-            Row row,
-            int changeAction,
-            int txModel);
+    public abstract void commitRow(Session session, Row row, int changeAction,
+                                   int txModel);
 
-    public abstract void rollbackRow(
-            Session session,
-            Row row,
-            int changeAction,
-            int txModel);
+    public abstract void rollbackRow(Session session, Row row,
+                                     int changeAction, int txModel);
 
     public abstract void postCommitAction(Session session, RowAction action);
 
@@ -363,6 +351,7 @@ public abstract class RowStoreAVL implements PersistentStore {
         for (int i = 0; i < indexList.length; i++) {
             if (indexList[i].isClustered()) {
                 index = indexList[i];
+
                 break;
             }
         }
@@ -418,11 +407,8 @@ public abstract class RowStoreAVL implements PersistentStore {
                 }
             }
 
-            Index[] tempKeys = (Index[]) ArrayUtil.toAdjustedArray(
-                indexList,
-                null,
-                position,
-                1);
+            Index[] tempKeys = (Index[]) ArrayUtil.toAdjustedArray(indexList,
+                null, position, 1);
 
             tempKeys[position] = keys[position];
 
@@ -438,11 +424,8 @@ public abstract class RowStoreAVL implements PersistentStore {
             }
         }
 
-        accessorList = (CachedObject[]) ArrayUtil.toAdjustedArray(
-            accessorList,
-            null,
-            position,
-            diff);
+        accessorList = (CachedObject[]) ArrayUtil.toAdjustedArray(accessorList,
+                null, position, diff);
         indexList = keys;
 
         try {
@@ -463,11 +446,8 @@ public abstract class RowStoreAVL implements PersistentStore {
         return indexList;
     }
 
-    public double searchCost(
-            Session session,
-            Index index,
-            int count,
-            int opType) {
+    public double searchCost(Session session, Index index, int count,
+                             int opType) {
 
         if (count == 0) {
             return elementCount.get();
@@ -489,9 +469,8 @@ public abstract class RowStoreAVL implements PersistentStore {
             }
 
             if (searchCost[position] == null) {
-                searchCost[position] = indexList[position].searchCost(
-                    session,
-                    this);
+                searchCost[position] = indexList[position].searchCost(session,
+                        this);
             }
 
             return searchCost[index.getPosition()][count - 1];
@@ -562,11 +541,8 @@ public abstract class RowStoreAVL implements PersistentStore {
      * The colIndex argument is the indexes of the columns that were
      * removed, type modified or added. The adjust argument is {-1 | 0 | +1}.
      */
-    public final void moveData(
-            Session session,
-            PersistentStore other,
-            int[] colIndex,
-            int adjust) {
+    public final void moveData(Session session, PersistentStore other,
+                               int[] colIndex, int adjust) {
 
         try {
             Table       table = (Table) this.table;
@@ -581,24 +557,23 @@ public abstract class RowStoreAVL implements PersistentStore {
 
                 for (int i = 0; i < colIndex.length; i++) {
                     if (adjust == 0) {
-                        Type oldtype = other.getTable()
-                                            .getColumnTypes()[colIndex[i]];
-                        Type newtype = this.table.getColumnTypes()[colIndex[i]];
+                        Type oldtype =
+                            other.getTable().getColumnTypes()[colIndex[i]];
+                        Type newtype =
+                            this.table.getColumnTypes()[colIndex[i]];
                         Object oldvalue = olddata[colIndex[i]];
-                        Object value = newtype.convertToType(
-                            session,
-                            oldvalue,
-                            oldtype);
+                        Object value = newtype.convertToType(session,
+                                                             oldvalue,
+                                                             oldtype);
 
                         data[colIndex[i]] = value;
 
                         table.systemSetIdentityColumn(session, data);
                     } else if (adjust > 0) {
                         ColumnSchema column = table.getColumn(colIndex[i]);
-                        Object value = table.getColumnDefaultOrGeneratedValue(
-                            session,
-                            column,
-                            data);
+                        Object value =
+                            table.getColumnDefaultOrGeneratedValue(session,
+                                column, data);
 
                         data[colIndex[i]] = value;
 
@@ -634,9 +609,8 @@ public abstract class RowStoreAVL implements PersistentStore {
                         LobData  oldvalue = (LobData) olddata[colIndex[0]];
 
                         if (oldvalue != null) {
-                            session.sessionData.adjustLobUsageCount(
-                                oldvalue,
-                                -1);
+                            session.sessionData.adjustLobUsageCount(oldvalue,
+                                    -1);
                         }
                     }
                 }
@@ -660,7 +634,7 @@ public abstract class RowStoreAVL implements PersistentStore {
                 }
             }
         } catch (OutOfMemoryError e) {
-            throw Error.error(ErrorCode.OUT_OF_MEMORY, e);
+            throw Error.error(ErrorCode.OUT_OF_MEMORY);
         }
     }
 
@@ -697,9 +671,10 @@ public abstract class RowStoreAVL implements PersistentStore {
         IndexStats[] indexStats = new IndexStats[accessorList.length];
 
         for (int i = 0; i < indexList.length; i++) {
-            IndexAVL      index = (IndexAVL) indexList[i];
-            NodeAVL       node  = (NodeAVL) accessorList[i];
-            IndexAVLProbe probe = new IndexAVLProbe(session, this, index, node);
+            IndexAVL index = (IndexAVL) indexList[i];
+            NodeAVL  node  = (NodeAVL) accessorList[i];
+            IndexAVLProbe probe = new IndexAVLProbe(session, this, index,
+                node);
 
             probe.probe();
 
@@ -739,10 +714,8 @@ public abstract class RowStoreAVL implements PersistentStore {
         it.release();
     }
 
-    boolean insertIndexNodes(
-            Session session,
-            Index primaryIndex,
-            Index newIndex) {
+    boolean insertIndexNodes(Session session, Index primaryIndex,
+                             Index newIndex) {
 
         writeLock();
 
@@ -768,7 +741,7 @@ public abstract class RowStoreAVL implements PersistentStore {
 
                 return true;
             } catch (OutOfMemoryError e) {
-                error = Error.error(ErrorCode.OUT_OF_MEMORY, e);
+                error = Error.error(ErrorCode.OUT_OF_MEMORY);
             } catch (HsqlException e) {
                 error = e;
             }

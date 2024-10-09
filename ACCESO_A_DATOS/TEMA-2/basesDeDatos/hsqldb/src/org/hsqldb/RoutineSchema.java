@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ import org.hsqldb.types.Type;
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  *
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public class RoutineSchema implements SchemaObject {
@@ -83,9 +83,9 @@ public class RoutineSchema implements SchemaObject {
         return name.schema.owner;
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
 
-        OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
+        OrderedHashSet set = new OrderedHashSet();
 
         for (int i = 0; i < routines.length; i++) {
             set.addAll(routines[i].getReferences());
@@ -94,14 +94,16 @@ public class RoutineSchema implements SchemaObject {
         return set;
     }
 
-    public OrderedHashSet<SchemaObject> getComponents() {
+    public OrderedHashSet getComponents() {
 
-        OrderedHashSet<SchemaObject> set = new OrderedHashSet<>();
+        OrderedHashSet set = new OrderedHashSet();
 
         set.addAll(routines);
 
         return set;
     }
+
+    public void compile(Session session, SchemaObject parentObject) {}
 
     public String getSQL() {
         return null;
@@ -113,7 +115,7 @@ public class RoutineSchema implements SchemaObject {
 
     public String[] getSQLArray() {
 
-        HsqlArrayList<String> list = new HsqlArrayList<>();
+        HsqlArrayList list = new HsqlArrayList();
 
         for (int i = 0; i < routines.length; i++) {
             list.add(routines[i].getSQL());
@@ -126,10 +128,8 @@ public class RoutineSchema implements SchemaObject {
         return array;
     }
 
-    public void addSpecificRoutine(
-            HsqlNameManager nameManager,
-            Routine routine,
-            boolean replace) {
+    public void addSpecificRoutine(HsqlNameManager nameManager,
+                                   Routine routine, boolean replace) {
 
         int    signature     = routine.getParameterSignature();
         Type[] types         = routine.getParameterTypes();
@@ -152,6 +152,7 @@ public class RoutineSchema implements SchemaObject {
                 for (int j = 0; j < types.length; j++) {
                     if (!routines[i].parameterTypes[j].equals(types[j])) {
                         match = false;
+
                         break;
                     }
                 }
@@ -161,6 +162,7 @@ public class RoutineSchema implements SchemaObject {
                         routine.setSpecificName(routines[i].getSpecificName());
 
                         matchPosition = i;
+
                         break;
                     } else {
                         throw Error.error(ErrorCode.X_42605);
@@ -183,9 +185,8 @@ public class RoutineSchema implements SchemaObject {
         routine.routineSchema = this;
 
         if (matchPosition == routines.length) {
-            routines = (Routine[]) ArrayUtil.resizeArray(
-                routines,
-                routines.length + 1);
+            routines = (Routine[]) ArrayUtil.resizeArray(routines,
+                    routines.length + 1);
         }
 
         routines[matchPosition] = routine;
@@ -195,11 +196,9 @@ public class RoutineSchema implements SchemaObject {
 
         for (int i = 0; i < this.routines.length; i++) {
             if (routines[i] == routine) {
-                routines = (Routine[]) ArrayUtil.toAdjustedArray(
-                    routines,
-                    null,
-                    i,
-                    -1);
+                routines = (Routine[]) ArrayUtil.toAdjustedArray(routines,
+                        null, i, -1);
+
                 break;
             }
         }
@@ -216,8 +215,8 @@ public class RoutineSchema implements SchemaObject {
         if (routine == null) {
             StringBuilder sb = new StringBuilder();
 
-            sb.append(name.getSchemaQualifiedStatementName())
-              .append(Tokens.T_OPENBRACKET);
+            sb.append(name.getSchemaQualifiedStatementName());
+            sb.append(Tokens.T_OPENBRACKET);
 
             for (int i = 0; i < types.length; i++) {
                 if (i != 0) {
@@ -279,6 +278,7 @@ public class RoutineSchema implements SchemaObject {
                         return routines[i];
                     } else {
                         matchIndex = i;
+
                         continue outerLoop;
                     }
                 }
@@ -302,8 +302,8 @@ public class RoutineSchema implements SchemaObject {
                     continue;
                 }
 
-                typeDifference = types[j].precedenceDegree(
-                    routines[i].parameterTypes[j]);
+                typeDifference =
+                    types[j].precedenceDegree(routines[i].parameterTypes[j]);
 
                 if (typeDifference < -NumberType.DOUBLE_WIDTH) {
 
@@ -322,6 +322,7 @@ public class RoutineSchema implements SchemaObject {
 
             if (matchIndex == -1) {
                 matchIndex = i;
+
                 continue;
             }
 
@@ -332,8 +333,8 @@ public class RoutineSchema implements SchemaObject {
 
                 int oldDiff = types[j].precedenceDegree(
                     routines[matchIndex].parameterTypes[j]);
-                int newDiff = types[j].precedenceDegree(
-                    routines[i].parameterTypes[j]);
+                int newDiff =
+                    types[j].precedenceDegree(routines[i].parameterTypes[j]);
 
                 if (oldDiff == newDiff) {
                     continue;
@@ -347,9 +348,8 @@ public class RoutineSchema implements SchemaObject {
             }
         }
 
-        return matchIndex < 0
-               ? null
-               : routines[matchIndex];
+        return matchIndex < 0 ? null
+                              : routines[matchIndex];
     }
 
     public Routine getSpecificRoutine(int paramCount) {

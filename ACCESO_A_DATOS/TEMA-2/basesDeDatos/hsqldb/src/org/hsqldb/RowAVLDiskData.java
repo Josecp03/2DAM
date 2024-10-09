@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,19 +73,17 @@ public class RowAVLDiskData extends RowAVL {
      *  Constructor when read from the disk into the Cache. The link with
      *  the Nodes is made separetly.
      */
-    public RowAVLDiskData(
-            RowStoreAVLDiskData store,
-            TableBase t,
-            RowInputInterface in) {
+    public RowAVLDiskData(RowStoreAVLDiskData store, TableBase t,
+                          RowInputInterface in) {
 
-        super(t, null);
+        super(t, (Object[]) null);
 
         setNewNodes(store);
 
-        position    = in.getFilePosition();
-        storageSize = in.getSize();
-        rowData     = in.readData(table.getColumnTypes());
-        this.store  = store;
+        position       = in.getFilePosition();
+        storageSize    = in.getSize();
+        rowData        = in.readData(table.getColumnTypes());
+        this.store     = store;
     }
 
     public void setData(Object[] data) {
@@ -102,6 +100,7 @@ public class RowAVLDiskData extends RowAVL {
         }
 
         accessCount = store.getNextAccessCount();
+
 
         return data;
     }
@@ -145,6 +144,7 @@ public class RowAVLDiskData extends RowAVL {
      *  The only time this is used is when a new Row is added to the Caches.
      */
     public void write(RowOutputInterface out) {
+
         out.writeSize(storageSize);
         out.writeData(this, table.colTypes);
         out.writeEnd();
@@ -207,6 +207,7 @@ public class RowAVLDiskData extends RowAVL {
 
     /** required to purge cache */
     public void setInMemory(boolean in) {
+
         if (!in) {
             rowData = null;
         }

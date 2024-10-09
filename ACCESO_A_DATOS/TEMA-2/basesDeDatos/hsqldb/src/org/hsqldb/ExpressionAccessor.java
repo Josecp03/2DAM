@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,41 +40,36 @@ import org.hsqldb.types.Type;
  * database object component access
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class ExpressionAccessor extends Expression {
 
     ExpressionAccessor(Expression left, Expression right) {
+
         super(OpTypes.ARRAY_ACCESS);
 
-        nodes = new Expression[]{ left, right };
+        nodes = new Expression[] {
+            left, right
+        };
     }
 
     public ColumnSchema getColumn() {
         return nodes[LEFT].getColumn();
     }
 
-    public List<Expression> resolveColumnReferences(
-            Session session,
-            RangeGroup rangeGroup,
-            int rangeCount,
-            RangeGroup[] rangeGroups,
-            List<Expression> unresolvedSet,
-            boolean acceptsSequences) {
+    public List resolveColumnReferences(Session session,
+            RangeGroup rangeGroup, int rangeCount, RangeGroup[] rangeGroups,
+            List unresolvedSet, boolean acceptsSequences) {
 
         for (int i = 0; i < nodes.length; i++) {
             if (nodes[i] == null) {
                 continue;
             }
 
-            unresolvedSet = nodes[i].resolveColumnReferences(
-                session,
-                rangeGroup,
-                rangeCount,
-                rangeGroups,
-                unresolvedSet,
-                acceptsSequences);
+            unresolvedSet = nodes[i].resolveColumnReferences(session,
+                    rangeGroup, rangeCount, rangeGroups, unresolvedSet,
+                    acceptsSequences);
         }
 
         return unresolvedSet;
@@ -127,11 +122,8 @@ public class ExpressionAccessor extends Expression {
     /**
      * Assignment result
      */
-    public Object[] getUpdatedArray(
-            Session session,
-            Object[] array,
-            Object value,
-            boolean copy) {
+    public Object[] getUpdatedArray(Session session, Object[] array,
+                                    Object value, boolean copy) {
 
         if (array == null) {
             throw Error.error(ErrorCode.X_2200E);
@@ -175,7 +167,8 @@ public class ExpressionAccessor extends Expression {
         StringBuilder sb   = new StringBuilder(64);
         String        left = getContextSQL(nodes[LEFT]);
 
-        sb.append(left).append('[').append(nodes[RIGHT].getSQL()).append(']');
+        sb.append(left).append('[');
+        sb.append(nodes[RIGHT].getSQL()).append(']');
 
         return sb.toString();
     }
@@ -193,15 +186,15 @@ public class ExpressionAccessor extends Expression {
         sb.append("ARRAY ACCESS");
 
         if (getLeftNode() != null) {
-            sb.append(" array=[")
-              .append(nodes[LEFT].describe(session, blanks + 1))
-              .append(']');
+            sb.append(" array=[");
+            sb.append(nodes[LEFT].describe(session, blanks + 1));
+            sb.append(']');
         }
 
         if (getRightNode() != null) {
-            sb.append(" array_index=[")
-              .append(nodes[RIGHT].describe(session, blanks + 1))
-              .append(']');
+            sb.append(" array_index=[");
+            sb.append(nodes[RIGHT].describe(session, blanks + 1));
+            sb.append(']');
         }
 
         return sb.toString();

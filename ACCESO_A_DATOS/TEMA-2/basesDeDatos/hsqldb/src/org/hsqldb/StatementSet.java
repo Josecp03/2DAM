@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.hsqldb.types.Type;
  * Implementation of Statement for PSM and trigger assignment.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.9.0
  */
 public class StatementSet extends StatementDMQL {
@@ -66,19 +66,12 @@ public class StatementSet extends StatementDMQL {
     /**
      * Trigger SET statement.
      */
-    StatementSet(
-            Session session,
-            Expression[] targets,
-            Table table,
-            RangeVariable[] rangeVars,
-            int[] indexes,
-            Expression[] colExpressions,
-            CompileContext compileContext) {
+    StatementSet(Session session, Expression[] targets, Table table,
+                 RangeVariable[] rangeVars, int[] indexes,
+                 Expression[] colExpressions, CompileContext compileContext) {
 
-        super(
-            StatementTypes.ASSIGNMENT,
-            StatementTypes.X_SQL_DATA_CHANGE,
-            session.getCurrentSchemaHsqlName());
+        super(StatementTypes.ASSIGNMENT, StatementTypes.X_SQL_DATA_CHANGE,
+              session.getCurrentSchemaHsqlName());
 
         this.operationType        = TRIGGER_SET;
         this.targets              = targets;
@@ -97,12 +90,8 @@ public class StatementSet extends StatementDMQL {
     /**
      * PSM and session variable SET
      */
-    StatementSet(
-            Session session,
-            Expression[] targets,
-            Expression e,
-            int[] indexes,
-            CompileContext compileContext) {
+    StatementSet(Session session, Expression[] targets, Expression e,
+                 int[] indexes, CompileContext compileContext) {
 
         super(StatementTypes.ASSIGNMENT, StatementTypes.X_SQL_CONTROL, null);
 
@@ -120,12 +109,8 @@ public class StatementSet extends StatementDMQL {
     /**
      * Single row SELECT INTO
      */
-    StatementSet(
-            Session session,
-            Expression[] targets,
-            QueryExpression query,
-            int[] indexes,
-            CompileContext compileContext) {
+    StatementSet(Session session, Expression[] targets, QueryExpression query,
+                 int[] indexes, CompileContext compileContext) {
 
         super(StatementTypes.ASSIGNMENT, StatementTypes.X_SQL_CONTROL, null);
 
@@ -146,13 +131,13 @@ public class StatementSet extends StatementDMQL {
             return super.getSubqueries(session);
         }
 
-        OrderedHashSet<TableDerived> subQueries = null;
+        OrderedHashSet subQueries = null;
 
         if (expression != null) {
-            subQueries = expression.collectAllSubqueries(null);
+            subQueries = expression.collectAllSubqueries(subQueries);
         }
 
-        if (subQueries == null || subQueries.isEmpty()) {
+        if (subQueries == null || subQueries.size() == 0) {
             return TableDerived.emptyArray;
         }
 
@@ -184,35 +169,29 @@ public class StatementSet extends StatementDMQL {
                     session.addWarning(HsqlException.noDataCondition);
 
                     result = Result.updateZeroResult;
+
                     break;
                 }
 
-                result = performAssignment(
-                    session,
-                    variableIndexes,
-                    targets,
-                    values,
-                    sourceTypes);
+                result = performAssignment(session, variableIndexes, targets,
+                                           values, sourceTypes);
+
                 break;
             }
-
             case StatementSet.VARIABLE_SET : {
                 Object[] values = getExpressionValues(session);
 
                 if (values == null) {
                     result = Result.updateZeroResult;
+
                     break;
                 }
 
-                result = performAssignment(
-                    session,
-                    variableIndexes,
-                    targets,
-                    values,
-                    sourceTypes);
+                result = performAssignment(session, variableIndexes, targets,
+                                           values, sourceTypes);
+
                 break;
             }
-
             default :
                 throw Error.runtimeError(ErrorCode.U_S0500, "StatementSet");
         }
@@ -231,7 +210,6 @@ public class StatementSet extends StatementDMQL {
                 for (int i = 0; i < updateExpressions.length; i++) {
                     updateExpressions[i].collectObjectNames(references);
                 }
-
                 break;
 
             case StatementSet.SELECT_INTO :
@@ -242,7 +220,6 @@ public class StatementSet extends StatementDMQL {
 
                 break;
             }
-
             default :
                 throw Error.runtimeError(ErrorCode.U_S0500, "StatementSet");
         }
@@ -260,13 +237,11 @@ public class StatementSet extends StatementDMQL {
             case StatementSet.VARIABLE_SET : {
 
                 /* @todo - cover row assignment */
-                sb.append(Tokens.T_SET)
-                  .append(' ')
-                  .append(targets[0].getColumn().getName().statementName)
-                  .append(' ')
-                  .append('=')
-                  .append(' ')
-                  .append(expression.getSQL());
+                sb.append(Tokens.T_SET).append(' ');
+                sb.append(targets[0].getColumn().getName().statementName);
+                sb.append(' ').append('=').append(' ').append(
+                    expression.getSQL());
+
                 break;
             }
         }
@@ -324,21 +299,15 @@ public class StatementSet extends StatementDMQL {
         Object[]     oldData = session.sessionContext.triggerArguments[index];
         Object[]     data = (Object[]) ArrayUtil.duplicateArray(oldData);
 
-        StatementDML.getUpdatedData(
-            session,
-            targets,
-            table,
-            colMap,
-            colExpressions,
-            colTypes,
-            data);
+        StatementDML.getUpdatedData(session, targets, table, colMap,
+                                    colExpressions, colTypes, data);
         ArrayUtil.copyArray(data, oldData, data.length);
 
         return Result.updateOneResult;
     }
 
     // this fk references -> other  :  other read lock
-    void collectTableNamesForRead(OrderedHashSet<HsqlName> set) {
+    void collectTableNamesForRead(OrderedHashSet set) {
 
         if (queryExpression != null) {
             queryExpression.getBaseTableNames(set);
@@ -374,7 +343,7 @@ public class StatementSet extends StatementDMQL {
         }
     }
 
-    void collectTableNamesForWrite(OrderedHashSet<HsqlName> set) {}
+    void collectTableNamesForWrite(OrderedHashSet set) {}
 
     public void checkIsNotColumnTarget() {
 
@@ -382,9 +351,8 @@ public class StatementSet extends StatementDMQL {
             ColumnSchema col = targets[i].getColumn();
 
             if (col.getType() == SchemaObject.COLUMN) {
-                throw Error.error(
-                    ErrorCode.X_0U000,
-                    col.getName().statementName);
+                throw Error.error(ErrorCode.X_0U000,
+                                  col.getName().statementName);
             }
         }
     }
@@ -396,8 +364,8 @@ public class StatementSet extends StatementDMQL {
         if (expression.getType() == OpTypes.ROW) {
             values = expression.getRowValue(session);
         } else if (expression.getType() == OpTypes.ROW_SUBQUERY) {
-            values = expression.table.queryExpression.getSingleRowValues(
-                session);
+            values =
+                expression.table.queryExpression.getSingleRowValues(session);
 
             if (values == null) {
 
@@ -412,12 +380,9 @@ public class StatementSet extends StatementDMQL {
         return values;
     }
 
-    static Result performAssignment(
-            Session session,
-            int[] variableIndexes,
-            Expression[] targets,
-            Object[] values,
-            Type[] sourceTypes) {
+    static Result performAssignment(Session session, int[] variableIndexes,
+                                    Expression[] targets, Object[] values,
+                                    Type[] sourceTypes) {
 
         for (int j = 0; j < values.length; j++) {
             Object[] data = ValuePool.emptyObjectArray;
@@ -433,7 +398,8 @@ public class StatementSet extends StatementDMQL {
                     break;
 
                 case SchemaObject.COLUMN :
-                    data = session.sessionContext.triggerArguments[TriggerDef.NEW_ROW];
+                    data = session.sessionContext
+                        .triggerArguments[TriggerDef.NEW_ROW];
                     break;
             }
 
@@ -442,26 +408,18 @@ public class StatementSet extends StatementDMQL {
             Type   targetType;
 
             if (targets[j].getType() == OpTypes.ARRAY_ACCESS) {
-                targetType = targets[j].getLeftNode()
-                                       .getColumn()
-                                       .getDataType()
-                                       .collectionBaseType();
-                value = targetType.convertToType(
-                    session,
-                    value,
-                    sourceTypes[j]);
+                targetType =
+                    targets[j].getLeftNode().getColumn().getDataType()
+                        .collectionBaseType();
+                value = targetType.convertToType(session, value,
+                                                 sourceTypes[j]);
                 data[colIndex] =
-                    ((ExpressionAccessor) targets[j]).getUpdatedArray(
-                        session,
-                        (Object[]) data[colIndex],
-                        value,
-                        true);
+                    ((ExpressionAccessor) targets[j]).getUpdatedArray(session,
+                        (Object[]) data[colIndex], value, true);
             } else {
-                targetType     = targets[j].getColumn().getDataType();
-                value = targetType.convertToType(
-                    session,
-                    value,
-                    sourceTypes[j]);
+                targetType = targets[j].getColumn().getDataType();
+                value = targetType.convertToType(session, value,
+                                                 sourceTypes[j]);
                 data[colIndex] = value;
             }
         }

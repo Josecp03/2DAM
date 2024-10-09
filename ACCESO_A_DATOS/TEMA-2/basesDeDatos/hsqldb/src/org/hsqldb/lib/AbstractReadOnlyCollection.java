@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,30 +31,46 @@
 
 package org.hsqldb.lib;
 
-/**
- * Used for collections such as KeySet or Values.
- * Disallows operations that modify the collection.
- * @author  Fred Toussi (fredt@users dot sourceforge.net)
- */
-abstract class AbstractReadOnlyCollection<V> implements Collection<V> {
+abstract class AbstractReadOnlyCollection<V> implements Collection<V>{
 
-    public final boolean contains(Object o) {
+    public boolean contains(Object o) {
         throw new UnsupportedOperationException();
     }
 
-    public final boolean add(V value) {
+    public boolean containsAll(Collection<?> c) {
         throw new UnsupportedOperationException();
     }
 
-    public final boolean addAll(Collection<? extends V> c) {
+    public boolean add(V value) {
         throw new UnsupportedOperationException();
     }
 
-    public final boolean remove(V o) {
+    public boolean addAll(Collection<? extends V> c) {
         throw new UnsupportedOperationException();
     }
 
-    public final void clear() {
+    public boolean remove(Object o) {
         throw new UnsupportedOperationException();
     }
+
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean removeAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean retainAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Object[] toArray() {
+        throw new UnsupportedOperationException();
+    }
+
+    public <T> T[] toArray(T[] a) {
+        throw new UnsupportedOperationException();
+    }
+
 }

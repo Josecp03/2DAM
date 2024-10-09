@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,11 +39,11 @@ import org.hsqldb.persist.PersistentStore;
  * Manages rows involved in transactions
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 2.0.0
  */
 public class TransactionManager2PL extends TransactionManagerCommon
-        implements TransactionManager {
+implements TransactionManager {
 
     public TransactionManager2PL(Database db) {
 
@@ -53,12 +53,12 @@ public class TransactionManager2PL extends TransactionManagerCommon
         txModel    = LOCKS;
     }
 
-    public long getSystemChangeNumber() {
-        return systemChangeNumber.get();
+    public long getGlobalChangeTimestamp() {
+        return globalChangeTimestamp.get();
     }
 
-    public void setSystemChangeNumber(long ts) {
-        systemChangeNumber.set(ts);
+    public void setGlobalChangeTimestamp(long ts) {
+        globalChangeTimestamp.set(ts);
     }
 
     public boolean isMVRows() {
@@ -86,7 +86,8 @@ public class TransactionManager2PL extends TransactionManagerCommon
     }
 
     public boolean prepareCommitActions(Session session) {
-        session.actionSCN = getNextSystemChangeNumber();
+
+        session.actionTimestamp = getNextGlobalChangeTimestamp();
 
         return true;
     }
@@ -103,13 +104,13 @@ public class TransactionManager2PL extends TransactionManagerCommon
             int limit = session.rowActionList.size();
 
             // new actionTimestamp used for commitTimestamp
-            session.actionSCN         = getNextSystemChangeNumber();
-            session.transactionEndSCN = session.actionSCN;
+            session.actionTimestamp         = getNextGlobalChangeTimestamp();
+            session.transactionEndTimestamp = session.actionTimestamp;
 
             endTransaction(session);
 
             for (int i = 0; i < limit; i++) {
-                RowAction action = session.rowActionList.get(i);
+                RowAction action = (RowAction) session.rowActionList.get(i);
 
                 action.commit(session);
             }
@@ -134,19 +135,17 @@ public class TransactionManager2PL extends TransactionManagerCommon
         writeLock.lock();
 
         try {
-            session.abortTransaction  = false;
-            session.actionSCN         = getNextSystemChangeNumber();
-            session.transactionEndSCN = session.actionSCN;
+            session.abortTransaction        = false;
+            session.actionTimestamp         = getNextGlobalChangeTimestamp();
+            session.transactionEndTimestamp = session.actionTimestamp;
 
-            rollbackPartial(session, 0, session.transactionSCN);
+            rollbackPartial(session, 0, session.transactionTimestamp);
             endTransaction(session);
             session.logSequences();
 
             session.isTransaction = false;
 
             endTransactionTPL(session);
-
-            session.sessionData.newLobFloor = SessionData.noLobFloor;
         } finally {
             writeLock.unlock();
         }
@@ -155,7 +154,7 @@ public class TransactionManager2PL extends TransactionManagerCommon
     public void rollbackSavepoint(Session session, int index) {
 
         long timestamp = session.sessionContext.savepointTimestamps.get(index);
-        Integer oi     = session.sessionContext.savepoints.get(index);
+        Integer oi = (Integer) session.sessionContext.savepoints.get(index);
         int     start  = oi.intValue();
 
         while (session.sessionContext.savepoints.size() > index + 1) {
@@ -168,7 +167,9 @@ public class TransactionManager2PL extends TransactionManagerCommon
     }
 
     public void rollbackAction(Session session) {
-        rollbackPartial(session, session.actionIndex, session.actionStartSCN);
+
+        rollbackPartial(session, session.actionIndex,
+                        session.actionStartTimestamp);
         endActionTPL(session);
     }
 
@@ -185,10 +186,9 @@ public class TransactionManager2PL extends TransactionManagerCommon
         }
 
         for (int i = limit - 1; i >= start; i--) {
-            RowAction action = session.rowActionList.get(i);
+            RowAction action = (RowAction) session.rowActionList.get(i);
 
-            if (action == null
-                    || action.type == RowActionBase.ACTION_NONE
+            if (action == null || action.type == RowActionBase.ACTION_NONE
                     || action.type == RowActionBase.ACTION_DELETE_FINAL) {
                 continue;
             }
@@ -213,22 +213,15 @@ public class TransactionManager2PL extends TransactionManagerCommon
         session.rowActionList.setSize(start);
     }
 
-    public RowAction addDeleteAction(
-            Session session,
-            Table table,
-            PersistentStore store,
-            Row row,
-            int[] changedColumns) {
+    public RowAction addDeleteAction(Session session, Table table,
+                                     PersistentStore store, Row row,
+                                     int[] changedColumns) {
 
         RowAction action;
 
         synchronized (row) {
-            action = RowAction.addDeleteAction(
-                session,
-                table,
-                store,
-                row,
-                changedColumns);
+            action = RowAction.addDeleteAction(session, table, store, row,
+                                               changedColumns);
         }
 
         store.delete(session, row);
@@ -244,24 +237,19 @@ public class TransactionManager2PL extends TransactionManagerCommon
         return action;
     }
 
-    public void addInsertAction(
-            Session session,
-            Table table,
-            PersistentStore store,
-            Row row,
-            int[] changedColumns) {
+    public void addInsertAction(Session session, Table table,
+                                PersistentStore store, Row row,
+                                int[] changedColumns) {
 
         RowAction action = row.rowAction;
 
         if (action == null) {
-
 /*
             System.out.println("null insert action " + session + " "
                                + session.actionTimestamp);
 */
-            throw Error.runtimeError(
-                ErrorCode.GENERAL_ERROR,
-                "null insert action ");
+            throw Error.runtimeError(ErrorCode.GENERAL_ERROR,
+                                     "null insert action ");
         }
 
         store.indexRow(session, row);
@@ -276,14 +264,15 @@ public class TransactionManager2PL extends TransactionManagerCommon
     }
 
     public void beginTransaction(Session session) {
+
         if (!session.isTransaction) {
             beginTransactionCommon(session);
         }
     }
 
     /**
-     * allow session to execute the statement or put it in wait for
-     * other sessions to commit (depending on isolation mode)
+     * add session to the end of queue when a transaction starts
+     * (depending on isolation mode)
      */
     public void beginAction(Session session, Statement cs) {
 
@@ -296,18 +285,22 @@ public class TransactionManager2PL extends TransactionManagerCommon
                 return;
             }
 
+            cs = updateCurrentStatement(session, cs);
+
+            if (cs == null) {
+                return;
+            }
+
             boolean canProceed = setWaitedSessionsTPL(session, cs);
 
             if (canProceed) {
-                if (!session.isTransaction) {
-                    session.isPreTransaction = true;
-                }
+                session.isPreTransaction = true;
 
                 if (session.tempSet.isEmpty()) {
                     lockTablesTPL(session, cs);
 
-                    // we don't set other sessions that would now be waiting for this one too,
-                    // the next lock release will do it
+                    // we don't set other sessions that would now be waiting for this one too
+                    // next lock release will do it
                 } else {
                     setWaitingSessionTPL(session);
                 }
@@ -323,17 +316,9 @@ public class TransactionManager2PL extends TransactionManagerCommon
 
     public void beginActionResume(Session session) {
 
-        Statement cs = session.sessionContext.currentStatement;
-
-        cs = updateCurrentStatement(session, cs);
-
-        if (session.sessionContext.invalidStatement) {
-            return;
-        }
-
         if (session.isTransaction) {
-            session.actionSCN      = getNextSystemChangeNumber();
-            session.actionStartSCN = session.actionSCN;
+            session.actionTimestamp      = getNextGlobalChangeTimestamp();
+            session.actionStartTimestamp = session.actionTimestamp;
         } else {
             beginTransactionCommon(session);
         }
@@ -341,15 +326,13 @@ public class TransactionManager2PL extends TransactionManagerCommon
 
     public void removeTransactionInfo(long id) {}
 
-    public void resetSession(
-            Session session,
-            Session targetSession,
-            long statementTimestamp,
-            int mode) {
+    public void resetSession(Session session, Session targetSession,
+                             long statementTimestamp, int mode) {
         super.resetSession(session, targetSession, statementTimestamp, mode);
     }
 
     private void endTransaction(Session session) {
+
         if (session.isTransaction) {
             transactionCount.decrementAndGet();
         }

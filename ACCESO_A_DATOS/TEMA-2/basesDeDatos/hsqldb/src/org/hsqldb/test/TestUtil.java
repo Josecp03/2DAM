@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,7 +227,7 @@ public class TestUtil {
 
                 startLine = sqlReader.getStartLineNumber();
 
-                if (section.isEmpty()) {
+                if (section.size() == 0) {
                     break;
                 }
 
@@ -270,7 +270,7 @@ public class TestUtil {
     static void test(Statement stat, String s, String sourceName, int line) {
 
         //maintain the interface for this method
-        HsqlArrayList section = new HsqlArrayList();
+        HsqlArrayList section = new HsqlArrayList(new String[8], 0);
 
         section.add(s);
         testSection(stat, section, sourceName, line);
@@ -551,7 +551,7 @@ abstract class ParsedSection {
 
                     lines[k] = lines[k].substring(0, endIndex);
 
-                    if (lines[k].isEmpty()) {
+                    if (lines[k].length() == 0) {
                         resEndRow = k - 1;
                     } else {
                         resEndRow = k;
@@ -677,27 +677,26 @@ abstract class ParsedSection {
          * (note that UPPERCASE codes, while valid are only processed if the
          * system property IgnoreCodeCase has been set to true)
          *
-         * ' ' - not a test
-         * 'd' - display this line verbatim
-         * 'o' - dump result set
+         * 'u' - update
+         * 'c' - count
          * 'e' - exception
-         * 's' - silent
-         * 'c' - count number of lines in result set
-         * 'r' - result set
-         * 'u' - update count
+         * 'r' - results
          * 'w' - wait
          * 'p' - proceed
+         * 's' - silent
+         * 'd' - display   (No reason to use upper-case).
+         * ' ' - not a test
          */
         switch (aCode) {
 
             case ' ' :
-            case 'd' :
+            case 'r' :
             case 'o' :
             case 'e' :
-            case 's' :
             case 'c' :
-            case 'r' :
             case 'u' :
+            case 's' :
+            case 'd' :
             case 'w' :
             case 'p' :
                 return true;
@@ -808,7 +807,7 @@ class ResultSetParsedSection extends ParsedSection {
             }
 
             //iterate over the ResultSet
-            HsqlArrayList list     = new HsqlArrayList();
+            HsqlArrayList list     = new HsqlArrayList(new String[1][], 0);
             results  = aStatement.getResultSet();
             int           colCount = results.getMetaData().getColumnCount();
 
@@ -907,7 +906,7 @@ class ResultSetParsedSection extends ParsedSection {
                                 String actualS = actual;
 
                                 if (results.getMetaData().getColumnClassName(
-                                        j).equals("java.lang.String")) {
+                                        i).equals("java.lang.String")) {
                                     actualS =
                                         StringConverter.toQuotedString(actualS,
                                                                        '\'',
@@ -1135,9 +1134,9 @@ class WaitSection extends ParsedSection {
 
         linesArray.toArray(lines);
 
-        lines[0] = lines[0].substring(3);
         int    closeCmd = lines[0].indexOf("*/");
         String cmd      = lines[0].substring(0, closeCmd);
+
         lines[0] = lines[0].substring(closeCmd + 2).trim();
 
         String trimmed = cmd.trim();
@@ -1173,7 +1172,7 @@ class WaitSection extends ParsedSection {
 
         StringBuilder sb = new StringBuilder();
 
-        if (lines.length == 1 && lines[0].trim().isEmpty()) {
+        if (lines.length == 1 && lines[0].trim().length() < 1) {
             return null;
         }
 
@@ -1261,7 +1260,7 @@ class ProceedSection extends ParsedSection {
 
         StringBuilder sb = new StringBuilder();
 
-        if (lines.length == 1 && lines[0].trim().isEmpty()) {
+        if (lines.length == 1 && lines[0].trim().length() < 1) {
             return "";
         }
 
@@ -1392,7 +1391,7 @@ class ExceptionParsedSection extends ParsedSection {
 
         expectedState = lines[0].trim();
 
-        if (expectedState.isEmpty()) {
+        if (expectedState.length() < 1) {
             expectedState = null;
         }
 
@@ -1485,7 +1484,7 @@ class DisplaySection extends ParsedSection {
 
         StringBuilder sb = new StringBuilder();
 
-        if (lines.length == 1 && lines[0].trim().isEmpty()) {
+        if (lines.length == 1 && lines[0].trim().length() < 1) {
             return null;
         }
 

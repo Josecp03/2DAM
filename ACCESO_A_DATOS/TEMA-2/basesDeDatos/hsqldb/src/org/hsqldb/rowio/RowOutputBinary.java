@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,7 +128,7 @@ public class RowOutputBinary extends RowOutputBase {
             throw Error.runtimeError(ErrorCode.U_S0500, "RowOutputBinary");
         }
 
-        while (count < storageSize) {
+        for (; count < storageSize; ) {
             this.write(0);
         }
     }
@@ -220,9 +220,8 @@ public class RowOutputBinary extends RowOutputBase {
     }
 
     protected void writeBoolean(Boolean o) {
-        write(o.booleanValue()
-              ? 1
-              : 0);
+        write(o.booleanValue() ? 1
+                               : 0);
     }
 
     protected void writeDate(TimestampData o, Type type) {
@@ -468,7 +467,6 @@ public class RowOutputBinary extends RowOutputBase {
 
                 break;
             }
-
             case Types.OTHER :
                 JavaObjectData jo = (JavaObjectData) o;
 

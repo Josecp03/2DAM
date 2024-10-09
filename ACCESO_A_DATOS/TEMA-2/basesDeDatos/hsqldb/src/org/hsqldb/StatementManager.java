@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,8 +55,7 @@ import org.hsqldb.result.ResultMetaData;
  * registered Statement objects to become invalidated. This is done by
  * comparing the schema change and compile timestamps. When a session
  * subsequently attempts to use an invalidated Statement via its id, it will
- * recompiles the Statement using its sql statement still held by this class.
- * failure to recompile invalidates and removes the Statement.<p>
+ * reinstantiate the Statement using its sql statement still held by this class.<p>
  *
  * This class keeps count of the number of time each registered compiled
  * statement is linked to a session. It unregisters a compiled statement when
@@ -70,7 +69,7 @@ import org.hsqldb.result.ResultMetaData;
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  *
- * @version 2.7.3
+ * @version 2.6.1
  * @since 1.7.2
  */
 public final class StatementManager {
@@ -84,8 +83,8 @@ public final class StatementManager {
     /** Set of wrappers for Statement object. */
     private HashSet<StatementWrapper> statementSet;
 
-    /** Map: Statement id (int) maps to: wrapper for Statement object. */
-    private LongKeyHashMap<StatementWrapper> csidMap;
+    /** Map: Statement id (int) => wrapper for Statement object. */
+    private LongKeyHashMap csidMap;
 
     /**
      * Monotonically increasing counter used to assign unique ids to
@@ -94,7 +93,7 @@ public final class StatementManager {
     private long next_cs_id;
 
     /**
-     * Constructs a new instance of {@code StatementManager}.
+     * Constructs a new instance of <code>StatementManager</code>.
      *
      * @param session the session instance for which this object is to
      *      manage Statement objects.
@@ -103,8 +102,8 @@ public final class StatementManager {
 
         this.session  = session;
         this.database = session.database;
-        statementSet  = new HashSet<>(32, new StatementComparator());
-        csidMap       = new LongKeyHashMap<>();
+        statementSet  = new HashSet(32, new StatementComparator());
+        csidMap       = new LongKeyHashMap();
         next_cs_id    = 0;
     }
 
@@ -125,14 +124,14 @@ public final class StatementManager {
      * @return the next Statement identifier in the sequence.
      */
     private long nextID() {
+
         next_cs_id++;
 
         return next_cs_id;
     }
 
     /**
-     * Used by JDBC for a previously prepared statement. Returns an
-     * existing Statement object with the given
+     * Returns an existing Statement object with the given
      * statement identifier. Returns null if the Statement object
      * has expired and cannot be recompiled
      *
@@ -141,7 +140,7 @@ public final class StatementManager {
      */
     public Statement getStatement(long csid) {
 
-        StatementWrapper sw = csidMap.get(csid);
+        StatementWrapper sw = (StatementWrapper) csidMap.get(csid);
 
         if (sw == null) {
             return null;
@@ -165,7 +164,7 @@ public final class StatementManager {
             }
 
             newStatement.setCompileTimestamp(
-                database.txManager.getSystemChangeNumber());
+                database.txManager.getGlobalChangeTimestamp());
 
             sw.statement = newStatement;
 
@@ -188,7 +187,7 @@ public final class StatementManager {
         long csid = statement.getID();
 
         if (csid != 0) {
-            StatementWrapper sw = csidMap.get(csid);
+            StatementWrapper sw = (StatementWrapper) csidMap.get(csid);
 
             if (sw != null) {
                 return getStatement(sw);
@@ -227,25 +226,24 @@ public final class StatementManager {
 
             newStatement.setCursorPropertiesRequest(props);
 
-            if (!cs.getResultMetaData()
-                   .areTypesCompatible(newStatement.getResultMetaData())) {
+            if (!cs.getResultMetaData().areTypesCompatible(
+                    newStatement.getResultMetaData())) {
                 return null;
             }
 
-            if (!cs.getParametersMetaData()
-                   .areTypesCompatible(newStatement.getParametersMetaData())) {
+            if (!cs.getParametersMetaData().areTypesCompatible(
+                    newStatement.getParametersMetaData())) {
                 return null;
             }
 
             newStatement.setCompileTimestamp(
-                database.txManager.getSystemChangeNumber());
+                database.txManager.getGlobalChangeTimestamp());
 
             if (setGenerated) {
                 StatementDML si = (StatementDML) cs;
 
-                newStatement.setGeneratedColumnInfo(
-                    si.generatedType,
-                    si.generatedInputMetaData);
+                newStatement.setGeneratedColumnInfo(si.generatedType,
+                                                    si.generatedInputMetaData);
             }
         } catch (Throwable t) {
             return null;
@@ -266,7 +264,7 @@ public final class StatementManager {
 
         Statement cs = wrapper.statement;
 
-        cs.setCompileTimestamp(database.txManager.getSystemChangeNumber());
+        cs.setCompileTimestamp(database.txManager.getGlobalChangeTimestamp());
 
         long csid = nextID();
 
@@ -286,7 +284,7 @@ public final class StatementManager {
      */
     void freeStatement(long csid) {
 
-        StatementWrapper sw = csidMap.get(csid);
+        StatementWrapper sw = (StatementWrapper) csidMap.get(csid);
 
         if (sw == null) {
             return;
@@ -312,7 +310,7 @@ public final class StatementManager {
             return;
         }
 
-        StatementWrapper sw = csidMap.remove(csid);
+        StatementWrapper sw = (StatementWrapper) csidMap.remove(csid);
 
         if (sw != null) {
             statementSet.remove(sw);
@@ -350,14 +348,12 @@ public final class StatementManager {
         }
 
         wrapper = newWrapper;
-        wrapper.statement = session.compileStatement(
-            wrapper.sql,
-            wrapper.cursorProps);
+        wrapper.statement = session.compileStatement(wrapper.sql,
+                wrapper.cursorProps);
 
         wrapper.statement.setCursorPropertiesRequest(wrapper.cursorProps);
-        wrapper.statement.setGeneratedColumnInfo(
-            cmd.getGeneratedResultType(),
-            cmd.getGeneratedResultMetaData());
+        wrapper.statement.setGeneratedColumnInfo(cmd.getGeneratedResultType(),
+                cmd.getGeneratedResultMetaData());
         registerStatement(wrapper);
 
         wrapper.usageCount = 1;
@@ -366,7 +362,7 @@ public final class StatementManager {
     }
 
     private static class StatementComparator
-            implements ObjectComparator<StatementWrapper> {
+        implements ObjectComparator<StatementWrapper> {
 
         public boolean equals(StatementWrapper s1, StatementWrapper s2) {
 
@@ -375,8 +371,7 @@ public final class StatementManager {
                    && s1.cursorProps == s2.cursorProps
                    && s1.generatedType == s2.generatedType
                    && ResultMetaData.areGeneratedReguestsCompatible(
-                       s1.generatedMetaData,
-                       s2.generatedMetaData);
+                       s1.generatedMetaData, s2.generatedMetaData);
         }
 
         public int hashCode(StatementWrapper a) {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,15 +41,15 @@ import org.hsqldb.result.Result;
  * to JDBC callers.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.1
+ * @version 1.9.0
  * @since 1.7.2
  */
 public class HsqlException extends RuntimeException {
 
     //
     public static final HsqlException[] emptyArray = new HsqlException[]{};
-    public static final HsqlException noDataCondition = Error.error(
-        ErrorCode.N_02000);
+    public static final HsqlException noDataCondition =
+        Error.error(ErrorCode.N_02000);
 
     //
     private String message;
@@ -58,9 +58,7 @@ public class HsqlException extends RuntimeException {
     private int    level;
     private int    statementGroup;
     private int    statementCode;
-    private String token;
-    public Object  info;
-
+    public  Object info;
     /**
      * @param message String
      * @param state XOPEN / SQL code for exception
@@ -79,6 +77,7 @@ public class HsqlException extends RuntimeException {
      * @param r containing the members
      */
     public HsqlException(Result r) {
+
         this.message = r.getMainString();
         this.state   = r.getSubString();
         this.code    = r.getErrorCode();
@@ -135,14 +134,6 @@ public class HsqlException extends RuntimeException {
         statementCode  = code;
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
     public int hashCode() {
         return code;
     }
@@ -152,8 +143,7 @@ public class HsqlException extends RuntimeException {
         if (other instanceof HsqlException) {
             HsqlException o = (HsqlException) other;
 
-            return code == o.code
-                   && equals(state, o.state)
+            return code == o.code && equals(state, o.state)
                    && equals(message, o.message);
         }
 

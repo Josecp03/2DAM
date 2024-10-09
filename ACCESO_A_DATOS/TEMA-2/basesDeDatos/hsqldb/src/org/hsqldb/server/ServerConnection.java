@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,10 +75,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
-
 import java.net.Socket;
 import java.net.SocketException;
-
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.hsqldb.ClientConnection;
@@ -100,7 +98,6 @@ import org.hsqldb.result.ResultProperties;
 import org.hsqldb.rowio.RowInputBinary;
 import org.hsqldb.rowio.RowOutputBinary;
 import org.hsqldb.rowio.RowOutputInterface;
-import org.hsqldb.types.DateTimeType;
 import org.hsqldb.types.Type;
 
 // fredt@users 20020215 - patch 461556 by paul-h@users - server factory
@@ -125,7 +122,7 @@ import org.hsqldb.types.Type;
  *
  * @author Blaine Simpson (unsaved@users dot sourceforge.net
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.6.0
  * @since 1.6.2
  */
 class ServerConnection implements Runnable {
@@ -156,8 +153,7 @@ class ServerConnection implements Runnable {
 
     static {
         int serverBundleHandle = ResourceBundleHandler.getBundleHandle(
-            "org_hsqldb_server_Server_messages",
-            null);
+            "org_hsqldb_server_Server_messages", null);
 
         if (serverBundleHandle < 0) {
             throw new RuntimeException(
@@ -167,12 +163,10 @@ class ServerConnection implements Runnable {
             // Not necessary to localize message.
         }
 
-        TEXTBANNER_PART1 = ResourceBundleHandler.getString(
-            serverBundleHandle,
-            "textbanner.part1");
-        TEXTBANNER_PART2 = ResourceBundleHandler.getString(
-            serverBundleHandle,
-            "textbanner.part2");
+        TEXTBANNER_PART1 = ResourceBundleHandler.getString(serverBundleHandle,
+                "textbanner.part1");
+        TEXTBANNER_PART2 = ResourceBundleHandler.getString(serverBundleHandle,
+                "textbanner.part2");
 
         if (TEXTBANNER_PART1 == null || TEXTBANNER_PART2 == null) {
             throw new RuntimeException(
@@ -324,6 +318,7 @@ class ServerConnection implements Runnable {
         private String clientMessage = null;
 
         public ClientFailure(String ourMessage, String clientMessage) {
+
             super(ourMessage);
 
             this.clientMessage = clientMessage;
@@ -336,15 +331,11 @@ class ServerConnection implements Runnable {
 
     private CleanExit cleanExit = new CleanExit();
 
-    private void receiveResult(int resultMode) throws CleanExit,
-            IOException {
+    private void receiveResult(int resultMode) throws CleanExit, IOException {
 
         boolean terminate = false;
-        Result resultIn = Result.newResult(
-            session,
-            resultMode,
-            dataInput,
-            rowIn);
+        Result resultIn = Result.newResult(session, resultMode, dataInput,
+                                           rowIn);
 
         resultIn.readLobResults(session, dataInput);
         server.printRequest(mThread, resultIn);
@@ -355,36 +346,37 @@ class ServerConnection implements Runnable {
 
             case ResultConstants.CONNECT : {
                 resultOut = setDatabase(resultIn);
+
                 break;
             }
-
             case ResultConstants.SQLCANCEL : {
                 resultOut = cancelStatement(resultIn);
                 terminate = true;
+
                 break;
             }
-
             case ResultConstants.DISCONNECT : {
                 resultOut = Result.updateZeroResult;
                 terminate = true;
+
                 break;
             }
-
             case ResultConstants.RESETSESSION : {
                 session.resetSession();
 
                 resultOut = Result.updateZeroResult;
+
                 break;
             }
-
             case ResultConstants.EXECUTE_INVALID : {
-                resultOut = Result.newErrorResult(
-                    Error.error(ErrorCode.X_07502));
+                resultOut =
+                    Result.newErrorResult(Error.error(ErrorCode.X_07502));
+
                 break;
             }
-
             default : {
                 resultOut = session.execute(resultIn);
+
                 break;
             }
         }
@@ -400,8 +392,7 @@ class ServerConnection implements Runnable {
 
     private OdbcPacketOutputStream outPacket = null;
 
-    private void receiveOdbcPacket(char inC) throws IOException,
-            CleanExit {
+    private void receiveOdbcPacket(char inC) throws IOException, CleanExit {
 
         /*
          * The driver's notion of the transaction state, I (no) or T (yes),
@@ -410,8 +401,8 @@ class ServerConnection implements Runnable {
          * If the user/app runs in non-autocommit mode and says to run a
          * COMMIT followed by an INSERT, the driver will handle the user/app's
          * facade of autocommittedness, and will send the server <OL>
-         *   <LI>COMMIT (which will cause us to set session.setAutoCommit(true))
-         *   <LI>BEGIN (which will cause us to set session.setAutoCommit(false))
+         *   <LI>COMMIT (which will cause us to set session.setAutoCommit(true)
+         *   <LI>BEGIN (which will cause us to set session.setAutoCommit(false)
          *   <LI>INSERT...
          * </OL>
          */
@@ -885,13 +876,15 @@ class ServerConnection implements Runnable {
 
                         // Must use "sql" directly since name is case-sensitive
                         handle = tmpStr.substring(0, tmpStr.length() - 1);
-                        odbcPs = sessionOdbcPsMap.get(handle);
+                        odbcPs = (OdbcPreparedStatement) sessionOdbcPsMap.get(
+                            handle);
 
                         if (odbcPs != null) {
                             odbcPs.close();
                         }
 
-                        portal = sessionOdbcPortalMap.get(handle);
+                        portal =
+                            (StatementPortal) sessionOdbcPortalMap.get(handle);
 
                         if (portal != null) {
                             portal.close();
@@ -1041,9 +1034,11 @@ class ServerConnection implements Runnable {
                     portal = null;
 
                     if (c == 'S') {
-                        odbcPs = sessionOdbcPsMap.get(handle);
+                        odbcPs = (OdbcPreparedStatement) sessionOdbcPsMap.get(
+                            handle);
                     } else if (c == 'P') {
-                        portal = sessionOdbcPortalMap.get(handle);
+                        portal =
+                            (StatementPortal) sessionOdbcPortalMap.get(handle);
                     } else {
                         throw new RecoverableOdbcFailure(
                             null,
@@ -1215,7 +1210,8 @@ class ServerConnection implements Runnable {
                             + "'");
                     }
 
-                    odbcPs = sessionOdbcPsMap.get(psHandle);
+                    odbcPs =
+                        (OdbcPreparedStatement) sessionOdbcPsMap.get(psHandle);
 
                     if (odbcPs == null) {
                         throw new RecoverableOdbcFailure(
@@ -1261,7 +1257,8 @@ class ServerConnection implements Runnable {
                                                + portalHandle + "'");
                     }
 
-                    portal = sessionOdbcPortalMap.get(portalHandle);
+                    portal = (StatementPortal) sessionOdbcPortalMap.get(
+                        portalHandle);
 
                     if (portal == null) {
                         throw new RecoverableOdbcFailure(
@@ -1395,13 +1392,15 @@ class ServerConnection implements Runnable {
                     portal = null;
 
                     if (c == 'S') {
-                        odbcPs = sessionOdbcPsMap.get(handle);
+                        odbcPs = (OdbcPreparedStatement) sessionOdbcPsMap.get(
+                            handle);
 
                         if (odbcPs != null) {
                             odbcPs.close();
                         }
                     } else if (c == 'P') {
-                        portal = sessionOdbcPortalMap.get(handle);
+                        portal =
+                            (StatementPortal) sessionOdbcPortalMap.get(handle);
 
                         if (portal != null) {
                             portal.close();
@@ -1560,7 +1559,8 @@ class ServerConnection implements Runnable {
 
             session = DatabaseManager.newSession(dbID, user,
                                                  resultIn.getSubString(),
-                                                 resultIn.getZoneString());
+                                                 resultIn.getZoneString(),
+                                                 resultIn.getUpdateCount());
 
             if (!server.isSilent()) {
                 server.printWithThread(mThread + ":Connected user '" + user
@@ -1768,7 +1768,7 @@ class ServerConnection implements Runnable {
                 firstInt - 8);
 
         // - 4 for size of firstInt - 2 for major - 2 for minor
-        java.util.Map<String, String>  stringPairs = inPacket.readStringPairs();
+        java.util.Map stringPairs = inPacket.readStringPairs();
 
         if (server.isTrace()) {
             server.print("String Pairs from ODBC client: " + stringPairs);
@@ -1795,9 +1795,9 @@ class ServerConnection implements Runnable {
                                         "Target account not identified");
             }
 
-            String databaseName = stringPairs.get("database");
+            String databaseName = (String) stringPairs.get("database");
 
-            user = stringPairs.get("user");
+            user = (String) stringPairs.get("user");
 
             if (databaseName.equals("/")) {
 
@@ -1852,8 +1852,8 @@ class ServerConnection implements Runnable {
             }
 
             try {
-                session = DatabaseManager.newSession(
-                    dbID, user, password, DateTimeType.systemTimeZone.getID());
+                session = DatabaseManager.newSession(dbID, user, password,
+                                                     null, 0);
 
                 // TODO:  Find out what updateCount, the last para, is for:
                 //                                   resultIn.getUpdateCount());
@@ -1894,8 +1894,8 @@ class ServerConnection implements Runnable {
         dataOutput.flush();
     }
 
-    private java.util.Map<String, OdbcPreparedStatement> sessionOdbcPsMap = new java.util.HashMap<>();
-    private java.util.Map<String, StatementPortal> sessionOdbcPortalMap = new java.util.HashMap<>();
+    private java.util.Map sessionOdbcPsMap     = new java.util.HashMap();
+    private java.util.Map sessionOdbcPortalMap = new java.util.HashMap();
 
     /**
      * Read String directly from dataInput.

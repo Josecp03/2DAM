@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -269,7 +269,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclDenyAlls.length; i++) {
-            acl = aclDenyAlls[i];
+            acl = (ServerAcl) aclDenyAlls[i];
 
             assertFalse("Permitting access from localhost with deny-all ACL",
                         acl.permitAccess(localhostByName.getAddress()));
@@ -281,7 +281,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclDenyAlls.length; i++) {
-            acl = aclDenyAlls[i];
+            acl = (ServerAcl) aclDenyAlls[i];
 
             assertFalse("Permitting access from localhost with deny-all ACL",
                         acl.permitAccess(localhostByAddr.getAddress()));
@@ -295,7 +295,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclPermitLocalhosts.length; i++) {
-            acl = aclPermitLocalhosts[i];
+            acl = (ServerAcl) aclPermitLocalhosts[i];
 
             assertTrue(
                 "Denying access from localhost with localhost-permit ACL",
@@ -308,7 +308,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclPermitLocalhosts.length; i++) {
-            acl = aclPermitLocalhosts[i];
+            acl = (ServerAcl) aclPermitLocalhosts[i];
 
             assertTrue(
                 "Denying access from localhost with localhost-permit ACL",
@@ -324,7 +324,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclDenyLocalhosts.length; i++) {
-            acl = aclDenyLocalhosts[i];
+            acl = (ServerAcl) aclDenyLocalhosts[i];
 
             assertFalse(
                 "Permitting access from localhost with localhost-deny ACL",
@@ -337,7 +337,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclDenyLocalhosts.length; i++) {
-            acl = aclDenyLocalhosts[i];
+            acl = (ServerAcl) aclDenyLocalhosts[i];
 
             assertFalse(
                 "Permitting access from localhost with localhost-deny ACL",
@@ -353,7 +353,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclPermitLocalNets.length; i++) {
-            acl = aclPermitLocalNets[i];
+            acl = (ServerAcl) aclPermitLocalNets[i];
 
             assertTrue("Denying access from localNet with localNet-permit ACL",
                        acl.permitAccess(localhostByName.getAddress()));
@@ -365,7 +365,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclPermitLocalNets.length; i++) {
-            acl = aclPermitLocalNets[i];
+            acl = (ServerAcl) aclPermitLocalNets[i];
 
             assertTrue("Denying access from localNet with localNet-permit ACL",
                        acl.permitAccess(localhostByAddr.getAddress()));
@@ -380,7 +380,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclDenyLocalNets.length; i++) {
-            acl = aclDenyLocalNets[i];
+            acl = (ServerAcl) aclDenyLocalNets[i];
 
             assertFalse(
                 "Permitting access from localNet with localNet-deny ACL",
@@ -393,7 +393,7 @@ public class TestAcl extends TestCase {
         ServerAcl acl;
 
         for (int i = 0; i < aclDenyLocalNets.length; i++) {
-            acl = aclDenyLocalNets[i];
+            acl = (ServerAcl) aclDenyLocalNets[i];
 
             assertFalse(
                 "Permitting access from localNet with localNet-deny ACL",

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,14 +43,16 @@ import org.hsqldb.error.ErrorCode;
  * Class for ROW type objects.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.4.1
  * @since 2.0.0
  */
 public class RowType extends Type {
 
-    final Type[] dataTypes;
+    final Type[]    dataTypes;
+    TypedComparator comparator;
 
     public RowType(Type[] dataTypes) {
+
         super(Types.SQL_ROW, Types.SQL_ROW, 0, 0);
 
         this.dataTypes = dataTypes;
@@ -94,9 +96,10 @@ public class RowType extends Type {
 
     public String getNameString() {
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder();
 
-        sb.append(Tokens.T_ROW).append('(');
+        sb.append(Tokens.T_ROW);
+        sb.append('(');
 
         for (int i = 0; i < dataTypes.length; i++) {
             if (i > 0) {
@@ -170,10 +173,8 @@ public class RowType extends Type {
         return arrb;
     }
 
-    public Object convertToType(
-            SessionInterface session,
-            Object a,
-            Type otherType) {
+    public Object convertToType(SessionInterface session, Object a,
+                                Type otherType) {
 
         if (a == null) {
             return null;
@@ -197,18 +198,15 @@ public class RowType extends Type {
         Object[] arrb = new Object[arra.length];
 
         for (int i = 0; i < arra.length; i++) {
-            arrb[i] = dataTypes[i].convertToType(
-                session,
-                arra[i],
-                otherTypes[i]);
+            arrb[i] = dataTypes[i].convertToType(session, arra[i],
+                                                 otherTypes[i]);
         }
 
         return arrb;
     }
 
-    public Object convertToDefaultType(
-            SessionInterface sessionInterface,
-            Object o) {
+    public Object convertToDefaultType(SessionInterface sessionInterface,
+                                       Object o) {
         return o;
     }
 
@@ -230,7 +228,8 @@ public class RowType extends Type {
         Object[]      array = (Object[]) a;
         StringBuilder sb    = new StringBuilder();
 
-        sb.append(Tokens.T_ROW).append('(');
+        sb.append(Tokens.T_ROW);
+        sb.append('(');
 
         for (int i = 0; i < array.length; i++) {
             if (i > 0) {
@@ -245,29 +244,6 @@ public class RowType extends Type {
         sb.append(')');
 
         return sb.toString();
-    }
-
-    public void convertToJSON(Object a, StringBuilder sb) {
-
-        Object[] array = (Object[]) a;
-
-        if (a == null) {
-            sb.append("null");
-
-            return;
-        }
-
-        sb.append('{');
-
-        for (int i = 0; i < array.length; i++) {
-            if (i > 0) {
-                sb.append(',');
-            }
-
-            dataTypes[i].convertToJSON(array[i], sb);
-        }
-
-        sb.append('}');
     }
 
     public boolean canConvertFrom(Type otherType) {
@@ -384,16 +360,8 @@ public class RowType extends Type {
         return dataTypes;
     }
 
-    public int compare(Session session, Object a, Object b, SortAndSlice sort) {
-        return compare(session, a, b, sort, dataTypes);
-    }
-
-    public static int compare(
-            Session session,
-            Object a,
-            Object b,
-            SortAndSlice sort,
-            Type[] dataTypes) {
+    public int compare(Session session, Object a, Object b,
+                       SortAndSlice sort) {
 
         if (a == b) {
             return 0;
@@ -489,9 +457,22 @@ public class RowType extends Type {
         return hash;
     }
 
-    public static String convertToSQLString(
-            Object[] array,
-            Type[] types,
+    synchronized TypedComparator getComparator(Session session) {
+
+        if (comparator == null) {
+            TypedComparator c    = new TypedComparator(session);
+            SortAndSlice    sort = new SortAndSlice();
+
+            sort.prepareMultiColumn(dataTypes.length);
+            c.setType(this, sort);
+
+            comparator = c;
+        }
+
+        return comparator;
+    }
+
+    public static String convertToSQLString(Object[] array, Type[] types,
             int maxUnitLength) {
 
         if (array == null) {

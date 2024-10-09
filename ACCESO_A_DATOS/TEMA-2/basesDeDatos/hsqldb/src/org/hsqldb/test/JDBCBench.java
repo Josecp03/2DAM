@@ -28,7 +28,7 @@ class JDBCBench {
     public static int nbranches = 1;         /* number of branches in 1 tps db       */
     public static int ntellers  = 10;        /* number of tellers in  1 tps db       */
     public static int naccounts = 100000;    /* number of accounts in 1 tps db       */
-    public static int nhistory  = 864000;    /* number of history recs in 1 tps db   */
+    public static int nhistory = 864000;     /* number of history recs in 1 tps db   */
     public static final int TELLER              = 0;
     public static final int BRANCH              = 1;
     public static final int ACCOUNT             = 2;
@@ -143,7 +143,7 @@ class JDBCBench {
             }
         }
 
-        if (DriverName.isEmpty() || DBUrl.isEmpty()) {
+        if (DriverName.length() == 0 || DBUrl.length() == 0) {
             System.out.println(
                 "usage: java JDBCBench -driver [driver_class_name] -url [url_to_db] -user [username] -password [password] [-v] [-init] [-tpc n] [-clients n]");
             System.out.println();

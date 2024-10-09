@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,19 +59,17 @@ public class DbBackupMain {
      * Automatically calculates buffer sizes based on the largest component
      * file (for "save" mode) or tar file size (for other modes).
      * <P>
-     * Run<PRE>{@code
+     * Run<PRE><CODE>
      *     java -cp path/to/hsqldb.jar org.hsqldb.lib.tar.DbBackupMain
-     * }</PRE> for syntax help.
+     * </CODE></PRE> for syntax help.
      *
      * @param sa The arguments
      * @throws IOException on read-write error
      * @throws TarMalformatException on tar file problems
      *
      */
-    public static void main(
-            String[] sa)
-            throws IOException,
-                   TarMalformatException {
+    public static void main(String[] sa)
+    throws IOException, TarMalformatException {
 
         try {
             if (sa.length < 1) {
@@ -86,15 +84,13 @@ public class DbBackupMain {
                 boolean overWrite = sa.length > 1
                                     && sa[1].equals("--overwrite");
 
-                if (sa.length != (overWrite
-                                  ? 4
-                                  : 3)) {
+                if (sa.length != (overWrite ? 4
+                                            : 3)) {
                     throw new IllegalArgumentException();
                 }
 
-                DbBackup backup = new DbBackup(
-                    new File(sa[sa.length - 2]),
-                    sa[sa.length - 1]);
+                DbBackup backup = new DbBackup(new File(sa[sa.length - 2]),
+                                               sa[sa.length - 1]);
 
                 backup.setOverWrite(overWrite);
                 backup.write();
@@ -108,22 +104,20 @@ public class DbBackupMain {
                 if (sa.length > 2) {
                     patternStrings = new String[sa.length - 2];
 
-                    System.arraycopy(sa, 2, patternStrings, 0, sa.length - 2);
+                    for (int i = 2; i < sa.length; i++) {
+                        patternStrings[i - 2] = sa[i];
+                    }
                 }
 
-                new TarReader(
-                    new File(sa[1]),
-                    TarReader.LIST_MODE,
-                    patternStrings,
-                    Integer.valueOf(
-                        DbBackup.generateBufferBlockValue(new File(sa[1]))),
-                    null).read();
+                new TarReader(new File(sa[1]), TarReader
+                    .LIST_MODE, patternStrings, Integer.valueOf(DbBackup
+                        .generateBufferBlockValue(new File(sa[1]))), null)
+                            .read();
             } else if (sa[0].equals("--extract")) {
                 boolean overWrite = sa.length > 1
                                     && sa[1].equals("--overwrite");
-                int     firstPatInd = overWrite
-                                      ? 4
-                                      : 3;
+                int firstPatInd = overWrite ? 4
+                                            : 3;
 
                 if (sa.length < firstPatInd) {
                     throw new IllegalArgumentException();
@@ -134,25 +128,18 @@ public class DbBackupMain {
                 if (sa.length > firstPatInd) {
                     patternStrings = new String[sa.length - firstPatInd];
 
-                    System.arraycopy(
-                        sa,
-                        firstPatInd,
-                        patternStrings,
-                        0,
-                        sa.length - firstPatInd);
+                    for (int i = firstPatInd; i < sa.length; i++) {
+                        patternStrings[i - firstPatInd] = sa[i];
+                    }
                 }
 
-                File tarFile       = new File(sa[overWrite
-                                                 ? 2
-                                                 : 1]);
-                int  tarReaderMode = overWrite
-                                     ? TarReader.OVERWRITE_MODE
-                                     : TarReader.EXTRACT_MODE;
+                File tarFile       = new File(sa[overWrite ? 2
+                                                           : 1]);
+                int  tarReaderMode = overWrite ? TarReader.OVERWRITE_MODE
+                                               : TarReader.EXTRACT_MODE;
 
                 new TarReader(
-                    tarFile,
-                    tarReaderMode,
-                    patternStrings,
+                    tarFile, tarReaderMode, patternStrings,
                     Integer.valueOf(DbBackup.generateBufferBlockValue(tarFile)),
                     new File(sa[firstPatInd - 1])).read();
             } else {

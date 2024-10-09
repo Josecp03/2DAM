@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 package org.hsqldb.sample;
 
 import java.io.PrintWriter;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -53,8 +52,8 @@ import org.hsqldb.trigger.Trigger;
 /**
  * Sample code for use of triggers in hsqldb.<p>
  *
- * This class is in org.hsqldb.sample package, but a typical implementation is in
- * user's class hierarchy.
+ * This class org.hsqldb.sample package, but a typical implementation is in
+ * users's class hierarchy.
  *
  * SQL to invoke is:<p>
  * CREATE TRIGGER triggerSample BEFORE|AFTER INSERT|UPDATE|DELETE
@@ -128,13 +127,13 @@ import org.hsqldb.trigger.Trigger;
  */
 public class TriggerSample implements Trigger {
 
-    static final PrintWriter out              = new PrintWriter(System.out);
-    static final String      drv              = "org.hsqldb.jdbc.JDBCDriver";
-    static final String      url = "jdbc:hsqldb:mem:trigger-sample";
-    static final String      usr              = "SA";
-    static final String      pwd              = "";
-    static final String      impl             = TriggerSample.class.getName();
-    static final String      tn               = "trig_test";
+    static final PrintWriter out  = new PrintWriter(System.out);
+    static final String      drv  = "org.hsqldb.jdbc.JDBCDriver";
+    static final String      url  = "jdbc:hsqldb:mem:trigger-sample";
+    static final String      usr  = "SA";
+    static final String      pwd  = "";
+    static final String      impl = TriggerSample.class.getName();
+    static final String      tn   = "trig_test";
     static final String drop_test_table_stmt = "DROP TABLE " + tn
         + " IF EXISTS";
     static final String create_test_table_stmt = "CREATE TABLE " + tn
@@ -163,15 +162,14 @@ public class TriggerSample implements Trigger {
      * @param or  old row
      * @param nr  new row
      */
-    public void fire(int typ, String trn, String tn, Object[] or, Object[] nr) {
+    public void fire(int typ, String trn, String tn, Object[] or,
+                     Object[] nr) {
 
         synchronized (TriggerSample.class) {
-            String ors = or == null
-                         ? "null"
-                         : StringUtil.arrayToString(or);
-            String nrs = nr == null
-                         ? "null"
-                         : StringUtil.arrayToString(nr);
+            String ors = or == null ? "null"
+                                    : StringUtil.arrayToString(or);
+            String nrs = nr == null ? "null"
+                                    : StringUtil.arrayToString(nr);
 
             out.println("----------------------------------------");
             out.println(getTriggerDescriptor(trn, typ, tn));
@@ -191,9 +189,9 @@ public class TriggerSample implements Trigger {
                         final int ID = ((Number) nr[0]).intValue();
 
                         doAssert(ID < 11, "ID < 11");
+
                         break;
                     }
-
                     case UPDATE_BEFORE_ROW : {
 
                         // Business rule:  ignore update of VALUE 'unchangable'.
@@ -225,11 +223,8 @@ public class TriggerSample implements Trigger {
         }
     }
 
-    private static void doAuditStep(
-            int typ,
-            String tn,
-            String ors,
-            String nrs) {
+    private static void doAuditStep(int typ, String tn, String ors,
+                                    String nrs) {
 
         Connection        conn;
         PreparedStatement stmt;
@@ -265,7 +260,6 @@ public class TriggerSample implements Trigger {
             case DELETE_BEFORE_ROW : {
                 return "BEFORE";
             }
-
             case INSERT_AFTER :
             case INSERT_AFTER_ROW :
             case UPDATE_AFTER :
@@ -274,7 +268,6 @@ public class TriggerSample implements Trigger {
             case DELETE_AFTER_ROW : {
                 return "AFTER";
             }
-
             default : {
                 return "";
             }
@@ -290,19 +283,16 @@ public class TriggerSample implements Trigger {
             case INSERT_BEFORE_ROW : {
                 return "INSERT";
             }
-
             case UPDATE_AFTER :
             case UPDATE_AFTER_ROW :
             case UPDATE_BEFORE_ROW : {
                 return "UPDATE";
             }
-
             case DELETE_AFTER :
             case DELETE_AFTER_ROW :
             case DELETE_BEFORE_ROW : {
                 return "DELETE";
             }
-
             default : {
                 return "";
             }
@@ -310,9 +300,8 @@ public class TriggerSample implements Trigger {
     }
 
     public static String getQueueSpec(int qs) {
-        return (qs < 0)
-               ? ""
-               : ("QUEUE " + qs);
+        return (qs < 0) ? ""
+                        : ("QUEUE " + qs);
     }
 
     public static String getForEachSpec(int type) {
@@ -327,19 +316,14 @@ public class TriggerSample implements Trigger {
             case DELETE_BEFORE_ROW : {
                 return "FOR EACH ROW";
             }
-
             default : {
                 return "FOR EACH STATEMENT";
             }
         }
     }
 
-    public static String getTriggerDDL(
-            String trn,
-            int typ,
-            String tab,
-            int qs,
-            String impl) {
+    public static String getTriggerDDL(String trn, int typ, String tab,
+                                       int qs, String impl) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -362,7 +346,8 @@ public class TriggerSample implements Trigger {
         return sb.toString();
     }
 
-    public static String getTriggerDescriptor(String trn, int typ, String tab) {
+    public static String getTriggerDescriptor(String trn, int typ,
+            String tab) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -393,11 +378,8 @@ public class TriggerSample implements Trigger {
         }
     }
 
-    private static void createTrigger(
-            Statement stmt,
-            String trn,
-            int typ)
-            throws SQLException {
+    private static void createTrigger(Statement stmt, String trn,
+                                      int typ) throws SQLException {
         stmt.execute(getTriggerDDL(trn, typ, tn, 0, impl));
     }
 
@@ -491,6 +473,7 @@ public class TriggerSample implements Trigger {
     }
 
     private static void runSample() throws SQLException {
+
         setup();
         doSomeWork();
         dumpTable("audit");
@@ -500,7 +483,6 @@ public class TriggerSample implements Trigger {
         runSample();
     }
 }
-
 /*
     test SQL
     CREATE CACHED TABLE trig_test (int_field     integer)

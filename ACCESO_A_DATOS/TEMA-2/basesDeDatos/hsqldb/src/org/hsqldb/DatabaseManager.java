@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
 
 package org.hsqldb;
 
-import java.util.TimeZone;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hsqldb.error.Error;
@@ -39,7 +39,6 @@ import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.FileUtil;
 import org.hsqldb.lib.HashMap;
 import org.hsqldb.lib.HashSet;
-import org.hsqldb.lib.HsqlArrayList;
 import org.hsqldb.lib.HsqlTimer;
 import org.hsqldb.lib.IntKeyHashMap;
 import org.hsqldb.lib.Iterator;
@@ -59,7 +58,7 @@ import org.hsqldb.persist.HsqlProperties;
  * Maintains a reference to the timer used for file locks and logging.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.7.2
  */
 public class DatabaseManager {
@@ -70,35 +69,35 @@ public class DatabaseManager {
     private static AtomicInteger dbIDCounter = new AtomicInteger();
 
     /** name to Database mapping for mem: databases */
-    static final HashMap<String, Database> memDatabaseMap = new HashMap<>();
+    static final HashMap memDatabaseMap = new HashMap();
 
     /** File to Database mapping for file: databases */
-    static final HashMap<String, Database> fileDatabaseMap = new HashMap<>();
+    static final HashMap fileDatabaseMap = new HashMap();
 
     /** File to Database mapping for res: databases */
-    static final HashMap<String, Database> resDatabaseMap = new HashMap<>();
+    static final HashMap resDatabaseMap = new HashMap();
 
     /** id number to Database for Databases currently in registry */
-    static final IntKeyHashMap<Database> databaseIDMap = new IntKeyHashMap<>();
+    static final IntKeyHashMap databaseIDMap = new IntKeyHashMap();
 
     /**
-     * Returns a list containing the URI (type + path) for all the databases.
+     * Returns a vector containing the URI (type + path) for all the databases.
      */
-    public static HsqlArrayList<String> getDatabaseURIs() {
+    public static Vector getDatabaseURIs() {
 
-        HsqlArrayList<String> list = new HsqlArrayList<>();
+        Vector v = new Vector();
 
         synchronized (databaseIDMap) {
-            Iterator<Database> it = databaseIDMap.values().iterator();
+            Iterator it = databaseIDMap.values().iterator();
 
             while (it.hasNext()) {
-                Database db = it.next();
+                Database db = (Database) it.next();
 
-                list.add(db.getURI());
+                v.addElement(db.getURI());
             }
         }
 
-        return list;
+        return v;
     }
 
     /**
@@ -112,10 +111,10 @@ public class DatabaseManager {
     public static void closeDatabases(int mode) {
 
         synchronized (databaseIDMap) {
-            Iterator<Database> it = databaseIDMap.values().iterator();
+            Iterator it = databaseIDMap.values().iterator();
 
             while (it.hasNext()) {
-                Database db = it.next();
+                Database db = (Database) it.next();
 
                 try {
                     db.close(mode);
@@ -127,26 +126,21 @@ public class DatabaseManager {
     /**
      * Used by server to open a new session
      */
-    public static Session newSession(
-            int dbID,
-            String user,
-            String password,
-            String zoneString) {
+    public static Session newSession(int dbID, String user, String password,
+                                     String zoneString, int timeZoneSeconds) {
 
-        Database db;
+        Database db = null;
 
         synchronized (databaseIDMap) {
-            db = databaseIDMap.get(dbID);
+            db = (Database) databaseIDMap.get(dbID);
         }
 
         if (db == null) {
             return null;
         }
 
-        Session session = db.connect(
-            user,
-            password,
-            TimeZone.getTimeZone(zoneString));
+        Session session = db.connect(user, password, zoneString,
+                                     timeZoneSeconds);
 
         session.isNetwork = true;
 
@@ -156,16 +150,13 @@ public class DatabaseManager {
     /**
      * Used by in-process connections and by Servlet
      */
-    public static Session newSession(
-            String type,
-            String path,
-            String user,
-            String password,
-            HsqlProperties props,
-            TimeZone zone) {
+    public static Session newSession(String type, String path, String user,
+                                     String password, HsqlProperties props,
+                                     String zoneString, int timeZoneSeconds) {
+
         Database db = getDatabase(type, path, props);
 
-        return db.connect(user, password, zone);
+        return db.connect(user, password, zoneString, timeZoneSeconds);
     }
 
     /**
@@ -174,25 +165,21 @@ public class DatabaseManager {
      */
     public static Session getSession(int dbId, long sessionId) {
 
-        Database db;
+        Database db = null;
 
         synchronized (databaseIDMap) {
-            db = databaseIDMap.get(dbId);
+            db = (Database) databaseIDMap.get(dbId);
         }
 
-        return db == null
-               ? null
-               : db.sessionManager.getSession(sessionId);
+        return db == null ? null
+                          : db.sessionManager.getSession(sessionId);
     }
 
     /**
      * Used by server to open or create a database
      */
-    public static int getDatabase(
-            String type,
-            String path,
-            Notified server,
-            HsqlProperties props) {
+    public static int getDatabase(String type, String path, Notified server,
+                                  HsqlProperties props) {
 
         Database db = getDatabase(type, path, props);
 
@@ -202,8 +189,9 @@ public class DatabaseManager {
     }
 
     public static Database getDatabase(int id) {
+
         synchronized (databaseIDMap) {
-            return databaseIDMap.get(id);
+            return (Database) databaseIDMap.get(id);
         }
     }
 
@@ -212,7 +200,7 @@ public class DatabaseManager {
         Database[] dbArray;
 
         synchronized (serverMap) {
-            HashSet<Database> databases = serverMap.get(server);
+            HashSet databases = (HashSet) serverMap.get(server);
 
             if (databases == null) {
                 dbArray = new Database[0];
@@ -239,13 +227,11 @@ public class DatabaseManager {
      * until the db is open or closed. At this point the db state is either
      * DATABASE_ONLINE (after db.open() has returned) which allows a new
      * connection to be made, or the state is DATABASE_SHUTDOWN which means
-     * the db can be reopened for the new connection.
+     * the db can be reopened for the new connection).
      *
      */
-    public static Database getDatabase(
-            String dbtype,
-            String path,
-            HsqlProperties props) {
+    public static Database getDatabase(String dbtype, String path,
+                                       HsqlProperties props) {
 
         // If the (type, path) pair does not correspond to a registered
         // instance, then getDatabaseObject() returns a newly constructed
@@ -286,23 +272,20 @@ public class DatabaseManager {
                 // from this synchronized block
                 // it is here simply as a placeholder for future development
                 case Database.DATABASE_OPENING :
-                    throw Error.error(
-                        ErrorCode.LOCK_FILE_ACQUISITION_FAILURE,
-                        ErrorCode.M_DatabaseManager_getDatabase);
+                    throw Error.error(ErrorCode.LOCK_FILE_ACQUISITION_FAILURE,
+                                      ErrorCode.M_DatabaseManager_getDatabase);
             }
         }
 
         return db;
     }
 
-    private static synchronized Database getDatabaseObject(
-            DatabaseType type,
-            String path,
-            HsqlProperties props) {
+    private static synchronized Database getDatabaseObject(DatabaseType type,
+            String path, HsqlProperties props) {
 
-        Database                  db;
-        String                    key = path;
-        HashMap<String, Database> databaseMap;
+        Database db;
+        String   key = path;
+        HashMap  databaseMap;
 
         switch (type) {
 
@@ -311,18 +294,18 @@ public class DatabaseManager {
                 key         = filePathToKey(path);
 
                 synchronized (databaseMap) {
-                    db = databaseMap.get(key);
+                    db = (Database) databaseMap.get(key);
 
                     if (db == null) {
                         if (databaseMap.size() > 0) {
-                            Iterator<String> it = databaseMap.keySet()
-                                                             .iterator();
+                            Iterator it = databaseMap.keySet().iterator();
 
                             while (it.hasNext()) {
-                                String current = it.next();
+                                String current = (String) it.next();
 
                                 if (key.equalsIgnoreCase(current)) {
                                     key = current;
+
                                     break;
                                 }
                             }
@@ -332,23 +315,22 @@ public class DatabaseManager {
 
                 break;
             }
-
             case DB_RES : {
                 databaseMap = resDatabaseMap;
+
                 break;
             }
-
             case DB_MEM : {
                 databaseMap = memDatabaseMap;
+
                 break;
             }
-
             default :
                 throw Error.runtimeError(ErrorCode.U_S0500, "DatabaseManager");
         }
 
         synchronized (databaseMap) {
-            db = databaseMap.get(key);
+            db = (Database) databaseMap.get(key);
         }
 
         if (db == null) {
@@ -371,12 +353,11 @@ public class DatabaseManager {
      * Looks up database of a given type and path in the registry. Returns
      * null if there is none.
      */
-    public static synchronized Database lookupDatabaseObject(
-            DatabaseType type,
+    public static synchronized Database lookupDatabaseObject(DatabaseType type,
             String path) {
 
-        String                    key = path;
-        HashMap<String, Database> databaseMap;
+        Object  key = path;
+        HashMap databaseMap;
 
         switch (type) {
 
@@ -394,24 +375,23 @@ public class DatabaseManager {
                 break;
 
             default :
-                throw(Error.runtimeError(ErrorCode.U_S0500, "DatabaseManager"));
+                throw (Error.runtimeError(ErrorCode.U_S0500,
+                                          "DatabaseManager"));
         }
 
         synchronized (databaseMap) {
-            return databaseMap.get(key);
+            return (Database) databaseMap.get(key);
         }
     }
 
     /**
      * Adds a database to the registry.
      */
-    private static synchronized void addDatabaseObject(
-            DatabaseType type,
-            String path,
-            Database db) {
+    private static synchronized void addDatabaseObject(DatabaseType type,
+            String path, Database db) {
 
-        String                    key = path;
-        HashMap<String, Database> databaseMap;
+        Object  key = path;
+        HashMap databaseMap;
 
         switch (type) {
 
@@ -429,7 +409,8 @@ public class DatabaseManager {
                 break;
 
             default :
-                throw(Error.runtimeError(ErrorCode.U_S0500, "DatabaseManager"));
+                throw (Error.runtimeError(ErrorCode.U_S0500,
+                                          "DatabaseManager"));
         }
 
         synchronized (databaseIDMap) {
@@ -446,11 +427,11 @@ public class DatabaseManager {
      */
     static void removeDatabase(Database database) {
 
-        int                       dbID = database.databaseID;
-        DatabaseType              type = database.getType();
-        String                    path = database.getPath();
-        String                    key  = path;
-        HashMap<String, Database> databaseMap;
+        int          dbID = database.databaseID;
+        DatabaseType type = database.getType();
+        String       path = database.getPath();
+        Object       key  = path;
+        HashMap      databaseMap;
 
         notifyServers(database);
 
@@ -462,10 +443,10 @@ public class DatabaseManager {
         } else if (type == DatabaseType.DB_MEM) {
             databaseMap = memDatabaseMap;
         } else {
-            throw(Error.runtimeError(ErrorCode.U_S0500, "DatabaseManager"));
+            throw (Error.runtimeError(ErrorCode.U_S0500, "DatabaseManager"));
         }
 
-        boolean isEmpty;
+        boolean isEmpty = false;
 
         synchronized (databaseIDMap) {
             databaseIDMap.remove(dbID);
@@ -489,13 +470,13 @@ public class DatabaseManager {
      * The database is then removed form the sets for all servers and the
      * servers that have no other database are removed from the map.
      */
-    static final HashMap<Notified, HashSet<Database>> serverMap =
-        new HashMap<>();
+    static final HashMap serverMap = new HashMap();
 
     /**
      * Deregisters a server completely.
      */
     public static void deRegisterServer(Notified server) {
+
         synchronized (serverMap) {
             serverMap.remove(server);
         }
@@ -508,10 +489,10 @@ public class DatabaseManager {
 
         synchronized (serverMap) {
             if (!serverMap.containsKey(server)) {
-                serverMap.put(server, new HashSet<>());
+                serverMap.put(server, new HashSet());
             }
 
-            HashSet<Database> databases = serverMap.get(server);
+            HashSet databases = (HashSet) serverMap.get(server);
 
             databases.add(db);
         }
@@ -532,12 +513,12 @@ public class DatabaseManager {
         }
 
         for (int i = 0; i < servers.length; i++) {
-            Notified          server = servers[i];
-            HashSet<Database> databases;
-            boolean           removed = false;
+            Notified server = servers[i];
+            HashSet  databases;
+            boolean  removed = false;
 
             synchronized (serverMap) {
-                databases = serverMap.get(server);
+                databases = (HashSet) serverMap.get(server);
             }
 
             if (databases != null) {
@@ -554,11 +535,11 @@ public class DatabaseManager {
 
     static boolean isServerDB(Database db) {
 
-        Iterator<Notified> it = serverMap.keySet().iterator();
+        Iterator it = serverMap.keySet().iterator();
 
-        while (it.hasNext()) {
-            Notified          server    = it.next();
-            HashSet<Database> databases = serverMap.get(server);
+        for (; it.hasNext(); ) {
+            Notified server    = (Notified) it.next();
+            HashSet  databases = (HashSet) serverMap.get(server);
 
             if (databases.contains(db)) {
                 return true;

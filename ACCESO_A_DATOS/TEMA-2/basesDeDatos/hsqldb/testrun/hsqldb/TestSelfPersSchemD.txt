@@ -1,4 +1,3 @@
-SET AUTOCOMMIT TRUE
 -- Test persistence via .script file
 -- Same blaine role tests as in test C, but after persistence.
 /*u0*/connect user blaine password blaine;
@@ -142,5 +141,3 @@ GRANT dba TO debbie;
 
 /*u0*/connect user sa password "";
 /*u0*/REVOKE dba FROM debbie RESTRICT;
-
-SET AUTOCOMMIT FALSE

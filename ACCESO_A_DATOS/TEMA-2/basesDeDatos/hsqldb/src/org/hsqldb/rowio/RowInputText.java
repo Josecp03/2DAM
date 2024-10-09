@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package org.hsqldb.rowio;
 import java.math.BigDecimal;
 
 import org.hsqldb.Scanner;
+import org.hsqldb.Tokens;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
 import org.hsqldb.map.ValuePool;
@@ -457,7 +458,8 @@ public class RowInputText extends RowInputBase implements RowInputInterface {
             return null;
         }
 
-        return (IntervalSecondData) scanner.newInterval(s, (IntervalType) type);
+        return (IntervalSecondData) scanner.newInterval(s,
+                (IntervalType) type);
     }
 
     protected Boolean readBoole() {
@@ -474,9 +476,8 @@ public class RowInputText extends RowInputBase implements RowInputInterface {
             return null;
         }
 
-        return s.equalsIgnoreCase("TRUE")
-               ? Boolean.TRUE
-               : Boolean.FALSE;
+        return s.equalsIgnoreCase("TRUE") ? Boolean.TRUE
+                                          : Boolean.FALSE;
     }
 
     protected Object readOther() {

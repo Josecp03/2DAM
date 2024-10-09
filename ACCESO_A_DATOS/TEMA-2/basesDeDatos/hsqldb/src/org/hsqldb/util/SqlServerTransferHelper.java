@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ class SqlServerTransferHelper extends TransferHelper {
             return t;
         }
 
-        if (t.isEmpty()) {
+        if (t.equals("")) {
             return t;
         }
 
@@ -110,9 +110,8 @@ class SqlServerTransferHelper extends TransferHelper {
             if (firstSmallintRow) {
                 firstSmallintRow = false;
 
-                tracer.trace(
-                    "SMALLINT: Converted column " + column
-                    + " Integer to Short");
+                tracer.trace("SMALLINT: Converted column " + column
+                             + " Integer to Short");
             }
 
             value = Short.valueOf((short) ((Integer) value).intValue());
@@ -120,8 +119,8 @@ class SqlServerTransferHelper extends TransferHelper {
             if (firstTinyintRow) {
                 firstTinyintRow = false;
 
-                tracer.trace(
-                    "TINYINT: Converted column " + column + " Integer to Byte");
+                tracer.trace("TINYINT: Converted column " + column
+                             + " Integer to Byte");
             }
 
             value = Byte.valueOf((byte) ((Integer) value).intValue());

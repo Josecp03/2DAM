@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ package org.hsqldb.util;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
@@ -45,7 +44,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -78,19 +76,19 @@ import javax.swing.border.EmptyBorder;
  * @since 1.7.0
  */
 class ConnectionDialogSwing extends JDialog
-        implements ActionListener, ItemListener {
+implements ActionListener, ItemListener {
 
     /**
-     * Comment for {@code serialVersionUID}
+     * Comment for <code>serialVersionUID</code>
      */
-    private static final long        serialVersionUID = 1L;
-    private Connection               mConnection;
-    private JTextField               mName, mDriver, mURL, mUser;
-    private JPasswordField           mPassword;
-    private String[][]               connTypes;
-    private Hashtable                settings;
-    private JComboBox mSettingName = new JComboBox(
-        loadRecentConnectionSettings());
+    private static final long serialVersionUID = 1L;
+    private Connection        mConnection;
+    private JTextField        mName, mDriver, mURL, mUser;
+    private JPasswordField    mPassword;
+    private String[][]        connTypes;
+    private Hashtable         settings;
+    private JComboBox mSettingName =
+        new JComboBox(loadRecentConnectionSettings());
     private static ConnectionSetting currentConnectionSetting = null;
 
     public static void setConnectionSetting(
@@ -98,12 +96,9 @@ class ConnectionDialogSwing extends JDialog
         currentConnectionSetting = connectionSetting;
     }
 
-    public static Connection createConnection(
-            String driver,
-            String url,
-            String user,
-            String password)
-            throws Exception {
+    public static Connection createConnection(String driver, String url,
+            String user, String password) throws Exception {
+
         Class.forName(driver);
 
         return DriverManager.getConnection(url, user, password);
@@ -259,9 +254,8 @@ class ConnectionDialogSwing extends JDialog
 
         // (ulrivo): full size on screen with less than 640 width
         if (d.width >= 640) {
-            setLocation(
-                (d.width - size.width) / 2,
-                (d.height - size.height) / 2);
+            setLocation((d.width - size.width) / 2,
+                        (d.height - size.height) / 2);
         } else {
             setLocation(0, 0);
             setSize(d);
@@ -295,7 +289,7 @@ class ConnectionDialogSwing extends JDialog
     // (weconsultants@users) New code
     public Vector loadRecentConnectionSettings() {
 
-        Vector<String> passSettings = new Vector<>();
+        Vector<String> passSettings = new Vector<String>();
 
         settings = new Hashtable();
 
@@ -326,25 +320,20 @@ class ConnectionDialogSwing extends JDialog
                     throw new Exception("please specify db path");
                 }
 
-                mConnection = createConnection(
-                    mDriver.getText(),
-                    mURL.getText(),
-                    mUser.getText(),
-                    new String(mPassword.getPassword()));
+                mConnection =
+                    createConnection(mDriver.getText(), mURL.getText(),
+                                     mUser.getText(),
+                                     new String(mPassword.getPassword()));
 
                 // (weconsultants@users) New code
                 if (mName.getText() != null
-                        && mName.getText().trim().length() > 0) {
+                        && mName.getText().trim().length() != 0) {
                     ConnectionSetting newSetting = new ConnectionSetting(
-                        mName.getText(),
-                        mDriver.getText(),
-                        mURL.getText(),
-                        mUser.getText(),
-                        new String(mPassword.getPassword()));
+                        mName.getText(), mDriver.getText(), mURL.getText(),
+                        mUser.getText(), new String(mPassword.getPassword()));
 
                     ConnectionDialogCommon.addToRecentConnectionSettings(
-                        settings,
-                        newSetting);
+                        settings, newSetting);
                 }
 
                 dispose();
@@ -363,8 +352,8 @@ class ConnectionDialogSwing extends JDialog
             String s2 = (String) mSettingName.getSelectedItem();
 
             if (s2 != null) {
-                ConnectionSetting setting = (ConnectionSetting) settings.get(
-                    s2);
+                ConnectionSetting setting =
+                    (ConnectionSetting) settings.get(s2);
 
                 if (setting != null) {
                     mName.setText(setting.getName());

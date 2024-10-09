@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import org.hsqldb.types.HsqlDateTime.SystemTimeString;
+import org.hsqldb.HsqlDateTime.SystemTimeString;
 
 /**
  * Simple log for recording abnormal events in persistence<p>
@@ -51,22 +51,18 @@ import org.hsqldb.types.HsqlDateTime.SystemTimeString;
  */
 public class SimpleLog {
 
-    public static final int LOG_NONE       = 0;
-    public static final int LOG_ERROR      = 1;
-    public static final int LOG_WARNING    = 2;
-    public static final int LOG_NORMAL     = 3;
-    public static final int LOG_DETAIL     = 4;
-    public static final int LOG_SQL_BASIC  = 1;
-    public static final int LOG_SQL_NORMAL = 2;
-    public static final int LOG_SQL_DETAIL = 3;
-    public static final int LOG_SQL_RESULT = 4;
+    public static final int LOG_NONE   = 0;
+    public static final int LOG_ERROR  = 1;
+    public static final int LOG_NORMAL = 2;
+    public static final int LOG_DETAIL = 3;
+    public static final int LOG_RESULT = 4;
 
     //
-    public static final String logTypeName = "ENGINE";
-    static final String[] appLogTypeNames = {
-        "", "ERROR ", "WARNING", "NORMAL", "DETAIL"
+    public static final String logTypeNameEngine = "ENGINE";
+    static final String[]      appLogTypeNames   = {
+        "", "ERROR ", "NORMAL", "DETAIL"
     };
-    static final String[] sqlLogTypeNames = {
+    static final String[]      sqlLogTypeNames   = {
         "", "BASIC ", "NORMAL", "DETAIL", "RESULT"
     };
 
@@ -85,9 +81,8 @@ public class SimpleLog {
         this.isSystem = path == null;
         this.filePath = path;
         this.isSQL    = isSQL;
-        logTypeNames  = isSQL
-                        ? sqlLogTypeNames
-                        : appLogTypeNames;
+        logTypeNames  = isSQL ? sqlLogTypeNames
+                              : appLogTypeNames;
         sb            = new StringBuilder(256);
 
         setLevel(level);
@@ -129,6 +124,7 @@ public class SimpleLog {
     }
 
     public void setLevel(int level) {
+
         this.level = level;
 
         setupWriter();
@@ -160,11 +156,8 @@ public class SimpleLog {
         writer.flush();
     }
 
-    public synchronized void logContext(
-            int atLevel,
-            String prefix,
-            String message,
-            String suffix) {
+    public synchronized void logContext(int atLevel, String prefix,
+                                        String message, String suffix) {
 
         if (level < atLevel) {
             return;
@@ -187,10 +180,8 @@ public class SimpleLog {
         writer.flush();
     }
 
-    public synchronized void logContext(
-            Throwable t,
-            String message,
-            int atLevel) {
+    public synchronized void logContext(Throwable t, String message,
+                                        int atLevel) {
 
         if (level == LOG_NONE) {
             return;
@@ -232,6 +223,7 @@ public class SimpleLog {
     }
 
     public void flush() {
+
         if (writer != null) {
             writer.flush();
         }

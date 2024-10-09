@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ import java.math.BigDecimal;
 import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
+import org.hsqldb.lib.OrderedHashSet;
+import org.hsqldb.map.ValuePool;
 import org.hsqldb.rights.Grantee;
 import org.hsqldb.types.Type;
 import org.hsqldb.types.Types;
@@ -44,7 +46,7 @@ import org.hsqldb.types.Types;
  * Maintains a sequence of numbers.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version  2.7.3
+ * @version  2.3.4
  * @since 1.7.2
  */
 public final class NumberSequence implements SchemaObject {
@@ -112,11 +114,11 @@ public final class NumberSequence implements SchemaObject {
                 if (type.scale == 0) {
                     max = Long.MAX_VALUE;
                     min = Long.MIN_VALUE;
+
                     break;
                 }
 
                 throw Error.error(ErrorCode.X_42563);
-
             default :
                 throw Error.error(ErrorCode.X_42563);
         }
@@ -129,11 +131,8 @@ public final class NumberSequence implements SchemaObject {
     /**
      * constructor with initial value and increment;
      */
-    public NumberSequence(
-            HsqlName name,
-            long value,
-            long increment,
-            Type type) {
+    public NumberSequence(HsqlName name, long value, long increment,
+                          Type type) {
 
         this(name, type);
 
@@ -161,44 +160,42 @@ public final class NumberSequence implements SchemaObject {
         return name.schema.owner;
     }
 
+    public OrderedHashSet getReferences() {
+        return new OrderedHashSet();
+    }
+
+    public OrderedHashSet getComponents() {
+        return null;
+    }
+
+    public void compile(Session session, SchemaObject parentObject) {}
+
     public String getSQL() {
 
         StringBuilder sb = new StringBuilder(128);
 
-        sb.append(Tokens.T_CREATE)
-          .append(' ')
-          .append(Tokens.T_SEQUENCE)
-          .append(' ')
-          .append(getName().getSchemaQualifiedStatementName())
-          .append(' ')
-          .append(Tokens.T_AS)
-          .append(' ')
-          .append(getDataType().getNameString())
-          .append(' ')
-          .append(Tokens.T_START)
-          .append(' ')
-          .append(Tokens.T_WITH)
-          .append(' ')
-          .append(startValue);
+        sb.append(Tokens.T_CREATE).append(' ');
+        sb.append(Tokens.T_SEQUENCE).append(' ');
+        sb.append(getName().getSchemaQualifiedStatementName()).append(' ');
+        sb.append(Tokens.T_AS).append(' ');
+        sb.append(getDataType().getNameString()).append(' ');
+
+        //
+        sb.append(Tokens.T_START).append(' ');
+        sb.append(Tokens.T_WITH).append(' ');
+        sb.append(startValue);
 
         if (getIncrement() != 1) {
-            sb.append(' ')
-              .append(Tokens.T_INCREMENT)
-              .append(' ')
-              .append(Tokens.T_BY)
-              .append(' ')
-              .append(getIncrement());
+            sb.append(' ').append(Tokens.T_INCREMENT).append(' ');
+            sb.append(Tokens.T_BY).append(' ');
+            sb.append(getIncrement());
         }
 
         if (!hasDefaultMinMax()) {
-            sb.append(' ')
-              .append(Tokens.T_MINVALUE)
-              .append(' ')
-              .append(getMinValue())
-              .append(' ')
-              .append(Tokens.T_MAXVALUE)
-              .append(' ')
-              .append(getMaxValue());
+            sb.append(' ').append(Tokens.T_MINVALUE).append(' ');
+            sb.append(getMinValue());
+            sb.append(' ').append(Tokens.T_MAXVALUE).append(' ');
+            sb.append(getMaxValue());
         }
 
         if (isCycle()) {
@@ -225,54 +222,39 @@ public final class NumberSequence implements SchemaObject {
                 sb.append(Tokens.T_BY).append(' ').append(Tokens.T_DEFAULT);
             }
 
-            sb.append(' ')
-              .append(Tokens.T_AS)
-              .append(' ')
-              .append(Tokens.T_IDENTITY)
-              .append(Tokens.T_OPENBRACKET);
+            sb.append(' ').append(Tokens.T_AS).append(' ').append(
+                Tokens.T_IDENTITY).append(Tokens.T_OPENBRACKET);
 
             //
-            sb.append(Tokens.T_START)
-              .append(' ')
-              .append(Tokens.T_WITH)
-              .append(' ')
-              .append(startValue);
+            sb.append(Tokens.T_START).append(' ');
+            sb.append(Tokens.T_WITH).append(' ');
+            sb.append(startValue);
 
             if (getIncrement() != 1) {
-                sb.append(' ')
-                  .append(Tokens.T_INCREMENT)
-                  .append(' ')
-                  .append(Tokens.T_BY)
-                  .append(' ')
-                  .append(getIncrement());
+                sb.append(' ').append(Tokens.T_INCREMENT).append(' ');
+                sb.append(Tokens.T_BY).append(' ');
+                sb.append(getIncrement());
             }
 
             if (!hasDefaultMinMax()) {
-                sb.append(' ')
-                  .append(Tokens.T_MINVALUE)
-                  .append(' ')
-                  .append(getMinValue())
-                  .append(' ')
-                  .append(Tokens.T_MAXVALUE)
-                  .append(' ')
-                  .append(getMaxValue());
+                sb.append(' ').append(Tokens.T_MINVALUE).append(' ');
+                sb.append(getMinValue());
+                sb.append(' ').append(Tokens.T_MAXVALUE).append(' ');
+                sb.append(getMaxValue());
             }
 
             if (isCycle()) {
                 sb.append(' ').append(Tokens.T_CYCLE);
             }
 
-            sb.append(Tokens.T_CLOSEBRACKET);
+            if (name == null) {
+                sb.append(Tokens.T_CLOSEBRACKET);
+            }
         } else {
-            sb.append(Tokens.T_BY)
-              .append(' ')
-              .append(Tokens.T_DEFAULT)
-              .append(' ')
-              .append(Tokens.T_AS)
-              .append(' ')
-              .append(Tokens.T_SEQUENCE)
-              .append(' ')
-              .append(getName().getSchemaQualifiedStatementName());
+            sb.append(Tokens.T_BY).append(' ').append(Tokens.T_DEFAULT);
+            sb.append(' ').append(Tokens.T_AS).append(' ');
+            sb.append(Tokens.T_SEQUENCE).append(' ');
+            sb.append(getName().getSchemaQualifiedStatementName());
         }
 
         return sb.toString();
@@ -286,17 +268,11 @@ public final class NumberSequence implements SchemaObject {
 
         StringBuilder sb = new StringBuilder(128);
 
-        sb.append(Tokens.T_ALTER)
-          .append(' ')
-          .append(Tokens.T_SEQUENCE)
-          .append(' ')
-          .append(name.getSchemaQualifiedStatementName())
-          .append(' ')
-          .append(Tokens.T_RESTART)
-          .append(' ')
-          .append(Tokens.T_WITH)
-          .append(' ')
-          .append(peek());
+        sb.append(Tokens.T_ALTER).append(' ');
+        sb.append(Tokens.T_SEQUENCE);
+        sb.append(' ').append(name.getSchemaQualifiedStatementName());
+        sb.append(' ').append(Tokens.T_RESTART);
+        sb.append(' ').append(Tokens.T_WITH).append(' ').append(peek());
 
         return sb.toString();
     }
@@ -307,23 +283,13 @@ public final class NumberSequence implements SchemaObject {
         NumberSequence seq = t.identitySequence;
         StringBuilder  sb  = new StringBuilder(128);
 
-        sb.append(Tokens.T_ALTER)
-          .append(' ')
-          .append(Tokens.T_TABLE)
-          .append(' ')
-          .append(t.getName().getSchemaQualifiedStatementName())
-          .append(' ')
-          .append(Tokens.T_ALTER)
-          .append(' ')
-          .append(Tokens.T_COLUMN)
-          .append(' ')
-          .append(colname)
-          .append(' ')
-          .append(Tokens.T_RESTART)
-          .append(' ')
-          .append(Tokens.T_WITH)
-          .append(' ')
-          .append(seq.peek());
+        sb.append(Tokens.T_ALTER).append(' ').append(Tokens.T_TABLE);
+        sb.append(' ').append(t.getName().getSchemaQualifiedStatementName());
+        sb.append(' ').append(Tokens.T_ALTER).append(' ');
+        sb.append(Tokens.T_COLUMN);
+        sb.append(' ').append(colname);
+        sb.append(' ').append(Tokens.T_RESTART);
+        sb.append(' ').append(Tokens.T_WITH).append(' ').append(seq.peek());
 
         return sb.toString();
     }
@@ -379,6 +345,10 @@ public final class NumberSequence implements SchemaObject {
                 break;
 
             case Types.SQL_BIGINT :
+                max = Long.MAX_VALUE;
+                min = Long.MIN_VALUE;
+                break;
+
             case Types.SQL_NUMERIC :
             case Types.SQL_DECIMAL :
                 max = Long.MAX_VALUE;
@@ -442,6 +412,7 @@ public final class NumberSequence implements SchemaObject {
     }
 
     synchronized void setCurrentValueNoCheck(long value) {
+
         checkInTypeRange(value);
 
         currValue = lastValue = value;
@@ -460,12 +431,14 @@ public final class NumberSequence implements SchemaObject {
     }
 
     synchronized void setMinValueNoCheck(long value) {
+
         checkInTypeRange(value);
 
         minValue = value;
     }
 
     synchronized void setMaxValueNoCheck(long value) {
+
         checkInTypeRange(value);
 
         maxValue = value;
@@ -502,6 +475,10 @@ public final class NumberSequence implements SchemaObject {
                 break;
 
             case Types.SQL_BIGINT :
+                max = Long.MAX_VALUE;
+                min = Long.MIN_VALUE;
+                break;
+
             case Types.SQL_NUMERIC :
             case Types.SQL_DECIMAL :
                 max = Long.MAX_VALUE;
@@ -512,9 +489,8 @@ public final class NumberSequence implements SchemaObject {
                 throw Error.runtimeError(ErrorCode.U_S0500, "NumberSequence");
         }
 
-        return isMax
-               ? max
-               : min;
+        return isMax ? max
+                     : min;
     }
 
     private void checkInTypeRange(long value) {
@@ -540,6 +516,10 @@ public final class NumberSequence implements SchemaObject {
                 break;
 
             case Types.SQL_BIGINT :
+                max = Long.MAX_VALUE;
+                min = Long.MIN_VALUE;
+                break;
+
             case Types.SQL_NUMERIC :
             case Types.SQL_DECIMAL :
                 max = Long.MAX_VALUE;
@@ -562,10 +542,8 @@ public final class NumberSequence implements SchemaObject {
             restartValueDefault = false;
         }
 
-        if (minValue >= maxValue
-                || startValue < minValue
-                || startValue > maxValue
-                || currValue < minValue
+        if (minValue >= maxValue || startValue < minValue
+                || startValue > maxValue || currValue < minValue
                 || currValue > maxValue) {
             throw Error.error(ErrorCode.X_42597);
         }
@@ -654,26 +632,26 @@ public final class NumberSequence implements SchemaObject {
         return value;
     }
 
-    synchronized Number getValueObject() {
+    synchronized Object getValueObject() {
 
         long   value = getValue();
-        Number result;
+        Object result;
 
         switch (dataType.typeCode) {
 
             default :
             case Types.SQL_SMALLINT :
             case Types.SQL_INTEGER :
-                result = Integer.valueOf((int) value);
+                result = ValuePool.getInt((int) value);
                 break;
 
             case Types.SQL_BIGINT :
-                result = Long.valueOf(value);
+                result = ValuePool.getLong(value);
                 break;
 
             case Types.SQL_NUMERIC :
             case Types.SQL_DECIMAL :
-                result = BigDecimal.valueOf(value);
+                result = ValuePool.getBigDecimal(new BigDecimal(value));
                 break;
         }
 

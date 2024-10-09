@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import org.hsqldb.lib.FrameworkLogger;
  *
  * @see AuthFunctionBean
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
- * @since 2.7.3
+ * @since 2.0.1
  */
 public class HsqldbSlaveAuthBean implements AuthFunctionBean {
     private static FrameworkLogger logger =
@@ -61,18 +61,14 @@ public class HsqldbSlaveAuthBean implements AuthFunctionBean {
     /**
      * Use this method and setValidationPassword if you want access to the
      * master database to be verified upon instance initialization.
-     *
-     * @param validationUser String
      */
     public void setValidationUser(String validationUser) {
         this.validationUser = validationUser;
     }
 
     /**
-     * Use this method and setValidationUser if you want access to the master
-     * database to be verified upon instance initialization.
-     *
-     * @param validationPassword String
+     * Use this method and setValidationUser if you want access to the
+     * master database to be verified upon instance initialization.
      */
     public void setValidationPassword(String validationPassword) {
         this.validationPassword = validationPassword;
@@ -83,10 +79,10 @@ public class HsqldbSlaveAuthBean implements AuthFunctionBean {
     }
 
     /**
-     * Defaults to true. Whether roles and initial schema for the new session
-     * will be determined by what they are for this user in the master database.
+     * Defaults to true.
      *
-     * @param doDelegateRolesSchema boolean
+     * Whether roles and initial schema for the new session will be determined
+     * by what they are for this user in the master database.
      */
     public void setDelegateRolesSchema(boolean doDelegateRolesSchema) {
         delegateRolesSchema = doDelegateRolesSchema;
@@ -135,10 +131,6 @@ public class HsqldbSlaveAuthBean implements AuthFunctionBean {
                     if (problem == null) {
                         throw nestedSe;
                     }
-                }
-
-                if (problem != null) {
-                    throw problem;
                 }
             }
         }

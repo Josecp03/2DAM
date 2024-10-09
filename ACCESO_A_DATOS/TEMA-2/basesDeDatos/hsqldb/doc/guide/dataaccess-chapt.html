@@ -44,12 +44,12 @@
 </div>
 </div>
 <div>
-<p class="releaseinfo">$Revision: 6753 $</p>
+<p class="releaseinfo">$Revision: 6369 $</p>
 </div>
 <div>
 <div class="legalnotice">
-<a name="N12CE0"></a>
-<p>Copyright 2010-2024 Fred Toussi. Permission is granted to
+<a name="N12B13"></a>
+<p>Copyright 2010-2021 Fred Toussi. Permission is granted to
       distribute this document without any alteration under the terms of the
       HSQLDB license. Additional permission is granted to the HSQL Development
       Group to distribute this document with or without alterations under the
@@ -57,7 +57,7 @@
 </div>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -235,7 +235,7 @@
 </div>
 </div>
 <p>HyperSQL data access and data change statements are compatible with
-    the latest SQL:2023 Standard. There are a few extensions and some
+    the latest SQL:2016 Standard. There are a few extensions and some
     relaxation of rules, but these do not affect statements that are written
     to the Standard syntax. There is full support for classic SQL, as
     specified by SQL-92, and many enhancements added in later versions of the
@@ -491,18 +491,17 @@
 </div>
 </div>
 </div>
-<p>When a JDBC <code class="classname">PreparedStatement</code> or
-      <code class="classname">CallableStatement</code> is used with an SQL statement
-      that contains dynamic parameters, the data types of the parameters are
-      resolved and determined by the engine when the statement is prepared.
-      The SQL Standard has detailed rules to determine the data types and
-      imposes limits on the maximum length or precision of the parameter.
-      HyperSQL applies the standard rules with two exceptions for parameters
-      with String and BigDecimal Java types. HyperSQL ignores the limits when
-      the parameter value is set, and only enforces the necessary limits for
-      inserts and updates when the <code class="classname">PreparedStatement</code> is
-      executed. In all other cases, parameter type limits are checked and
-      enforced when the parameter is set.</p>
+<p>When a JDBC PreparedStatement or CallableStatement is used with an
+      SQL statement that contains dynamic parameters, the data types of the
+      parameters are resolved and determined by the engine when the statement
+      is prepared. The SQL Standard has detailed rules to determine the data
+      types and imposes limits on the maximum length or precision of the
+      parameter. HyperSQL applies the standard rules with two exceptions for
+      parameters with String and BigDecimal Java types. HyperSQL ignores the
+      limits when the parameter value is set, and only enforces the necessary
+      limits when the PreparedStatement is executed. In all other cases,
+      parameter type limits are checked and enforced when the parameter is
+      set.</p>
 <p>In the example below the <code class="methodname">setString()</code>
       calls do not raise an exception, but one of the
       <code class="methodname">execute()</code> statements does.</p>
@@ -533,14 +532,13 @@
 <p>For array parameters, you can use a
       <code class="classname">java.sql.Array</code> object that contains the array
       elements before assigning to JDBC parameters. The
-      <code class="methodname">Connection.createArrayOf(...)</code> method can be
-      used to create a new object, or you can use an Array returned from
-      connections to other RDBMS servers. You can also use Java arrays of
-      primitives to assign to the SQL array parameters.</p>
+      <code class="code">Connection.createArrayOf(...)</code> method can be used to create
+      a new object, or you can use an Array returned from connections to other
+      RDBMS servers. You can also use Java arrays of primitives to assign to
+      the SQL array parameters.</p>
 <p>The above also applies to the methods of
       <code class="classname">java.sql.ResultSet</code> that are used for setting
-      values in new and updated rows in updatable
-      <code class="classname">ResultSet</code> objects.</p>
+      values in new and updated rows in updatable ResultSet objects.</p>
 <p>The setObject() methods of
       <code class="classname">PreparedStatement</code> and
       <code class="classname">CallableStatement</code> also accept objects of the new
@@ -560,11 +558,10 @@
 </div>
 <p>Data change statements, also called data manipulation statements
       (DML) such as INSERT, UPDATE, MERGE can be called with different
-      <code class="methodname">executeUpdate()</code> methods of
-      <code class="classname">java.sql.Statement</code> and
-      <code class="classname">java.sql.PreparedStatement</code>. Some of these methods
-      allow you to specify how values for generated columns of the table are
-      returned. These methods are documented in the JavaDoc for
+      <code class="methodname">executeUpdate()</code> methods of java.sql.Statement
+      and <code class="classname">java.sql.PreparedStatement</code>. Some of these
+      methods allow you to specify how values for generated columns of the
+      table are returned. These methods are documented in the JavaDoc for
       <code class="classname">org.hsqldb.jdbc.JDBCStatement</code> and
       <code class="classname">org.hsqldb.jdbc.JDBCPreparedStatement</code>. HyperSQL
       can return not just the generated columns, but any set of columns of the
@@ -580,13 +577,13 @@
 </div>
 </div>
 </div>
-<p>The JDBC <code class="classname">CallableStatement</code> interface is
-      used to call Java or SQL procedures that have been defined in the
-      database. The SQL statement is in the form of <code class="literal">CALL
-      procedureName ( ... )</code> with constant value arguments or with
-      parameter markers. Note that you must use a parameter marker for OUT and
-      INOUT arguments of the procedure you are calling. The OUT arguments
-      should not be set before executing the callable statement.</p>
+<p>The JDBC CallableStatement interface is used to call Java or SQL
+      procedures that have been defined in the database. The SQL statement is
+      in the form of CALL procedureName ( ... ) with constant value arguments
+      or with parameter markers. Note that you must use a parameter marker for
+      OUT and INOUT arguments of the procedure you are calling. The OUT
+      arguments should not be set before executing the callable
+      statement.</p>
 <p>After executing the statement, you can retrieve the OUT and INOUT
       parameters with the appropriate getXXX() method.</p>
 <p>Procedures can also return one or more result sets. You should
@@ -605,11 +602,10 @@
 </div>
 </div>
 </div>
-<p>The methods of the JDBC <code class="classname">ResultSet</code> interface
-      are used to return values and to convert value to different types as
-      supported by the JDBC specification. Methods of JDBC
-      <code class="classname">CallableStatement</code> that have the same signature
-      are used to return values from procedure calls.</p>
+<p>The methods of the JDBC ResultSet interface are used to return
+      values and to convert value to different types as supported by the JDBC
+      specification. Methods of JDBC CallableStatement that have the same
+      signature are used to return values from procedure calls.</p>
 <p>When a CLOB and BLOB object is returned from a ResultSet, no data
       is transferred until the data is read by various methods of
       <code class="classname">java.sql.CLOB</code> and
@@ -617,21 +613,23 @@
       to avoid excessive memory use.</p>
 <p>Array objects are returned as instances of
       <code class="classname">java.sql.Array</code>.</p>
-<p>Methods added in Java 8 are supported and the behaviour of the
+<p>When the standard version of HyperSQL jar is used, the methods
+      added in Java 8 are available and the behaviour of the
       <code class="methodname">getObject(int columnIndex)</code> method for
-      retrieving TIMESTAMP WITH TIME ZONE has changed. In versions before
-      2.4.0, this method returned a <code class="classname">java.sql.Timestamp</code>
-      object. It now returns a <code class="classname">java.time.OffsetDateTime</code>
-      object which contains the time zone offset value as well as the other
-      fields of the TIMESTAMP.</p>
+      retrieving TIMESTAMP WITH TIME ZONE values changes. With Java 7 and
+      older, this method returns a <code class="classname">java.sql.Timestamp</code>
+      object. With Java 8 or later, it returns a
+      <code class="classname">java.time.OffsetDateTime</code> object which contains
+      the time zone offset value as well as the other fields of the
+      TIMESTAMP.</p>
 <p>A new method, <code class="methodname">getObject(int columnIndex,
-      Class&lt;T&gt; type)</code> is available. With this method, you
-      specify the required return type. The common types such as String,
-      Integer, byte[] are supported, as well as new types that can be used for
-      DATE, TIME, TIMESTAMP, and INTERVAL values. The table below shows which
-      Java classes are the most appropriate for the specified SQL TYPES. In
-      addition, you can use these Java types for values of SQL type that are
-      not fully matched. For example,
+      Class&lt;T&gt; type)</code> is available in Java 8 and later. With
+      this method, you specify the required return type. The common types such
+      as String, Integer, byte[] are supported, as well as new types that can
+      be used for DATE, TIME, TIMESTAMP, and INTERVAL values. The table below
+      shows which Java classes are the most appropriate for the specified SQL
+      TYPES. In addition, you can use these Java types for values of SQL type
+      that are not fully matched. For example,
       <code class="classname">java.time.LocalDateTime</code> can be used to retrieve a
       DATE value.</p>
 <div class="informaltable">
@@ -700,7 +698,7 @@
       In the current version of HyperSQL, the cursor is used only to return a
       result set from the procedure. Therefore, the cursor must be declared
       WITH RETURN and can only be READ ONLY.</p>
-<a name="N12E8B" class="indexterm"></a>
+<a name="N12CA3" class="indexterm"></a>
 <p>
 <span class="bold"><strong>DECLARE CURSOR</strong></span>
 </p>
@@ -766,7 +764,7 @@
 <p>Literals are used to express constant values. The general type of
       a literal is known by its format. The specific type is based on
       conventions.</p>
-<a name="N12EBA" class="indexterm"></a>
+<a name="N12CD2" class="indexterm"></a>
 <p>
 <span class="bold"><strong>unicode escape
       elements</strong></span>
@@ -804,7 +802,7 @@
       &lt;quote&gt;, &lt;double quote&gt;, or &lt;white
       space&gt;</code>
 </p>
-<a name="N12ED8" class="indexterm"></a>
+<a name="N12CF0" class="indexterm"></a>
 <p>
 <span class="bold"><strong>character literal</strong></span>
 </p>
@@ -871,7 +869,7 @@
  U&amp;'Unicode string with forward slash // as custom escape character'UESCAPE'/'
 </pre>
 </div>
-<a name="N12F05" class="indexterm"></a>
+<a name="N12D1D" class="indexterm"></a>
 <p>
 <span class="bold"><strong>binary literal</strong></span>
 </p>
@@ -899,7 +897,7 @@
 <div class="informalexample">
 <pre class="programlisting"> X'1abACD34' 'Af'</pre>
 </div>
-<a name="N12F1C" class="indexterm"></a>
+<a name="N12D34" class="indexterm"></a>
 <p>
 <span class="bold"><strong>bit literal</strong></span>
 </p>
@@ -921,7 +919,7 @@
 <div class="informalexample">
 <pre class="programlisting"> B'10001001' '00010'</pre>
 </div>
-<a name="N12F33" class="indexterm"></a>
+<a name="N12D4B" class="indexterm"></a>
 <p>
 <span class="bold"><strong>numeric literal</strong></span>
 </p>
@@ -981,7 +979,7 @@
  +12E-2
 </pre>
 </div>
-<a name="N12F63" class="indexterm"></a>
+<a name="N12D7B" class="indexterm"></a>
 <p>
 <span class="bold"><strong>boolean literal</strong></span>
 </p>
@@ -993,7 +991,7 @@
       UNKNOWN</code>
 </p>
 <p>The boolean literal is one of the specified keywords.</p>
-<a name="N12F74" class="indexterm"></a>
+<a name="N12D8C" class="indexterm"></a>
 <p>
 <span class="bold"><strong>datetime and interval
       literal</strong></span>
@@ -1152,7 +1150,7 @@
 <p>References are identifier chains, which can be a single
       identifiers or identifiers chains composed of single identifiers chained
       together with the period symbol.</p>
-<a name="N12FE6" class="indexterm"></a>
+<a name="N12DFE" class="indexterm"></a>
 <p>
 <span class="bold"><strong>identifier chain</strong></span>
 </p>
@@ -1178,12 +1176,11 @@
 <p>Examples of identifier chain are given below:</p>
 <div class="informalexample">
 <pre class="programlisting"> SELECT MYCATALOG.MYSCHEMA.MYTABLE.MYCOL FROM MYCATALOG.MYSCHEMA.MYTABLE
- SELECT MYTABLE.MYCOL FROM MYSCHEMA.MYTABLE
  DROP TABLE MYCATALOG.MYSCHEMA.MYTABLE CASCADE
  ALTER SEQUENCE MYCATALOG.MYSCHEMA.MYSEQUENCE RESTART WITH 100
 </pre>
 </div>
-<a name="N13005" class="indexterm"></a>
+<a name="N12E1D" class="indexterm"></a>
 <p>
 <span class="bold"><strong>column reference</strong></span>
 </p>
@@ -1196,7 +1193,7 @@
       &lt;period&gt; &lt;column name&gt;</code>
 </p>
 <p>Reference a column or a routine variable.</p>
-<a name="N13016" class="indexterm"></a>
+<a name="N12E2E" class="indexterm"></a>
 <p>
 <span class="bold"><strong>SQL parameter
       reference</strong></span>
@@ -1209,7 +1206,7 @@
       identifier chain&gt;</code>
 </p>
 <p>Reference an SQL routine parameter.</p>
-<a name="N13027" class="indexterm"></a>
+<a name="N12E3F" class="indexterm"></a>
 <p>
 <span class="bold"><strong>contextually typed value
       specification</strong></span>
@@ -1254,7 +1251,7 @@
 <p>Value expression is a general name for all expressions that return
       a value. Different types of expressions are allowed in different
       contexts.</p>
-<a name="N13048" class="indexterm"></a>
+<a name="N12E60" class="indexterm"></a>
 <p>
 <span class="bold"><strong>value expression
       primary</strong></span>
@@ -1281,7 +1278,7 @@
       invocation&gt;</code>
 </p>
 <p>Specify a value that is syntactically self-delimited.</p>
-<a name="N1305F" class="indexterm"></a>
+<a name="N12E77" class="indexterm"></a>
 <p>
 <span class="bold"><strong>value specification</strong></span>
 </p>
@@ -1318,7 +1315,7 @@
 </p>
 <p>Specify one or more values, host parameters, SQL parameters,
       dynamic parameters, or host variables.</p>
-<a name="N1307F" class="indexterm"></a>
+<a name="N12E97" class="indexterm"></a>
 <p>
 <span class="bold"><strong>row value expression</strong></span>
 </p>
@@ -1352,7 +1349,7 @@
       separated list of expressions, enclosed in brackets, with the optional
       keyword ROW. In SQL, a row containing a single element can often be used
       where a single value is expected.</p>
-<a name="N1309C" class="indexterm"></a>
+<a name="N12EB4" class="indexterm"></a>
 <p>
 <span class="bold"><strong>set function
       specification</strong></span>
@@ -1373,7 +1370,7 @@
       of the column in the current row of the result of GROUPING SETS.
       HyperSQL supports <code class="literal">&lt;grouping operation&gt;</code> from
       version 2.5.1.</p>
-<a name="N130B3" class="indexterm"></a>
+<a name="N12ECB" class="indexterm"></a>
 <p>
 <span class="bold"><strong>COALESCE</strong></span>
 </p>
@@ -1396,7 +1393,7 @@
       expression&gt;</code> instances. Therefore, any value returned is
       implicitly cast to this type. HyperSQL also features built-in functions
       with similar functionality.</p>
-<a name="N130CC" class="indexterm"></a>
+<a name="N12EE4" class="indexterm"></a>
 <p>
 <span class="bold"><strong>NULLIF</strong></span>
 </p>
@@ -1416,7 +1413,7 @@
 <div class="informalexample">
 <pre class="programlisting"> SELECT i, NULLIF(n, 'not defined') FROM t</pre>
 </div>
-<a name="N130E6" class="indexterm"></a>
+<a name="N12EFE" class="indexterm"></a>
 <p>
 <span class="bold"><strong>CASE</strong></span>
 </p>
@@ -1494,7 +1491,7 @@
 </div>
 <p>The case statement can be far more complex and involve several
       conditions.</p>
-<a name="N1311C" class="indexterm"></a>
+<a name="N12F34" class="indexterm"></a>
 <p>
 <span class="bold"><strong>CAST</strong></span>
 </p>
@@ -1537,7 +1534,7 @@
  CAST ('1992-04-21' AS DATE) = DATE '1992-04-21'
 </pre>
 </div>
-<a name="N1313A" class="indexterm"></a>
+<a name="N12F52" class="indexterm"></a>
 <p>
 <span class="bold"><strong>NEXT VALUE FOR</strong></span>
 </p>
@@ -1563,7 +1560,7 @@
 <pre class="programlisting">INSERT INTO MYTABLE(COL1, COL2) VALUES 2, NEXT VALUE FOR MYSEQUENCE
 </pre>
 </div>
-<a name="N1314E" class="indexterm"></a>
+<a name="N12F66" class="indexterm"></a>
 <p>
 <span class="bold"><strong>CURRENT VALUE FOR</strong></span>
 </p>
@@ -1583,7 +1580,7 @@
  INSERT INTO CHILDTABLE(COL1, COL2) VALUES 10, CURRENT VALUE FOR MYSEQUENCE;
 </pre>
 </div>
-<a name="N13162" class="indexterm"></a>
+<a name="N12F7A" class="indexterm"></a>
 <p>
 <span class="bold"><strong>value expression</strong></span>
 </p>
@@ -1598,7 +1595,7 @@
 </p>
 <p>An expression that returns a value. The value can be a single
       value, or a row consisting more than one value.</p>
-<a name="N13173" class="indexterm"></a>
+<a name="N12F8B" class="indexterm"></a>
 <p>
 <span class="bold"><strong>numeric value
       expression</strong></span>
@@ -1630,7 +1627,7 @@
       <code class="literal">&lt;solidus&gt;</code> (the operators for multiplication and
       division) have precedence over <code class="literal">&lt;minus sign&gt;</code> and
       <code class="literal">&lt;plus sign&gt;</code>.</p>
-<a name="N13199" class="indexterm"></a>
+<a name="N12FB1" class="indexterm"></a>
 <p>
 <span class="bold"><strong>numeric value
       function</strong></span>
@@ -1646,7 +1643,7 @@
 <p>Specify a function yielding a value of type numeric. The
       supported numeric value functions are listed and described in the <a class="link" href="builtinfunctions-chapt.html" title="Chapter&nbsp;4.&nbsp;Built In Functions">Built In Functions</a>
       chapter.</p>
-<a name="N131AE" class="indexterm"></a>
+<a name="N12FC6" class="indexterm"></a>
 <p>
 <span class="bold"><strong>string value
       expression</strong></span>
@@ -1677,7 +1674,7 @@
       primary&gt;</code>. The types of the <code class="literal">&lt;value expression
       primary&gt;</code> elements must be compatible, that is, all must be
       string, or binary or bit string values.</p>
-<a name="N131CE" class="indexterm"></a>
+<a name="N12FE6" class="indexterm"></a>
 <p>
 <span class="bold"><strong>character value
       function</strong></span>
@@ -1692,7 +1689,7 @@
 <p>Specify a function that returns a character string or binary
       string. The supported character value functions are listed and described
       in the <a class="link" href="builtinfunctions-chapt.html" title="Chapter&nbsp;4.&nbsp;Built In Functions">Built In Functions</a> chapter.</p>
-<a name="N131E3" class="indexterm"></a>
+<a name="N12FFB" class="indexterm"></a>
 <p>
 <span class="bold"><strong>datetime value
       expression</strong></span>
@@ -1724,12 +1721,12 @@
       specifier&gt;</code>
 </p>
 <p>
-<code class="literal">&lt;time zone specifier&gt; ::= LOCAL | TIME ZONE {
-      &lt;interval primary&gt; | &lt;time zone name&gt; }</code>
+<code class="literal">&lt;time zone specifier&gt; ::= LOCAL | TIME ZONE
+      &lt;interval primary&gt;</code>
 </p>
 <p>Specify a datetime value. Details are described in the <a class="link" href="sqlgeneral-chapt.html" title="Chapter&nbsp;2.&nbsp;SQL Language">SQL Language</a>
       chapter.</p>
-<a name="N13207" class="indexterm"></a>
+<a name="N1301F" class="indexterm"></a>
 <p>
 <span class="bold"><strong>datetime value
       function</strong></span>
@@ -1743,7 +1740,7 @@
 </p>
 <p>Specify a function that returns a datetime value. The supported
       datetime value functions are listed and described in the <a class="link" href="builtinfunctions-chapt.html" title="Chapter&nbsp;4.&nbsp;Built In Functions">Built In Functions</a> chapter.</p>
-<a name="N1321D" class="indexterm"></a>
+<a name="N13035" class="indexterm"></a>
 <p>
 <span class="bold"><strong>interval term</strong></span>
 </p>
@@ -1787,7 +1784,7 @@
 </p>
 <p>Specify an interval value. Details are described in the <a class="link" href="sqlgeneral-chapt.html" title="Chapter&nbsp;2.&nbsp;SQL Language">SQL Language</a>
       chapter.</p>
-<a name="N13244" class="indexterm"></a>
+<a name="N1305C" class="indexterm"></a>
 <p>
 <span class="bold"><strong>interval absolute value
       function</strong></span>
@@ -1807,7 +1804,7 @@
 <p>Specify a function that returns the absolute value of an
       interval. If the interval is negative, it is negated, otherwise the
       original value is returned.</p>
-<a name="N13258" class="indexterm"></a>
+<a name="N13070" class="indexterm"></a>
 <p>
 <span class="bold"><strong>boolean value
       expression</strong></span>
@@ -1888,7 +1885,7 @@
       predicand&gt;</code> has more than one element, and one or more of
       the fields evaluate to NULL, the result depends on the particular
       predicate.</p>
-<a name="N132A5" class="indexterm"></a>
+<a name="N130BD" class="indexterm"></a>
 <p>
 <span class="bold"><strong>comparison predicand</strong></span>
 </p>
@@ -1928,7 +1925,7 @@
       translated to <code class="literal">(&lt;row value predicand&gt; = &lt;row value
       predicand&gt;) OR (&lt;row value predicand&gt; &lt; &lt;row value
       predicand&gt;)</code>. The <code class="literal">&lt;greater than or equals
-      operator&gt;</code> is translated in a similar way.</p>
+      operator&gt;</code> is translated similarly.</p>
 <p>For the <code class="literal">&lt;less than operator&gt;</code> and
       <code class="literal">&lt;greater than operator&gt;</code>, if two fields at a
       given position are equal, then comparison continues to the next field.
@@ -1957,7 +1954,7 @@
  ((2, NULL, ...) &lt; (1, NULL, ...)) IS FALSE
 </pre>
 </div>
-<a name="N132F3" class="indexterm"></a>
+<a name="N1310B" class="indexterm"></a>
 <p>
 <span class="bold"><strong>BETWEEN</strong></span>
 </p>
@@ -1983,7 +1980,7 @@
       BETWEEN ...)</code>. If any of the three <code class="literal">&lt;row value
       predicand&gt;</code> evaluates to NULL, the result is
       UNKNOWN.</p>
-<a name="N1331C" class="indexterm"></a>
+<a name="N13134" class="indexterm"></a>
 <p>
 <span class="bold"><strong>IN</strong></span>
 </p>
@@ -2040,7 +2037,7 @@
  ResultSet rs = ps.executeQuery();
 </pre>
 </div>
-<a name="N1335D" class="indexterm"></a>
+<a name="N13175" class="indexterm"></a>
 <p>
 <span class="bold"><strong>LIKE</strong></span>
 </p>
@@ -2100,7 +2097,7 @@
       (A LIKE B)</code>. If the length of the escape is not 1 or it is used
       in the pattern not immediately before an underscore or a percent
       character, an exception is raised.</p>
-<a name="N133AA" class="indexterm"></a>
+<a name="N131C2" class="indexterm"></a>
 <p>
 <span class="bold"><strong>IS NULL</strong></span>
 </p>
@@ -2120,7 +2117,7 @@
       IS NULL</code> and <code class="literal">X IS NOT NULL</code> are FALSE. If all
       fields are not null, <code class="literal">X IS NULL</code> is FALSE and
       <code class="literal">X IS NOT NULL</code> is TRUE.</p>
-<a name="N133D6" class="indexterm"></a>
+<a name="N131EE" class="indexterm"></a>
 <p>
 <span class="bold"><strong>ALL and ANY</strong></span>
 </p>
@@ -2174,7 +2171,7 @@
  invoice_date &lt; ALL (SELECT holiday_date FROM holidays)
 </pre>
 </div>
-<a name="N13419" class="indexterm"></a>
+<a name="N13231" class="indexterm"></a>
 <p>
 <span class="bold"><strong>EXISTS</strong></span>
 </p>
@@ -2188,7 +2185,7 @@
 <p>Specify a test for a non-empty set. If the evaluation of
       <code class="literal">&lt;table subquery&gt;</code> results in one or more rows,
       then the expression is TRUE, otherwise FALSE.</p>
-<a name="N1342D" class="indexterm"></a>
+<a name="N13245" class="indexterm"></a>
 <p>
 <span class="bold"><strong>UNIQUE</strong></span>
 </p>
@@ -2206,7 +2203,7 @@
       distinct from each other, the result of the test is TRUE, otherwise it
       is FALSE. The distinctness of rows X and Y is tested with the predicate
       <code class="literal">X IS DISTINCT FROM Y</code>.</p>
-<a name="N13444" class="indexterm"></a>
+<a name="N1325C" class="indexterm"></a>
 <p>
 <span class="bold"><strong>MATCH</strong></span>
 </p>
@@ -2248,7 +2245,7 @@
 <p>Note that MATCH can also be used in FOREIGN KEY constraint
       definitions. The exact meaning is described in the <a class="link" href="databaseobjects-chapt.html" title="Chapter&nbsp;3.&nbsp;Schemas and Database Objects">Schemas and Database Objects</a>
       chapter.</p>
-<a name="N13486" class="indexterm"></a>
+<a name="N1329E" class="indexterm"></a>
 <p>
 <span class="bold"><strong>CONTAINS</strong></span>
 </p>
@@ -2273,7 +2270,7 @@
       result is TRUE. Otherwise it is false.</p>
 <p>If any of the values is NULL, the result is
       UNDEFINED.</p>
-<a name="N134A3" class="indexterm"></a>
+<a name="N132BB" class="indexterm"></a>
 <p>
 <span class="bold"><strong>EQUALS</strong></span>
 </p>
@@ -2291,7 +2288,7 @@
       TRUE. Otherwise it is false.</p>
 <p>If any of the values is NULL, the result is
       UNDEFINED.</p>
-<a name="N134B6" class="indexterm"></a>
+<a name="N132CE" class="indexterm"></a>
 <p>
 <span class="bold"><strong>IS DISTINCT</strong></span>
 </p>
@@ -2320,7 +2317,7 @@
 <div class="informalexample">
 <pre class="programlisting"> startdate IS DISTINCT FROM enddate</pre>
 </div>
-<a name="N134DC" class="indexterm"></a>
+<a name="N132F4" class="indexterm"></a>
 <p>
 <span class="bold"><strong>OVERLAPS</strong></span>
 </p>
@@ -2348,7 +2345,7 @@
 <div class="informalexample">
 <pre class="programlisting"> (startdate, enddate) OVERLAPS (CURRENT_DATE - 7 DAY, CURRENT_DATE - 1 DAY)</pre>
 </div>
-<a name="N134F9" class="indexterm"></a>
+<a name="N13311" class="indexterm"></a>
 <p>
 <span class="bold"><strong>PRECEDES</strong></span>
 </p>
@@ -2370,7 +2367,7 @@
       period.</p>
 <p>If any of the values is NULL, the result is
       UNDEFINED.</p>
-<a name="N1350E" class="indexterm"></a>
+<a name="N13326" class="indexterm"></a>
 <p>
 <span class="bold"><strong>SUCCEEDS</strong></span>
 </p>
@@ -2403,7 +2400,7 @@
 </div>
 </div>
 </div>
-<a name="N1352C" class="indexterm"></a>
+<a name="N13344" class="indexterm"></a>
 <p>
 <span class="bold"><strong>aggregate function</strong></span>
 </p>
@@ -2427,8 +2424,8 @@
 </p>
 <p>
 <code class="literal">&lt;computational operation&gt; ::= AVG | MAX | MIN |
-      ANY_VALUE | SUM | EVERY | ANY | SOME | COUNT | STDDEV_POP | STDDEV_SAMP
-      | VAR_SAMP | VAR_POP | MEDIAN</code>
+      SUM | EVERY | ANY | SOME | COUNT | STDDEV_POP | STDDEV_SAMP | VAR_SAMP |
+      VAR_POP | MEDIAN</code>
 </p>
 <p>
 <code class="literal">&lt;set quantifier&gt; ::= DISTINCT |
@@ -2459,11 +2456,11 @@
       normal query into an aggregate query returning a single row instead of
       the multiple rows that the original query returns. For example,
       <code class="literal">SELECT acolumn &lt;table expression&gt;</code> is a query
-      that returns the value of <code class="literal">acolumn</code> for all the rows
-      the satisfy the given condition. But <code class="literal">SELECT MAX(acolumn)
-      &lt;table expression&gt;</code> returns only one row, containing the
-      largest value in that column. The query <code class="literal">SELECT COUNT(*)
-      &lt;table expression&gt;</code> returns the count of rows, while
+      that returns the value of acolumn for all the rows the satisfy the given
+      condition. But <code class="literal">SELECT MAX(acolumn) &lt;table
+      expression&gt;</code> returns only one row, containing the largest
+      value in that column. The query <code class="literal">SELECT COUNT(*) &lt;table
+      expression&gt;</code> returns the count of rows, while
       <code class="literal">SELECT COUNT(acolumn) &lt;table expression&gt;</code>
       returns the count of rows where <code class="literal">acolumn IS NOT
       NULL</code>.</p>
@@ -2486,9 +2483,6 @@
       sorted list of values.</p>
 <p>MAX and MIN can be performed on all types of expressions and
       return the minimum or the maximum value.</p>
-<p>ANY_VALUE returns a value from a single row of the original
-      query. The filter condition can be used to limit the eligible
-      values.</p>
 <p>
 <code class="literal">COUNT(*)</code> returns the count of all values,
       including nulls, while <code class="literal">COUNT(&lt;value
@@ -2573,7 +2567,7 @@
 </div>
 </div>
 </div>
-<a name="N135CF" class="indexterm"></a>
+<a name="N133E2" class="indexterm"></a>
 <p>
 <span class="bold"><strong>search condition</strong></span>
 </p>
@@ -2586,7 +2580,7 @@
 </p>
 <p>Specify a condition that is TRUE, FALSE, or UNKNOWN. A search
       condition is often a predicate.</p>
-<a name="N135E0" class="indexterm"></a>
+<a name="N133F3" class="indexterm"></a>
 <p>
 <span class="bold"><strong>PATH</strong></span>
 </p>
@@ -2603,7 +2597,7 @@
 </p>
 <p>Specify an order for searching for a user-defined SQL-invoked
       routine. This is not currently supported by HyperSQL.</p>
-<a name="N135F4" class="indexterm"></a>
+<a name="N13407" class="indexterm"></a>
 <p>
 <span class="bold"><strong>routine invocation</strong></span>
 </p>
@@ -2629,7 +2623,7 @@
 </p>
 <p>Invoke an SQL-invoked routine. Examples are given in the <a class="link" href="sqlroutines-chapt.html" title="Chapter&nbsp;9.&nbsp;SQL-Invoked Routines">SQL-Invoked Routines</a>
       chapter.</p>
-<a name="N13612" class="indexterm"></a>
+<a name="N13425" class="indexterm"></a>
 <p>
 <span class="bold"><strong>COLLATE</strong></span>
 </p>
@@ -2646,7 +2640,7 @@
       UPDATE or DELETE statements, when a UNIQUE constraint or index is
       defined on the column, or when the rows are sorted by an ORDER BY
       clause.</p>
-<a name="N13623" class="indexterm"></a>
+<a name="N13436" class="indexterm"></a>
 <p>
 <span class="bold"><strong>CONSTRAINT</strong></span>
 </p>
@@ -2774,7 +2768,7 @@
       access statements, which may combine multiple SELECT statements. The
       <code class="literal">&lt;query specification&gt;</code> is the most common data
       access statement and begins with the SELECT keyword.</p>
-<a name="N1367D" class="indexterm"></a>
+<a name="N13490" class="indexterm"></a>
 <p>
 <span class="bold"><strong>SELECT STATEMENT</strong></span>
 </p>
@@ -2843,7 +2837,6 @@
 </div>
 </div>
 </div>
-<a name="N136BB" class="indexterm"></a>
 <p>A subquery is simply a query expression in brackets. A query
       expression is usually a complete SELECT statement and is discussed in
       the rest of this chapter. A scalar subquery returns one row with one
@@ -2880,7 +2873,6 @@
 </div>
 </div>
 </div>
-<a name="N136D2" class="indexterm"></a>
 <p>A query specification is also known as a SELECT statement. It is
       the most common form of <code class="literal">&lt;derived table&gt;</code> . A
       <code class="literal">&lt;table expression&gt;</code> is a base table, a view or
@@ -2955,7 +2947,6 @@
 </div>
 </div>
 </div>
-<a name="N13727" class="indexterm"></a>
 <p>A table expression is part of the SELECT statement and consists of
       the FROM clause with optional other clauses that performs selection (of
       rows) and grouping from the table(s) in the FROM clause.</p>
@@ -3063,7 +3054,6 @@
 </div>
 </div>
 </div>
-<a name="N13777" class="indexterm"></a>
 <p>The <code class="literal">&lt;query system time period
         specification&gt;</code> can be used after the name of a
         system-versioned table to query historic data in the table. Without
@@ -3087,7 +3077,7 @@ SELECT DISTINCT firstname, lastname, email FROM customer FOR SYSTEM_TIME FROM CU
 </div>
 </div>
 </div>
-<a name="N13788" class="indexterm"></a>
+<a name="N13587" class="indexterm"></a>
 <p>
 <span class="bold"><strong>derived table</strong></span>
 </p>
@@ -3111,7 +3101,7 @@ SELECT DISTINCT firstname, lastname, email FROM customer FOR SYSTEM_TIME FROM CU
 </div>
 </div>
 </div>
-<a name="N137A3" class="indexterm"></a>
+<a name="N135A2" class="indexterm"></a>
 <p>
 <span class="bold"><strong>LATERAL</strong></span>
 </p>
@@ -3147,7 +3137,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
 </div>
 </div>
 </div>
-<a name="N137C0" class="indexterm"></a>
+<a name="N135BF" class="indexterm"></a>
 <p>
 <span class="bold"><strong>UNNEST</strong></span>
 </p>
@@ -3225,7 +3215,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
 </div>
 </div>
 </div>
-<a name="N137DC" class="indexterm"></a>
+<a name="N135DB" class="indexterm"></a>
 <p>
 <span class="bold"><strong>Table Function Derived
         Table</strong></span>
@@ -3270,7 +3260,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
 </div>
 </div>
 </div>
-<a name="N137FA" class="indexterm"></a>
+<a name="N135F9" class="indexterm"></a>
 <p>
 <span class="bold"><strong>column name list</strong></span>
 </p>
@@ -3345,7 +3335,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
 <code class="literal">&lt;join column list&gt; ::= &lt;column name
       list&gt;</code>
 </p>
-<a name="N1382F" class="indexterm"></a>
+<a name="N1362E" class="indexterm"></a>
 <p>
 <span class="bold"><strong>CROSS JOIN</strong></span>
 </p>
@@ -3367,7 +3357,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
       before they are joined.</p>
 <p>CROSS JOIN is not is not generally very useful, as it returns
       large result tables unless WHERE conditions are used.</p>
-<a name="N13846" class="indexterm"></a>
+<a name="N13645" class="indexterm"></a>
 <p>
 <span class="bold"><strong>UNION JOIN</strong></span>
 </p>
@@ -3379,7 +3369,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
       This should not be confused with <code class="literal">A UNION B</code>, which is
       a set operation. Union join is for special applications and is not
       commonly used.</p>
-<a name="N13857" class="indexterm"></a>
+<a name="N13656" class="indexterm"></a>
 <p>
 <span class="bold"><strong>JOIN ... ON</strong></span>
 </p>
@@ -3394,11 +3384,11 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
 <pre class="programlisting">SELECT a.*, b.* FROM a INNER JOIN b ON a.col_one = b.col_two
 </pre>
 </div>
-<a name="N1386A" class="indexterm"></a>
+<a name="N13669" class="indexterm"></a>
 <p>
 <span class="bold"><strong>JOIN ... USING</strong></span>
 </p>
-<a name="N13873" class="indexterm"></a>
+<a name="N13672" class="indexterm"></a>
 <p>
 <span class="bold"><strong>NATURAL JOIN</strong></span>
 </p>
@@ -3437,7 +3427,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
  SELECT * FROM a INNER JOIN b USING (col_two)
 </pre>
 </div>
-<a name="N1388D" class="indexterm"></a>
+<a name="N1368C" class="indexterm"></a>
 <p>
 <span class="bold"><strong>OUTER JOIN</strong></span>
 </p>
@@ -3534,7 +3524,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
       as C1, C2, etc. As generated naming is implementation defined according
       to the SQL Standard, it is better to explicitly name the computed and
       derived columns in your applications.</p>
-<a name="N138C2" class="indexterm"></a>
+<a name="N136C1" class="indexterm"></a>
 <p>
 <span class="bold"><strong>Naming in Joined
       Table</strong></span>
@@ -3567,7 +3557,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
  SELECT d, e, f FROM atable WHERE a + b = c
  SELECT x, y, z FROM atable AS t (u, v, w, x, y, z)  WHERE u + v = w</pre>
 </div>
-<a name="N138DE" class="indexterm"></a>
+<a name="N136DD" class="indexterm"></a>
 <p>
 <span class="bold"><strong>Naming in Select
       List</strong></span>
@@ -3587,7 +3577,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
 <p>If the names <code class="literal">xysum</code> or <code class="literal">yzsum</code>
       are not used, the computed columns cannot be referenced in the ORDER BY
       list.</p>
-<a name="N138F6" class="indexterm"></a>
+<a name="N136F5" class="indexterm"></a>
 <p>
 <span class="bold"><strong>Name Resolution</strong></span>
 </p>
@@ -3604,7 +3594,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
 </div>
 </div>
 </div>
-<a name="N13905" class="indexterm"></a>
+<a name="N13704" class="indexterm"></a>
 <p>
 <span class="bold"><strong>Grouping Operations</strong></span>
 </p>
@@ -3615,7 +3605,7 @@ SELECT firstname, lastname, a.c FROM customer, LATERAL(SELECT SUM(total) FROM in
       of their columns when compared to another row). The other form of
       grouping is performed with the GROUP BY clause. This form is usually
       used together with aggregation.</p>
-<a name="N13910" class="indexterm"></a>
+<a name="N1370F" class="indexterm"></a>
 <p>
 <span class="bold"><strong>GROUP BY</strong></span>
 </p>
@@ -3759,7 +3749,7 @@ DIRECT SALES (null) (null)  3778500
       DISTINCT eliminates the duplicate groups.</p>
 <p>Note any ordering of the rows returned by GROUP BY in incidental.
       You need to use ORDER BY for the ordering you require.</p>
-<a name="N1398E" class="indexterm"></a>
+<a name="N1378D" class="indexterm"></a>
 <p>
 <span class="bold"><strong>HAVING</strong></span>
 </p>
@@ -3768,7 +3758,7 @@ DIRECT SALES (null) (null)  3778500
       clause&gt;</code> using its search condition. The search condition
       must be an expression based on the expressions in the GROUP BY list or
       the aggregate functions used.</p>
-<a name="N1399F" class="indexterm"></a>
+<a name="N1379E" class="indexterm"></a>
 <p>
 <span class="bold"><strong>DISTINCT</strong></span>
 </p>
@@ -3812,7 +3802,7 @@ DIRECT SALES (null) (null)  3778500
 </div>
 </div>
 </div>
-<a name="N139BF" class="indexterm"></a>
+<a name="N137BE" class="indexterm"></a>
 <p>
 <span class="bold"><strong>Set and Multiset
       Operations</strong></span>
@@ -3913,7 +3903,7 @@ DIRECT SALES (null) (null)  3778500
       body&gt;</code> that follows the WITH clause.</p>
 <p>HyperSQL limits recursion to 256 rounds. If this is exceeded, an
       error is raised.</p>
-<p>From version 2.6, HyperSQL extends recursive query processing by
+<p>From version 2.6.0, HyperSQL extends recursive query processing by
       allowing the use of <code class="literal">RECURSIVE_TABLE</code> to reference the
       current general result of the <code class="literal">&lt;query
       expression&gt;</code>. This table name can be used in subqueries with
@@ -4106,7 +4096,7 @@ DIRECT SALES (null) (null)  3778500
       when it can use the same index for accessing the table data and
       ordering. Optimisation can happen both with DESC + NULLS LAST and ASC +
       NULLS FIRST.</p>
-<a name="N13A98" class="indexterm"></a>
+<a name="N13897" class="indexterm"></a>
 <p>
 <span class="bold"><strong>sort specification
       list</strong></span>
@@ -4195,7 +4185,7 @@ DIRECT SALES (null) (null)  3778500
       indexes used, together with other useful information about the query.
       EXPLAIN PLAN can also be used for data manipulation statements such as
       UPDATE.</p>
-<a name="N13AD9" class="indexterm"></a>
+<a name="N138D8" class="indexterm"></a>
 <p>
 <span class="bold"><strong>EXPLAIN PLAN</strong></span>
 </p>
@@ -4228,7 +4218,7 @@ DIRECT SALES (null) (null)  3778500
 </div>
 </div>
 </div>
-<a name="N13AF5" class="indexterm"></a>
+<a name="N138F4" class="indexterm"></a>
 <p>
 <span class="bold"><strong>DELETE FROM</strong></span>
 </p>
@@ -4278,7 +4268,7 @@ DIRECT SALES (null) (null)  3778500
 </div>
 </div>
 </div>
-<a name="N13B19" class="indexterm"></a>
+<a name="N13918" class="indexterm"></a>
 <p>
 <span class="bold"><strong>TRUNCATE TABLE</strong></span>
 </p>
@@ -4328,7 +4318,7 @@ DIRECT SALES (null) (null)  3778500
       statement&gt;</code> is for removing old history rows from a
       system-versioned table. All history rows that expired before the given
       timestamp are removed. No current row is removed.</p>
-<a name="N13B45" class="indexterm"></a>
+<a name="N13944" class="indexterm"></a>
 <p>
 <span class="bold"><strong>TRUNCATE SCHEMA</strong></span>
 </p>
@@ -4360,7 +4350,7 @@ DIRECT SALES (null) (null)  3778500
 </div>
 </div>
 </div>
-<a name="N13B5E" class="indexterm"></a>
+<a name="N1395D" class="indexterm"></a>
 <p>
 <span class="bold"><strong>INSERT INTO</strong></span>
 </p>
@@ -4479,14 +4469,13 @@ DIRECT SALES (null) (null)  3778500
       column for the last row inserted by a session can be retrieved using a
       call to the IDENTITY() function. This call returns the last value
       inserted by the calling session. When the insert statement is executed
-      with a JDBC <code class="classname">Statement</code> or
-      <code class="classname">PreparedStatement</code> method, the
-      <code class="methodname">getGeneratedKeys()</code> method of
-      <code class="classname">Statement</code> can be used to retrieve not only the
-      IDENTITY column, but also any GENERATED computed column, or any other
-      column. The <code class="methodname">getGeneratedKeys()</code> returns a
-      ResultSet with one or more columns. This contains one row per inserted
-      row, and can therefore return all the generated columns for a multi-row
+      with a JDBC Statement or PreparedStatement method, the
+      <code class="methodname">getGeneratedKeys()</code> method of Statement can be
+      used to retrieve not only the IDENTITY column, but also any GENERATED
+      computed column, or any other column. The
+      <code class="methodname">getGeneratedKeys()</code> returns a ResultSet with one
+      or more columns. This contains one row per inserted row, and can
+      therefore return all the generated columns for a multi-row
       insert.</p>
 <p>There are three methods of specifying which generated keys should
       be returned. The first method does not specify the columns of the table.
@@ -4512,7 +4501,7 @@ DIRECT SALES (null) (null)  3778500
 </div>
 </div>
 </div>
-<a name="N13BCD" class="indexterm"></a>
+<a name="N139C3" class="indexterm"></a>
 <p>
 <span class="bold"><strong>UPDATE</strong></span>
 </p>
@@ -4552,7 +4541,7 @@ DIRECT SALES (null) (null)  3778500
       this situation, you can perform the operation is chunks and commit after
       each chunk to reduce memory usage and the total time of the
       operation.</p>
-<a name="N13BF1" class="indexterm"></a>
+<a name="N139E7" class="indexterm"></a>
 <p>
 <span class="bold"><strong>set clause list</strong></span>
 </p>
@@ -4620,7 +4609,7 @@ DIRECT SALES (null) (null)  3778500
 </div>
 </div>
 </div>
-<a name="N13C1F" class="indexterm"></a>
+<a name="N13A15" class="indexterm"></a>
 <p>
 <span class="bold"><strong>MERGE INTO</strong></span>
 </p>
@@ -4648,11 +4637,6 @@ DIRECT SALES (null) (null)  3778500
 <p>
 <code class="literal">&lt;merge when matched clause&gt; ::= WHEN MATCHED [
       AND &lt;search condition&gt; ] THEN &lt;merge update or delete
-      specification&gt;</code>
-</p>
-<p>
-<code class="literal">&lt;merge update or delete specification&gt; ::=
-      &lt;merge update specification&gt; | &lt;merge delete
       specification&gt;</code>
 </p>
 <p>
@@ -4727,15 +4711,13 @@ DIRECT SALES (null) (null)  3778500
       row, then the existing row is updated. When the x value does not match,
       the row is inserted. Therefore one row of table t is updated from
       'dining table' to 'conference table', and two rows are inserted into
-      table t.</p>
-<p>The second example uses a SELECT statement as the source of the
+      table t. The second example uses a SELECT statement as the source of the
       values for the MERGE.</p>
 <p>In the third example, a new row in inserted into the table only
       when the primary key for the new row does not exist. This example uses
-      parameters and should be executed as a JDBC
-      <code class="classname">PreparedStatement</code>. The parameter is cast as
-      INTEGER because the MERGE statement does not determine the types of
-      values in the USING clause.</p>
+      parameters and should be executed as a JDBC PreparedStatement. The
+      parameter is cast as INTEGER because the MERGE statement does not
+      determine the types of values in the USING clause.</p>
 <p>In the fourth example, existing rows that match are
       deleted.</p>
 <div class="informalexample">
@@ -4778,7 +4760,7 @@ DIRECT SALES (null) (null)  3778500
     limited extent. The built-in function <code class="literal">DIAGNOSTICS()</code> is
     an alternative. These are normally used in SQL/PSM routines to check the
     result of the last data update operation.</p>
-<a name="N13CAD" class="indexterm"></a>
+<a name="N13A9B" class="indexterm"></a>
 <p>
 <span class="bold"><strong>GET DIAGNOSTICS</strong></span>
 </p>
@@ -4805,7 +4787,7 @@ DIRECT SALES (null) (null)  3778500
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

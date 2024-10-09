@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
 
 package org.hsqldb.persist;
 
-import java.util.Arrays;
+import java.io.IOException;
 
 import org.hsqldb.HsqlException;
 import org.hsqldb.Row;
@@ -65,10 +65,8 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
     boolean           isCached;
     long              rowIdSequence = 0;
 
-    public RowStoreAVLHybrid(
-            Session session,
-            TableBase table,
-            boolean diskBased) {
+    public RowStoreAVLHybrid(Session session, TableBase table,
+                             boolean diskBased) {
 
         this.table             = table;
         this.maxMemoryRowCount = session.getResultMemoryRowCount();
@@ -79,11 +77,10 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
         }
 
         if (table.getTableType() == TableBase.RESULT_TABLE) {
-            setTimestamp(session.getActionSCN());
+            setTimestamp(session.getActionTimestamp());
         }
 
 // test code to force use of cache
-
 /*
         if (diskBased) {
             this.maxMemoryRowCount = 0;
@@ -111,9 +108,8 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
             if (isCached) {
                 return cache.get(i, this, keep);
             } else {
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "RowStoreAVLHybrid");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "RowStoreAVLHybrid");
             }
         } catch (HsqlException e) {
             return null;
@@ -175,10 +171,8 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
         return null;
     }
 
-    public CachedObject getNewCachedObject(
-            Session session,
-            Object object,
-            boolean tx) {
+    public CachedObject getNewCachedObject(Session session, Object object,
+                                           boolean tx) {
 
         if (!isCached) {
             if (useDisk && elementCount.get() >= maxMemoryRowCount) {
@@ -220,7 +214,10 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
 
         elementCount.set(0);
         ArrayUtil.fillArray(accessorList, null);
-        Arrays.fill(nullsList, false);
+
+        for (int i = 0; i < nullsList.length; i++) {
+            nullsList[i] = false;
+        }
     }
 
     public void remove(CachedObject object) {
@@ -238,11 +235,8 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
 
     public void postCommitAction(Session session, RowAction rowAction) {}
 
-    public void commitRow(
-            Session session,
-            Row row,
-            int changeAction,
-            int txModel) {
+    public void commitRow(Session session, Row row, int changeAction,
+                          int txModel) {
 
         switch (changeAction) {
 
@@ -264,11 +258,8 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
         }
     }
 
-    public void rollbackRow(
-            Session session,
-            Row row,
-            int changeAction,
-            int txModel) {
+    public void rollbackRow(Session session, Row row, int changeAction,
+                            int txModel) {
 
         switch (changeAction) {
 
@@ -358,7 +349,8 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
     public final void changeToDiskTable(Session session) {
 
         cache =
-            session.sessionData.persistentStoreCollection.getSessionDataCache();
+            session.sessionData.persistentStoreCollection
+                .getSessionDataCache();
 
         if (cache == null) {
             useDisk = false;
@@ -366,8 +358,8 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
             return;
         }
 
-        tableSpace = cache.spaceManager.getTableSpace(
-            DataSpaceManager.tableIdDefault);
+        tableSpace =
+            cache.spaceManager.getTableSpace(DataSpaceManager.tableIdDefault);
         isCached = true;
 
         cache.adjustStoreCount(1);
@@ -385,11 +377,9 @@ public class RowStoreAVLHybrid extends RowStoreAVL {
         elementCount.set(0);
 
         while (iterator.next()) {
-            Row row    = iterator.getCurrentRow();
-            Row newRow = (Row) getNewCachedObject(
-                session,
-                row.getData(),
-                false);
+            Row row = iterator.getCurrentRow();
+            Row newRow = (Row) getNewCachedObject(session, row.getData(),
+                                                  false);
 
             indexRow(session, newRow);
         }

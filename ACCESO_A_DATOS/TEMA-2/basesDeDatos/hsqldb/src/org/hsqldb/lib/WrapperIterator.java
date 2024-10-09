@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,8 @@ import java.util.NoSuchElementException;
  *
  *  Based on similar Enumerator code by campbell-burnet@users
  *
- * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @author fred@users
+ * @version 2.6.0
  * @since HSQLDB 1.7.2
  */
 public class WrapperIterator<E> implements Iterator<E> {
@@ -51,7 +51,7 @@ public class WrapperIterator<E> implements Iterator<E> {
     private int                   i;
 
     // chained iterators
-    private boolean     chained;
+    private boolean  chained;
     private Iterator<E> it1;
     private Iterator<E> it2;
 
@@ -102,6 +102,7 @@ public class WrapperIterator<E> implements Iterator<E> {
      * @param it2 Iterator
      */
     public WrapperIterator(Iterator<E> it1, Iterator<E> it2) {
+
         this.it1 = it1;
         this.it2 = it2;
         chained  = true;
@@ -110,8 +111,8 @@ public class WrapperIterator<E> implements Iterator<E> {
     /**
      * Tests if this iterator contains more elements. <p>
      *
-     * @return  {@code true} if this iterator contains more elements;
-     *          {@code false} otherwise.
+     * @return  <code>true</code> if this iterator contains more elements;
+     *          <code>false</code> otherwise.
      */
     public boolean hasNext() {
 
@@ -196,6 +197,18 @@ public class WrapperIterator<E> implements Iterator<E> {
             return (E) elements[i++];
         }
 
+        throw new NoSuchElementException();
+    }
+
+    public int nextInt() {
+        throw new NoSuchElementException();
+    }
+
+    public long nextLong() {
+        throw new NoSuchElementException();
+    }
+
+    public void remove() {
         throw new NoSuchElementException();
     }
 }

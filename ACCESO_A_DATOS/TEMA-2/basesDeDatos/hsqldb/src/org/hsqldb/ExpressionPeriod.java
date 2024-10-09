@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
 
 package org.hsqldb;
 
-import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.List;
@@ -41,7 +40,7 @@ import org.hsqldb.lib.Set;
  * Nodes represent PERIOD start and end.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 2.5.0
  */
 public class ExpressionPeriod extends Expression {
@@ -62,15 +61,19 @@ public class ExpressionPeriod extends Expression {
      * FOR SYSTEM_TIME FROM ... TO
      */
     ExpressionPeriod(Expression start, Expression end) {
+
         super(OpTypes.PERIOD);
 
-        this.nodes = new Expression[]{ start, end };
+        this.nodes = new Expression[] {
+            start, end
+        };
     }
 
     /**
      * any named period
      */
     ExpressionPeriod(ExpressionColumn colExpr) {
+
         super(OpTypes.PERIOD);
 
         this.columnExpr = colExpr;
@@ -80,6 +83,7 @@ public class ExpressionPeriod extends Expression {
      * any defined period
      */
     ExpressionPeriod(PeriodDefinition period) {
+
         super(OpTypes.PERIOD);
 
         this.period = period;
@@ -89,6 +93,7 @@ public class ExpressionPeriod extends Expression {
      * paranthesized period elements
      */
     ExpressionPeriod(Expression rowExpr) {
+
         super(OpTypes.PERIOD);
 
         this.nodes = rowExpr.nodes;
@@ -119,25 +124,19 @@ public class ExpressionPeriod extends Expression {
         Expression left  = new ExpressionColumn(rangeVar, period.startColumn);
         Expression right = new ExpressionColumn(rangeVar, period.endColumn);
 
-        nodes = new Expression[]{ left, right };
+        nodes = new Expression[] {
+            left, right
+        };
     }
 
-    public List<Expression> resolveColumnReferences(
-            Session session,
-            RangeGroup rangeGroup,
-            int rangeCount,
-            RangeGroup[] rangeGroups,
-            List<Expression> unresolvedSet,
-            boolean acceptsSequences) {
+    public List resolveColumnReferences(Session session,
+            RangeGroup rangeGroup, int rangeCount, RangeGroup[] rangeGroups,
+            List unresolvedSet, boolean acceptsSequences) {
 
         for (int i = 0; i < nodes.length; i++) {
-            unresolvedSet = nodes[i].resolveColumnReferences(
-                session,
-                rangeGroup,
-                rangeCount,
-                rangeGroups,
-                unresolvedSet,
-                acceptsSequences);
+            unresolvedSet = nodes[i].resolveColumnReferences(session,
+                    rangeGroup, rangeCount, rangeGroups, unresolvedSet,
+                    acceptsSequences);
         }
 
         RangeVariable[] rangeVarArray = rangeGroup.getRangeVariables();
@@ -145,23 +144,21 @@ public class ExpressionPeriod extends Expression {
         if (columnExpr != null) {
             for (int i = 0; i < rangeCount; i++) {
                 RangeVariable rangeVar = rangeVarArray[i];
-                PeriodDefinition p = rangeVar.findPeriod(
-                    columnExpr.schema,
-                    columnExpr.tableName,
-                    columnExpr.columnName);
+                PeriodDefinition p = rangeVar.findPeriod(columnExpr.schema,
+                    columnExpr.tableName, columnExpr.columnName);
 
                 if (p != null) {
                     if (period == null) {
                         period = p;
 
-                        Expression left = new ExpressionColumn(
-                            rangeVar,
-                            period.startColumn);
-                        Expression right = new ExpressionColumn(
-                            rangeVar,
+                        Expression left =
+                            new ExpressionColumn(rangeVar, period.startColumn);
+                        Expression right = new ExpressionColumn(rangeVar,
                             period.endColumn);
 
-                        nodes = new Expression[]{ left, right };
+                        nodes = new Expression[] {
+                            left, right
+                        };
                     } else {
                         throw Error.error(ErrorCode.X_42516);
                     }
@@ -185,7 +182,8 @@ public class ExpressionPeriod extends Expression {
         }
     }
 
-    void collectObjectNames(Set<HsqlName> set) {
+    void collectObjectNames(Set set) {
+
         if (period != null) {
             set.add(period.getName());
         }

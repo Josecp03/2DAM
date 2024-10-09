@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import javax.naming.Name;
 import javax.naming.Reference;
 import javax.naming.RefAddr;
 import javax.naming.spi.ObjectFactory;
-
 import javax.sql.DataSource;
 
 /**
@@ -56,7 +55,7 @@ import javax.sql.DataSource;
  *
  * @author Darin DeForest (deforest@users dot sourceforge.net) original version
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @version 2.0.0
  */
 public class JDBCDataSourceFactory implements ObjectFactory {
@@ -69,14 +68,13 @@ public class JDBCDataSourceFactory implements ObjectFactory {
      * @return the data source instance
      * @throws Exception on any error
      */
-    public static DataSource createDataSource(
-            Properties props)
-            throws Exception {
+    public static DataSource createDataSource(Properties props)
+    throws Exception {
 
-        Class<?> cl    = Class.forName(bdsClassName);
-        JDBCDataSource ds = (JDBCDataSource) cl.getDeclaredConstructor()
-                .newInstance();
-        String   value = props.getProperty(databaseName);
+        Class cl = Class.forName(bdsClassName);
+        JDBCDataSource ds =
+            (JDBCDataSource) cl.getDeclaredConstructor().newInstance();
+        String value = props.getProperty(databaseName);
 
         if (value == null) {
             value = props.getProperty(urlName);
@@ -123,7 +121,7 @@ public class JDBCDataSourceFactory implements ObjectFactory {
      * as factories used by a connection pooling DataSource.<p>
      * JDBCDataSource is a factory for normal connections and can be accessed
      * directly by user applications.<p>
-     * JDBCPool is a connection pool accessed directly by user applications.
+     * JDBCPool is a connection pool accessed directly by user applications.<p>
      *
      * @param obj The reference information used in creating a
      *      Datasource object.
@@ -132,14 +130,10 @@ public class JDBCDataSourceFactory implements ObjectFactory {
      * @param environment ignored
      * @return A newly created JDBCDataSource object; null if an object
      *      cannot be created.
-     * @throws Exception is thrown if database or user is null or invalid
+     * @exception Exception is thrown if database or user is null or invalid
      */
-    public Object getObjectInstance(
-            Object obj,
-            Name name,
-            Context nameCtx,
-            Hashtable environment)
-            throws Exception {
+    public Object getObjectInstance(Object obj, Name name, Context nameCtx,
+                                    Hashtable environment) throws Exception {
 
         if (!(obj instanceof Reference)) {
             return null;
@@ -148,16 +142,14 @@ public class JDBCDataSourceFactory implements ObjectFactory {
         Reference ref       = (Reference) obj;
         String    className = ref.getClassName();
 
-        if (bdsClassName.equals(className)
-                || poolClassName.equals(className)
+        if (bdsClassName.equals(className) || poolClassName.equals(className)
                 || pdsClassName.equals(className)
                 || xdsClassName.equals(className)) {
-            RefAddr  refAddr;
-            Object   value;
-            Class<?> cl = Class.forName(bdsClassName);
+            RefAddr refAddr;
+            Object  value;
+            Class   cl = Class.forName(bdsClassName);
             JDBCCommonDataSource ds =
-                (JDBCDataSource) cl.getDeclaredConstructor()
-                                   .newInstance();
+                (JDBCDataSource) cl.getDeclaredConstructor().newInstance();
 
             refAddr = ref.get("database");
 
@@ -195,8 +187,8 @@ public class JDBCDataSourceFactory implements ObjectFactory {
                 value = ref.get("password").getContent();
 
                 if (!(value instanceof String)) {
-                    throw new Exception(
-                        className + ": invalid RefAddr: password");
+                    throw new Exception(className
+                                        + ": invalid RefAddr: password");
                 }
             }
 
@@ -238,13 +230,10 @@ public class JDBCDataSourceFactory implements ObjectFactory {
     /**
      * class names
      */
-    private static final String bdsClassName  =
-        "org.hsqldb.jdbc.JDBCDataSource";
+    private static final String bdsClassName  = "org.hsqldb.jdbc.JDBCDataSource";
     private static final String poolClassName = "org.hsqldb.jdbc.JDBCPool";
-    private static final String pdsClassName =
-        "org.hsqldb.jdbc.pool.JDBCPooledDataSource";
-    private static final String xdsClassName =
-        "org.hsqldb.jdbc.pool.JDBCXADataSource";
+    private static final String pdsClassName  = "org.hsqldb.jdbc.pool.JDBCPooledDataSource";
+    private static final String xdsClassName  = "org.hsqldb.jdbc.pool.JDBCXADataSource";
 
     public JDBCDataSourceFactory() {}
 }

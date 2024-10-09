@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-
 import java.util.Hashtable;
 
 /**
@@ -57,7 +56,7 @@ class TransferHelper {
 
         db     = null;
         tracer = null;
-        quote  = "'";
+        quote  = "\'";
         JDBCT  = new JDBCTypes();
     }
 
@@ -70,6 +69,7 @@ class TransferHelper {
     }
 
     void set(TransferDb database, Traceable t, String q) {
+
         db     = database;
         tracer = t;
         quote  = q;
@@ -81,7 +81,7 @@ class TransferHelper {
             return id;
         }
 
-        if (id.isEmpty()) {
+        if (id.equals("")) {
             return id;
         }
 
@@ -152,23 +152,15 @@ class TransferHelper {
         return hTypes;
     }
 
-    String fixupColumnDefRead(
-            TransferTable t,
-            ResultSetMetaData meta,
-            String columnType,
-            ResultSet columnDesc,
-            int columnIndex)
-            throws SQLException {
+    String fixupColumnDefRead(TransferTable t, ResultSetMetaData meta,
+                              String columnType, ResultSet columnDesc,
+                              int columnIndex) throws SQLException {
         return (columnType);
     }
 
-    String fixupColumnDefWrite(
-            TransferTable t,
-            ResultSetMetaData meta,
-            String columnType,
-            ResultSet columnDesc,
-            int columnIndex)
-            throws SQLException {
+    String fixupColumnDefWrite(TransferTable t, ResultSetMetaData meta,
+                               String columnType, ResultSet columnDesc,
+                               int columnIndex) throws SQLException {
         return (columnType);
     }
 
@@ -185,12 +177,10 @@ class TransferHelper {
         try {
             if (value instanceof Clob) {
                 return ((Clob) value).getSubString(
-                    1,
-                    (int) ((Clob) value).length());
+                    1, (int) ((Clob) value).length());
             } else if (value instanceof Blob) {
                 return ((Blob) value).getBytes(
-                    1,
-                    (int) ((Blob) value).length());
+                    1, (int) ((Blob) value).length());
             }
         } catch (SQLException e) {
             return null;
@@ -203,22 +193,15 @@ class TransferHelper {
 
     void endDataTransfer() {}
 
-    String fixupColumnDefRead(
-            String aTableName,
-            ResultSetMetaData meta,
-            String columnType,
-            ResultSet columnDesc,
-            int columnIndex)
-            throws SQLException {
+    String fixupColumnDefRead(String aTableName, ResultSetMetaData meta,
+                              String columnType, ResultSet columnDesc,
+                              int columnIndex) throws SQLException {
         return columnType;
     }
 
-    String fixupColumnDefWrite(
-            String aTableName,
-            ResultSetMetaData meta,
-            String columnType,
-            ResultSet columnDesc,
-            int columnIndex) {
+    String fixupColumnDefWrite(String aTableName, ResultSetMetaData meta,
+                               String columnType, ResultSet columnDesc,
+                               int columnIndex) throws SQLException {
         return columnType;
     }
 }

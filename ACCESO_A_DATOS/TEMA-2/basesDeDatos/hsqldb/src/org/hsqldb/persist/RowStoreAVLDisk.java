@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 package org.hsqldb.persist;
 
+import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -49,6 +50,7 @@ import org.hsqldb.index.Index;
 import org.hsqldb.index.NodeAVL;
 import org.hsqldb.index.NodeAVLDisk;
 import org.hsqldb.lib.ArrayUtil;
+import org.hsqldb.lib.DoubleIntIndex;
 import org.hsqldb.lib.DoubleLongIndex;
 import org.hsqldb.lib.LongKeyHashMap;
 import org.hsqldb.lib.LongLookup;
@@ -60,7 +62,7 @@ import org.hsqldb.rowio.RowOutputInterface;
  * Implementation of PersistentStore for CACHED tables.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.9.0
  */
 public class RowStoreAVLDisk extends RowStoreAVL {
@@ -81,7 +83,7 @@ public class RowStoreAVLDisk extends RowStoreAVL {
 
         cache.adjustStoreCount(1);
 
-        rowActionMap = new LongKeyHashMap<>(8);
+        rowActionMap = new LongKeyHashMap(8);
         largeData    = database.logger.propLargeData;
         tableSpace   = cache.spaceManager.getTableSpace(table.getSpaceID());
         lock         = new ReentrantReadWriteLock(true);
@@ -96,7 +98,7 @@ public class RowStoreAVLDisk extends RowStoreAVL {
     private void set(CachedObject object) {
 
         if (database.txManager.isMVRows()) {
-            RowAction action = rowActionMap.get(object.getPos());
+            RowAction action = (RowAction) rowActionMap.get(object.getPos());
 
             if (action != null) {
                 ((Row) object).rowAction = action;
@@ -105,18 +107,21 @@ public class RowStoreAVLDisk extends RowStoreAVL {
     }
 
     public CachedObject get(long key, boolean keep) {
+
         CachedObject object = cache.get(key, this, keep);
 
         return object;
     }
 
     public CachedObject get(long key) {
+
         CachedObject object = cache.get(key, this, false);
 
         return object;
     }
 
     public CachedObject get(CachedObject object, boolean keep) {
+
         object = cache.get(object, this, keep);
 
         return object;
@@ -136,10 +141,7 @@ public class RowStoreAVLDisk extends RowStoreAVL {
         object.setPos(pos);
 
         if (tx) {
-            RowAction action = RowAction.addInsertAction(
-                session,
-                table,
-                this,
+            RowAction action = RowAction.addInsertAction(session, table, this,
                 (Row) object);
 
             if (database.txManager.isMVRows()) {
@@ -155,23 +157,20 @@ public class RowStoreAVLDisk extends RowStoreAVL {
     public boolean canRead(Session session, long pos, int mode, int[] colMap) {
 
         if (database.txManager.isMVRows()) {
-            RowAction action = rowActionMap.get(pos);
+            RowAction action = (RowAction) rowActionMap.get(pos);
 
             if (action == null) {
                 return true;
             }
 
-            return action.canRead(session, mode, colMap);
+            return action.canRead(session, mode);
         }
 
         return true;
     }
 
-    public boolean canRead(
-            Session session,
-            CachedObject object,
-            int mode,
-            int[] colMap) {
+    public boolean canRead(Session session, CachedObject object, int mode,
+                           int[] colMap) {
 
         RowAction action = ((Row) object).rowAction;
 
@@ -179,7 +178,7 @@ public class RowStoreAVLDisk extends RowStoreAVL {
             return true;
         }
 
-        return action.canRead(session, mode, colMap);
+        return action.canRead(session, mode);
     }
 
     public CachedObject get(RowInputInterface in) {
@@ -197,10 +196,8 @@ public class RowStoreAVLDisk extends RowStoreAVL {
         return row;
     }
 
-    public CachedObject getNewCachedObject(
-            Session session,
-            Object object,
-            boolean tx) {
+    public CachedObject getNewCachedObject(Session session, Object object,
+                                           boolean tx) {
 
         Row row;
 
@@ -293,33 +290,25 @@ public class RowStoreAVLDisk extends RowStoreAVL {
         }
     }
 
-    public void commitRow(
-            Session session,
-            Row row,
-            int changeAction,
-            int txModel) {
+    public void commitRow(Session session, Row row, int changeAction,
+                          int txModel) {
 
         Object[] data = row.getData();
 
         switch (changeAction) {
 
             case RowAction.ACTION_DELETE :
-                database.logger.writeDeleteStatement(
-                    session,
-                    (Table) table,
-                    data);
+                database.logger.writeDeleteStatement(session, (Table) table,
+                                                     data);
 
                 if (txModel == TransactionManager.LOCKS) {
                     remove(row);
                 }
-
                 break;
 
             case RowAction.ACTION_INSERT :
-                database.logger.writeInsertStatement(
-                    session,
-                    row,
-                    (Table) table);
+                database.logger.writeInsertStatement(session, row,
+                                                     (Table) table);
                 break;
 
             case RowAction.ACTION_INSERT_DELETE :
@@ -328,7 +317,6 @@ public class RowStoreAVLDisk extends RowStoreAVL {
                 if (txModel == TransactionManager.LOCKS) {
                     remove(row);
                 }
-
                 break;
 
             case RowAction.ACTION_DELETE_FINAL :
@@ -344,11 +332,8 @@ public class RowStoreAVLDisk extends RowStoreAVL {
         }
     }
 
-    public void rollbackRow(
-            Session session,
-            Row row,
-            int changeAction,
-            int txModel) {
+    public void rollbackRow(Session session, Row row, int changeAction,
+                            int txModel) {
 
         switch (changeAction) {
 
@@ -366,7 +351,6 @@ public class RowStoreAVLDisk extends RowStoreAVL {
                         rowActionMap.remove(row.getPos());
                     }
                 }
-
                 break;
 
             case RowAction.ACTION_INSERT :
@@ -392,27 +376,19 @@ public class RowStoreAVLDisk extends RowStoreAVL {
                     rowActionMap.remove(row.getPos());
                     remove(row);
                 }
-
                 break;
         }
     }
 
-    public RowAction addDeleteActionToRow(
-            Session session,
-            Row row,
-            int[] colMap,
-            boolean isMV) {
+    public RowAction addDeleteActionToRow(Session session, Row row,
+                                          int[] colMap, boolean isMV) {
 
         RowAction action = null;
 
         if (!isMV) {
             synchronized (row) {
-                return RowAction.addDeleteAction(
-                    session,
-                    table,
-                    this,
-                    row,
-                    colMap);
+                return RowAction.addDeleteAction(session, table, this, row,
+                                                 colMap);
             }
         }
 
@@ -423,12 +399,8 @@ public class RowStoreAVLDisk extends RowStoreAVL {
         mapLock.lock();
 
         try {
-            action = RowAction.addDeleteAction(
-                session,
-                table,
-                this,
-                row,
-                colMap);
+            action = RowAction.addDeleteAction(session, table, this, row,
+                                               colMap);
 
             if (action != null) {
                 rowActionMap.put(action.getPos(), action);
@@ -532,8 +504,8 @@ public class RowStoreAVLDisk extends RowStoreAVL {
             return;
         }
 
-        TableSpaceManager tableSpace = cache.spaceManager.getTableSpace(
-            table.getSpaceID());
+        TableSpaceManager tableSpace =
+            cache.spaceManager.getTableSpace(table.getSpaceID());
 
         setSpaceManager(tableSpace);
         moveDataToSpace(session);
@@ -581,20 +553,20 @@ public class RowStoreAVLDisk extends RowStoreAVL {
             writeUnlock();
         }
 
-        database.logger.logDetailEvent("table written " + table.getName().name);
+        database.logger.logDetailEvent("table written "
+                                       + table.getName().name);
     }
 
-    public void moveDataToSpace(
-            DataFileCache targetCache,
-            LongLookup pointerLookup) {
+    public void moveDataToSpace(DataFileCache targetCache,
+                                LongLookup pointerLookup) {
         populatePointerList(pointerLookup);
         moveDataToNewSpace(targetCache, pointerLookup);
     }
 
     private DoubleLongIndex getPointerList() {
 
-        DoubleLongIndex pointerLookup = new DoubleLongIndex(
-            (int) elementCount());
+        DoubleLongIndex pointerLookup =
+            new DoubleLongIndex((int) elementCount());
 
         populatePointerList(pointerLookup);
 
@@ -614,13 +586,12 @@ public class RowStoreAVLDisk extends RowStoreAVL {
         pointerLookup.sort();
     }
 
-    private void moveDataToNewSpace(
-            DataFileCache targetCache,
-            LongLookup pointerLookup) {
+    private void moveDataToNewSpace(DataFileCache targetCache,
+                                    LongLookup pointerLookup) {
 
         int spaceId = table.getSpaceID();
-        TableSpaceManager targetSpace = targetCache.spaceManager.getTableSpace(
-            spaceId);
+        TableSpaceManager targetSpace =
+            targetCache.spaceManager.getTableSpace(spaceId);
 
         for (int i = 0; i < pointerLookup.size(); i++) {
             long newPos = targetSpace.getFilePosition(
@@ -656,11 +627,8 @@ public class RowStoreAVLDisk extends RowStoreAVL {
         }
 
         removeList.compactLookupAsIntervals();
-        manager.freeTableSpace(
-            DataSpaceManager.tableIdDefault,
-            removeList,
-            0,
-            0);
+        manager.freeTableSpace(DataSpaceManager.tableIdDefault, removeList, 0,
+                               0);
     }
 
     long getStorageSizeEstimate() {

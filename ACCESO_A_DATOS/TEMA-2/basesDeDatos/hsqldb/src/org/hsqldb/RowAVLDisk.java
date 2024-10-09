@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,7 +141,7 @@ public class RowAVLDisk extends RowAVL {
      */
     public RowAVLDisk(PersistentStore store, RowInputInterface in) {
 
-        super(store.getTable(), null);
+        super(store.getTable(), (Object[]) null);
 
         position    = in.getFilePosition();
         storageSize = in.getSize();
@@ -162,7 +162,7 @@ public class RowAVLDisk extends RowAVL {
     }
 
     RowAVLDisk(TableBase t) {
-        super(t, null);
+        super(t, (Object[]) null);
     }
 
     public NodeAVL insertNode(int index) {
@@ -218,6 +218,7 @@ public class RowAVLDisk extends RowAVL {
     }
 
     public synchronized void setChanged(boolean flag) {
+
         hasNodesChanged = flag;
         hasDataChanged  = flag;
         isNew           = flag;
@@ -265,9 +266,8 @@ public class RowAVLDisk extends RowAVL {
             keepCount--;
 
             if (keepCount < 0) {
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "RowAVLDisk - keep count");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "RowAVLDisk - keep count");
             }
         }
 

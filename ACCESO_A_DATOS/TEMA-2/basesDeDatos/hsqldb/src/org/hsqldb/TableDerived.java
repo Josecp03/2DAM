@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import org.hsqldb.types.Type;
  * Table with data derived from a query expression.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public class TableDerived extends Table {
@@ -87,37 +87,9 @@ public class TableDerived extends Table {
         }
     }
 
-    /**
-     * For named sunbqueries.
-     */
-    public TableDerived(
-            Database database,
-            HsqlName name,
-            int type,
-            HsqlName[] colNames,
-            Type[] colTypes) {
-
-        this(database, name, type);
-
-        // todo check column counts match
-        for (int i = 0; i < colNames.length; i++) {
-            ColumnSchema column = new ColumnSchema(colNames[i], colTypes[i]);
-
-            columnList.add(column.getName().name, column);
-        }
-
-        columnCount = colNames.length;
-
-        createPrimaryKey(null, null, false);
-    }
-
-    public TableDerived(
-            Database database,
-            HsqlName name,
-            int type,
-            Type[] columnTypes,
-            OrderedHashMap<String, ColumnSchema> columnList,
-            int[] pkColumns) {
+    public TableDerived(Database database, HsqlName name, int type,
+                        Type[] columnTypes, OrderedHashMap columnList,
+                        int[] pkColumns) {
 
         this(database, name, type);
 
@@ -128,14 +100,9 @@ public class TableDerived extends Table {
         createPrimaryKey(null, pkColumns, true);
     }
 
-    public TableDerived(
-            Database database,
-            HsqlName name,
-            int type,
-            QueryExpression queryExpression,
-            Expression dataExpression,
-            int opType,
-            int depth) {
+    public TableDerived(Database database, HsqlName name, int type,
+                        QueryExpression queryExpression,
+                        Expression dataExpression, int opType, int depth) {
 
         super(database, name, type);
 
@@ -185,9 +152,8 @@ public class TableDerived extends Table {
         }
     }
 
-    public TableDerived newDerivedTable(
-            Session session,
-            CompileContext baseContext) {
+    public TableDerived newDerivedTable(Session session,
+                                        CompileContext baseContext) {
 
         TableDerived td = this;
 
@@ -200,10 +166,9 @@ public class TableDerived extends Table {
 
             td = p.XreadSubqueryTableBody(tableName, OpTypes.TABLE_SUBQUERY);
 
-            td.queryExpression.resolve(
-                session,
-                p.compileContext.getOuterRanges(),
-                null);
+            td.queryExpression.resolve(session,
+                                       p.compileContext.getOuterRanges(),
+                                       null);
 
             td.columnList   = columnList;
             td.columnCount  = columnList.size();
@@ -235,7 +200,8 @@ public class TableDerived extends Table {
             return false;
         }
 
-        return queryExpression != null && queryExpression.isInsertable();
+        return queryExpression == null ? false
+                                       : queryExpression.isInsertable();
     }
 
     public boolean isUpdatable() {
@@ -244,7 +210,8 @@ public class TableDerived extends Table {
             return false;
         }
 
-        return queryExpression != null && queryExpression.isUpdatable();
+        return queryExpression == null ? false
+                                       : queryExpression.isUpdatable();
     }
 
     public int[] getUpdatableColumns() {
@@ -284,15 +251,15 @@ public class TableDerived extends Table {
     }
 
     public Table getBaseTable() {
-        return queryExpression == null
-               ? this
-               : queryExpression.getBaseTable();
+        return queryExpression == null ? this
+                                       : queryExpression.getBaseTable();
     }
 
     public int[] getBaseTableColumnMap() {
-        return queryExpression == null
-               ? null
-               : queryExpression.getBaseTableColumnMap();
+
+        return queryExpression == null ? null
+                                       : queryExpression
+                                           .getBaseTableColumnMap();
     }
 
     public QueryExpression getQueryExpression() {
@@ -333,11 +300,10 @@ public class TableDerived extends Table {
                 throw Error.error(ErrorCode.X_42593);
             }
 
-            OrderedHashMap<String, ColumnSchema> newColumnList =
-                new OrderedHashMap<>();
+            OrderedHashMap newColumnList = new OrderedHashMap();
 
             for (int i = 0; i < columnCount; i++) {
-                ColumnSchema col = columnList.get(i);
+                ColumnSchema col = (ColumnSchema) columnList.get(i);
 
                 col.setName(columns[i]);
                 newColumnList.add(columns[i].name, col);
@@ -364,9 +330,8 @@ public class TableDerived extends Table {
             ArrayUtil.fillSequence(cols);
         }
 
-        int[] pkcols = uniqueRows
-                       ? cols
-                       : null;
+        int[] pkcols = uniqueRows ? cols
+                                  : null;
 
         createPrimaryKey(null, pkcols, false);
 
@@ -448,6 +413,7 @@ public class TableDerived extends Table {
     }
 
     public void materialiseCorrelated(Session session) {
+
         if (isCorrelated()) {
             materialise(session);
         }
@@ -458,7 +424,11 @@ public class TableDerived extends Table {
         if (canRecompile && queryExpression instanceof QuerySpecification) {
             QuerySpecification qs = (QuerySpecification) queryExpression;
 
-            return !qs.isAggregated && !qs.isGrouped && !qs.isOrderSensitive;
+            if (qs.isAggregated || qs.isGrouped || qs.isOrderSensitive) {
+                return false;
+            } else {
+                return true;
+            }
         }
 
         return false;
@@ -482,6 +452,7 @@ public class TableDerived extends Table {
     }
 
     public Object getValue(Session session) {
+
         Object[] data = getValues(session);
 
         return data[0];
@@ -489,8 +460,7 @@ public class TableDerived extends Table {
 
     public RowSetNavigatorData getNavigator(Session session) {
 
-        RowSetNavigatorData navigator = new RowSetNavigatorDataTable(
-            session,
+        RowSetNavigatorData navigator = new RowSetNavigatorDataTable(session,
             this);
 
         return navigator;

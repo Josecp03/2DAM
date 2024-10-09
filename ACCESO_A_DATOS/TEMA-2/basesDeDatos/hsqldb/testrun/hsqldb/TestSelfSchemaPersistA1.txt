@@ -7,7 +7,6 @@
 
 
 --                  ******************************       MEM Tables
-SET AUTOCOMMIT TRUE
 --DROP TABLE nosuch;
 DROP TABLE tblt1 IF exists;
 DROP TABLE tblt2 IF exists;

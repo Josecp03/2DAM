@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import java.net.URL;
 
-/**
- * Implementation of FileAccess for resources.
- *
- * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
- * @since 1.8.0
- */
+import org.hsqldb.lib.FileAccess.FileSync;
+
 public class FileAccessRes implements FileAccess {
 
     public boolean isStreamElement(String fileName) {
@@ -55,7 +49,8 @@ public class FileAccessRes implements FileAccess {
             url = getClass().getResource(fileName);
 
             if (url == null) {
-                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                ClassLoader cl =
+                    Thread.currentThread().getContextClassLoader();
 
                 if (cl != null) {
                     url = cl.getResource(fileName);
@@ -69,9 +64,8 @@ public class FileAccessRes implements FileAccess {
         return url != null;
     }
 
-    public InputStream openInputStreamElement(
-            final String fileName)
-            throws IOException {
+    public InputStream openInputStreamElement(final String fileName)
+    throws IOException {
 
         InputStream fis = null;
 
@@ -79,7 +73,8 @@ public class FileAccessRes implements FileAccess {
             fis = getClass().getResourceAsStream(fileName);
 
             if (fis == null) {
-                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                ClassLoader cl =
+                    Thread.currentThread().getContextClassLoader();
 
                 if (cl != null) {
                     fis = cl.getResourceAsStream(fileName);
@@ -107,26 +102,20 @@ public class FileAccessRes implements FileAccess {
         return false;
     }
 
-    public boolean renameElementOrCopy(
-            String oldName,
-            String newName,
-            EventLogInterface logger) {
+    public boolean renameElementOrCopy(String oldName, String newName) {
         return false;
     }
 
-    public OutputStream openOutputStreamElement(
-            String streamName)
-            throws IOException {
+    public OutputStream openOutputStreamElement(String streamName) throws IOException {
         throw new IOException();
     }
 
-    public OutputStream openOutputStreamElementAppend(
-            String streamName)
-            throws IOException {
+    public OutputStream openOutputStreamElementAppend(String streamName) throws IOException {
         throw new IOException();
     }
 
-    public FileAccess.FileSync getFileSync(OutputStream os) throws IOException {
+    public FileAccess.FileSync getFileSync(OutputStream os)
+    throws IOException {
         throw new IOException();
     }
 }

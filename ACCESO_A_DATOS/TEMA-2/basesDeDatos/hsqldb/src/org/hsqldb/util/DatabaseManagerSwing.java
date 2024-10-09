@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
@@ -45,9 +44,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import java.text.DecimalFormat;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -75,7 +72,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -153,11 +149,11 @@ import javax.swing.tree.TreePath;
  *
  * @author dmarshall@users
  * @author Bob Preston (sqlbob@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.7.0
  */
 public class DatabaseManagerSwing extends JFrame
-        implements ActionListener, WindowListener, KeyListener, MouseListener {
+implements ActionListener, WindowListener, KeyListener, MouseListener {
 
     /*
      * This is down here because it is an  implementation note, not a
@@ -175,16 +171,15 @@ public class DatabaseManagerSwing extends JFrame
         homedir = System.getProperty("user.home");
     }
 
-    ArrayList<JMenuItem>        localActionList = new ArrayList<>();
+    ArrayList<JMenuItem>        localActionList = new ArrayList<JMenuItem>();
     private JFrame              jframe;
     private static final String DEFAULT_RCFILE  = homedir + "/dbmanager.rc";
     private static boolean      TT_AVAILABLE    = false;
 
     static {
         try {
-            Class.forName(
-                DatabaseManagerSwing.class.getPackage().getName()
-                + ".Transfer");
+            Class.forName(DatabaseManagerSwing.class.getPackage().getName()
+                          + ".Transfer");
 
             TT_AVAILABLE = true;
         } catch (Throwable t) {
@@ -200,14 +195,14 @@ public class DatabaseManagerSwing extends JFrame
         "See the HSQLDB Utilities Guide, forums and mailing lists \n"
         + "at http://hsqldb.org.\n\n"
         + "Please paste the following version identifier with any\n"
-        + "problem reports or help requests:  $Revision: 6721 $" + (TT_AVAILABLE
-            ? ""
-            : ("\n\nTransferTool classes are not in CLASSPATH.\n"
-               + "To enable the Tools menu, add 'transfer.jar' "
-               + "to your class path."));
+        + "problem reports or help requests:  $Revision: 6271 $"
+        + (TT_AVAILABLE ? ""
+                        : ("\n\nTransferTool classes are not in CLASSPATH.\n"
+                           + "To enable the Tools menu, add 'transfer.jar' "
+                           + "to your class path."));
     private static final String ABOUT_TEXT =
-        "$Revision: 6721 $ of DatabaseManagerSwing\n\n"
-        + "Copyright c 2001-2024, The HSQL Development Group.\n"
+        "$Revision: 6271 $ of DatabaseManagerSwing\n\n"
+        + "Copyright (c) 2001-2021, The HSQL Development Group.\n"
         + "http://hsqldb.org  (Utilities Guide available at this site).\n\n\n"
         + "You may use and redistribute according to the HSQLDB\n"
         + "license documented in the source code and at the web\n"
@@ -303,11 +298,11 @@ public class DatabaseManagerSwing extends JFrame
 
     // variables to hold the default cursors for these top level swing objects
     // so we can restore them when we exit our thread
-    Cursor                          fMainCursor;
-    Cursor                          txtCommandCursor;
-    Cursor                          txtResultCursor;
-    HashMap<AbstractButton, String> tipMap     = new HashMap<>();
-    private final JMenu             mnuSchemas = new JMenu("Schemas");
+    Cursor        fMainCursor;
+    Cursor        txtCommandCursor;
+    Cursor        txtResultCursor;
+    HashMap<AbstractButton,String> tipMap = new HashMap<AbstractButton,String>();
+    private final JMenu mnuSchemas = new JMenu("Schemas");
 
     /**
      * Wait Cursor
@@ -317,6 +312,7 @@ public class DatabaseManagerSwing extends JFrame
     private final Cursor waitCursor = new Cursor(Cursor.WAIT_CURSOR);
 
     // (ulrivo): variables set by arguments from the commandline
+
     static String  defDirectory;
     private String schemaFilter = null;
 
@@ -333,7 +329,6 @@ public class DatabaseManagerSwing extends JFrame
     /**
      * Run with --help switch for usage instructions.
      *
-     * @param arg arguments
      * @throws IllegalArgumentException for the obvious reason
      */
     public static void main(String[] arg) {
@@ -341,15 +336,15 @@ public class DatabaseManagerSwing extends JFrame
         System.getProperties().put("sun.java2d.noddraw", "true");
 
         // (ulrivo): read all arguments from the command line
-        String  currentArg;
-        String  lowerArg;
-        String  urlid        = null;
-        String  rcFile       = null;
-        String  defDriver    = "org.hsqldb.jdbc.JDBCDriver";
-        String  defURL       = "jdbc:hsqldb:mem:.";
-        String  defUser      = "SA";
-        String  defPassword  = "";
-        boolean autoConnect  = false;
+        String currentArg;
+        String lowerArg;
+        String urlid = null;
+        String rcFile = null;
+        String defDriver = "org.hsqldb.jdbc.JDBCDriver";
+        String defURL = "jdbc:hsqldb:mem:.";
+        String defUser = "SA";
+        String defPassword = "";
+        boolean autoConnect = false;
         boolean urlidConnect = false;
 
         bMustExit = true;
@@ -366,8 +361,8 @@ public class DatabaseManagerSwing extends JFrame
 
                 //
             } else if (i == arg.length - 1) {
-                throw new IllegalArgumentException(
-                    "No value for argument " + currentArg);
+                throw new IllegalArgumentException("No value for argument "
+                                                   + currentArg);
             }
 
             i++;
@@ -393,7 +388,6 @@ public class DatabaseManagerSwing extends JFrame
             } else if (lowerArg.equals("-dir")) {
                 defDirectory = arg[i];
             } else if (lowerArg.equals("-script")) {
-
                 // dropped script processing
             } else if (lowerArg.equals("-noexit")) {
                 bMustExit = false;
@@ -404,7 +398,6 @@ public class DatabaseManagerSwing extends JFrame
 
                 return;
             } else {
-
                 /* Syntax ERRORS should either throw or exit with non-0 status.
                  * In our case, it may be unsafe to exit, so we throw.
                  * (I.e. should provide easy way for caller to programmatically
@@ -421,6 +414,7 @@ public class DatabaseManagerSwing extends JFrame
 
         DatabaseManagerSwing m = new DatabaseManagerSwing();
 
+
         m.main();
 
         Connection c = null;
@@ -434,25 +428,20 @@ public class DatabaseManagerSwing extends JFrame
             }
 
             if (autoConnect) {
-                c = ConnectionDialogSwing.createConnection(
-                    defDriver,
-                    defURL,
-                    defUser,
-                    defPassword);
+                c = ConnectionDialogSwing.createConnection(defDriver, defURL,
+                        defUser, defPassword);
             } else if (urlidConnect) {
                 if (urlid == null) {
                     throw new IllegalArgumentException(
                         "You must specify an 'urlid' to use an RC file");
                 }
 
-                String rcfilepath = (rcFile == null)
-                                    ? DEFAULT_RCFILE
-                                    : rcFile;
+                String rcfilepath = (rcFile == null) ? DEFAULT_RCFILE
+                                                     : rcFile;
                 RCData rcdata     = new RCData(new File(rcfilepath), urlid);
 
                 c = rcdata.getConnection(
-                    null,
-                    System.getProperty("javax.net.ssl.trustStore"));
+                    null, System.getProperty("javax.net.ssl.trustStore"));
             } else {
                 c = ConnectionDialogSwing.createConnection(m.jframe, "Connect");
             }
@@ -472,11 +461,9 @@ public class DatabaseManagerSwing extends JFrame
     }
 
     /**
-     * This stuff is all quick, except for the refreshTree(). This unit can be
-     * kicked off in main Gui thread. The refreshTree will be backgrounded and
-     * this method will return.
-     *
-     * @param c Connection
+     * This stuff is all quick, except for the refreshTree().
+     * This unit can be kicked off in main Gui thread.  The refreshTree
+     * will be backgrounded and this method will return.
      */
     public void connect(Connection c) {
 
@@ -503,7 +490,7 @@ public class DatabaseManagerSwing extends JFrame
 
         try {
             dMeta      = cConn.getMetaData();
-            isOracle   = (dMeta.getDatabaseProductName().contains("Oracle"));
+            isOracle = (dMeta.getDatabaseProductName().contains("Oracle"));
             sStatement = cConn.createStatement();
 
             updateAutoCommitBox();
@@ -513,17 +500,14 @@ public class DatabaseManagerSwing extends JFrame
 
             Driver driver = DriverManager.getDriver(dMeta.getURL());
             ConnectionSetting newSetting = new ConnectionSetting(
-                dMeta.getDatabaseProductName(),
-                driver.getClass().getName(),
+                dMeta.getDatabaseProductName(), driver.getClass().getName(),
                 dMeta.getURL(),
-                dMeta.getUserName().replaceAll("@localhost", ""),
-                "");
+                dMeta.getUserName().replaceAll("@localhost", ""), "");
             Hashtable settings =
                 ConnectionDialogCommon.loadRecentConnectionSettings();
 
-            ConnectionDialogCommon.addToRecentConnectionSettings(
-                settings,
-                newSetting);
+            ConnectionDialogCommon.addToRecentConnectionSettings(settings,
+                    newSetting);
             ConnectionDialogSwing.setConnectionSetting(newSetting);
             refreshTree();
             clearResultPanel();
@@ -564,7 +548,8 @@ public class DatabaseManagerSwing extends JFrame
             txtCommand.setText(
                 DatabaseManagerCommon.createTestData(sStatement));
 
-            for (int i = 0; i < DatabaseManagerCommon.testDataSql.length; i++) {
+            for (int i = 0; i < DatabaseManagerCommon.testDataSql.length;
+                    i++) {
                 addToRecent(DatabaseManagerCommon.testDataSql[i]);
             }
 
@@ -586,7 +571,6 @@ public class DatabaseManagerSwing extends JFrame
         try {
             prefs = new DBMPrefs(false);
         } catch (Exception e) {
-
 /*
             System.err.println(
                 "Failed to load preferences.  Proceeding with defaults:\n");
@@ -610,7 +594,8 @@ public class DatabaseManagerSwing extends JFrame
         fMain.getContentPane().add(createToolBar(), "North");
 
         if (fMain instanceof java.awt.Frame) {
-            ((java.awt.Frame) fMain).setIconImage(CommonSwing.getIcon("Frame"));
+            ((java.awt.Frame) fMain).setIconImage(
+                CommonSwing.getIcon("Frame"));
         }
 
         if (fMain instanceof java.awt.Window) {
@@ -621,8 +606,8 @@ public class DatabaseManagerSwing extends JFrame
 
         // used shortcuts: CERGTSIUDOLM
         String[] fitems = {
-            "-Connect...", "-Close Connection", "--", "OOpen Script...",
-            "-Save Script...", "-Save Result...", "--", "-Exit"
+            "-Connect...", "-Close Connection", "--", "OOpen Script...", "-Save Script...",
+            "-Save Result...", "--", "-Exit"
         };
 
         jmenu = addMenu(bar, "File", fitems);
@@ -665,8 +650,8 @@ public class DatabaseManagerSwing extends JFrame
         boxShowSchemas.setSelected(showSchemas);
         boxShowGrid.setSelected(gridFormat);
         boxTooltips.setSelected(showTooltips);
-        boxShowGrid.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_DOWN_MASK));
+        boxShowGrid.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G,
+                InputEvent.CTRL_DOWN_MASK));
         boxAutoRefresh.setSelected(autoRefresh);
         boxRowCounts.setSelected(displayRowCounts);
         boxShowSys.setSelected(showSys);
@@ -677,20 +662,18 @@ public class DatabaseManagerSwing extends JFrame
         tipMap.put(rbAllSchemas, "Display items in all schemas");
         tipMap.put(mitemAbout, "Display product information");
         tipMap.put(mitemHelp, "Display advice for obtaining help");
-        tipMap.put(
-            boxAutoRefresh,
-            "Refresh tree (and schema list) automatically"
-            + "when YOU modify database objects");
-        tipMap.put(
-            boxShowSchemas,
-            "Display object names in tree-like schemaname.basename");
-        tipMap.put(rbNativeLF, "Set Look and Feel to Native for your platform");
+        tipMap.put(boxAutoRefresh,
+                   "Refresh tree (and schema list) automatically"
+                   + "when YOU modify database objects");
+        tipMap.put(boxShowSchemas,
+                   "Display object names in tree-like schemaname.basename");
+        tipMap.put(rbNativeLF,
+                   "Set Look and Feel to Native for your platform");
         tipMap.put(rbJavaLF, "Set Look and Feel to Java");
         tipMap.put(rbMotifLF, "Set Look and Feel to Motif");
         boxTooltips.setToolTipText("Display tooltips (hover text), like this");
-        tipMap.put(
-            boxAutoCommit,
-            "Shows current Auto-commit mode.  Click to change");
+        tipMap.put(boxAutoCommit,
+                   "Shows current Auto-commit mode.  Click to change");
         tipMap.put(
             boxLogging,
             "Shows current JDBC DriverManager logging mode.  Click to change");
@@ -720,7 +703,9 @@ public class DatabaseManagerSwing extends JFrame
 
         addMenu(bar, "Options", soptions);
 
-        String[] stools = { "-Dump", "-Restore", "-Transfer" };
+        String[] stools = {
+            "-Dump", "-Restore", "-Transfer"
+        };
 
         jmenu = addMenu(bar, "Tools", stools);
 
@@ -796,6 +781,7 @@ public class DatabaseManagerSwing extends JFrame
         // Modified: (weconsultants@users) Changed from deprecated show()
         ((Component) fMain).setVisible(true);
 
+
         // Added: (weconsultants@users): For preloadng FontDialogSwing
         FontDialogSwing.creatFontDialog(this);
 
@@ -849,9 +835,8 @@ public class DatabaseManagerSwing extends JFrame
                     char c = ((String) m[i]).charAt(0);
 
                     if (c != '-') {
-                        KeyStroke key = KeyStroke.getKeyStroke(
-                            c,
-                            InputEvent.CTRL_DOWN_MASK);
+                        KeyStroke key =
+                            KeyStroke.getKeyStroke(c, InputEvent.CTRL_DOWN_MASK);
 
                         item.setAccelerator(key);
                     }
@@ -900,9 +885,8 @@ public class DatabaseManagerSwing extends JFrame
             JOptionPane.showMessageDialog(
                 fMain.getContentPane(),
                 "Use Ctrl-R or the View menu to\n"
-                + "update nav. tree after Restoration",
-                "Suggestion",
-                JOptionPane.INFORMATION_MESSAGE);
+                + "update nav. tree after Restoration", "Suggestion",
+                    JOptionPane.INFORMATION_MESSAGE);
 
             // Regardless of whether autoRefresh is on, half of
             // Restore runs asynchronously, so we could only
@@ -930,9 +914,8 @@ public class DatabaseManagerSwing extends JFrame
             try {
                 setWaiting("Connecting");
 
-                newCon = ConnectionDialogSwing.createConnection(
-                    jframe,
-                    "Connect");
+                newCon = ConnectionDialogSwing.createConnection(jframe,
+                        "Connect");
             } finally {
                 setWaiting(null);
             }
@@ -952,6 +935,7 @@ public class DatabaseManagerSwing extends JFrame
                 dMeta = null;
 
                 rootNode.setUserObject("Connection");
+
                 directRefreshTree();
             }
         } else if (s.equals(GRID_BOX_TEXT)) {
@@ -974,22 +958,22 @@ public class DatabaseManagerSwing extends JFrame
                 File file = f.getSelectedFile();
 
                 if (file != null) {
-                    sqlScriptBuffer = DatabaseManagerCommon.readFile(
-                        file.getAbsolutePath());
+                    sqlScriptBuffer =
+                        DatabaseManagerCommon.readFile(file.getAbsolutePath());
 
                     if (4096 <= sqlScriptBuffer.length()) {
                         int eoThirdLine = sqlScriptBuffer.indexOf('\n');
 
                         if (eoThirdLine > 0) {
-                            eoThirdLine = sqlScriptBuffer.indexOf(
-                                '\n',
-                                eoThirdLine + 1);
+                            eoThirdLine = sqlScriptBuffer.indexOf('\n',
+                                                                  eoThirdLine
+                                                                  + 1);
                         }
 
                         if (eoThirdLine > 0) {
-                            eoThirdLine = sqlScriptBuffer.indexOf(
-                                '\n',
-                                eoThirdLine + 1);
+                            eoThirdLine = sqlScriptBuffer.indexOf('\n',
+                                                                  eoThirdLine
+                                                                  + 1);
                         }
 
                         if (eoThirdLine < 1) {
@@ -1032,9 +1016,8 @@ public class DatabaseManagerSwing extends JFrame
                 File file = f.getSelectedFile();
 
                 if (file != null) {
-                    DatabaseManagerCommon.writeFile(
-                        file.getAbsolutePath(),
-                        txtCommand.getText());
+                    DatabaseManagerCommon.writeFile(file.getAbsolutePath(),
+                                                    txtCommand.getText());
                 }
             }
         } else if (s.equals("Save Result...")) {
@@ -1054,9 +1037,8 @@ public class DatabaseManagerSwing extends JFrame
 
                 if (file != null) {
                     showResultInText();
-                    DatabaseManagerCommon.writeFile(
-                        file.getAbsolutePath(),
-                        txtResult.getText());
+                    DatabaseManagerCommon.writeFile(file.getAbsolutePath(),
+                                                    txtResult.getText());
                 }
             }
         } else if (s.equals(SHOWSYS_BOX_TEXT)) {
@@ -1085,7 +1067,9 @@ public class DatabaseManagerSwing extends JFrame
         } else if (s.equals("COMMIT*")) {
             try {
                 cConn.commit();
-                showHelp(new String[]{ "", "COMMIT executed" });
+                showHelp(new String[] {
+                    "", "COMMIT executed"
+                });
             } catch (SQLException e) {
 
                 //  Added: (weconsultants@users)
@@ -1097,7 +1081,9 @@ public class DatabaseManagerSwing extends JFrame
         } else if (s.equals("ROLLBACK*")) {
             try {
                 cConn.rollback();
-                showHelp(new String[]{ "", "ROLLBACK executed" });
+                showHelp(new String[] {
+                    "", "ROLLBACK executed"
+                });
             } catch (SQLException e) {
 
                 //  Added: (weconsultants@users)
@@ -1138,7 +1124,9 @@ public class DatabaseManagerSwing extends JFrame
         } else if (s.equals("CHECKPOINT*")) {
             try {
                 cConn.createStatement().executeUpdate("CHECKPOINT");
-                showHelp(new String[]{ "", "CHECKPOINT executed" });
+                showHelp(new String[] {
+                    "", "CHECKPOINT executed"
+                });
             } catch (SQLException e) {
                 CommonSwing.errorMessage(e);
             }
@@ -1305,9 +1293,9 @@ public class DatabaseManagerSwing extends JFrame
 
             // save the old cursors
             if (fMainCursor == null) {
-                fMainCursor      = ((fMain instanceof java.awt.Frame)
-                                    ? (((java.awt.Frame) fMain).getCursor())
-                                    : (((Component) fMain).getCursor()));
+                fMainCursor = ((fMain instanceof java.awt.Frame)
+                               ? (((java.awt.Frame) fMain).getCursor())
+                               : (((Component) fMain).getCursor()));
                 txtCommandCursor = txtCommand.getCursor();
                 txtResultCursor  = txtResult.getCursor();
             }
@@ -1325,9 +1313,8 @@ public class DatabaseManagerSwing extends JFrame
             /* @todo: Disable actionButtons */
         }
 
-        setStatusLine(busyText, ((busyText == null)
-                                 ? gResult.getRowCount()
-                                 : 0));
+        setStatusLine(busyText, ((busyText == null) ? gResult.getRowCount()
+                                                    : 0));
     }
 
     private final Runnable enableButtonRunnable = new Runnable() {
@@ -1346,7 +1333,7 @@ public class DatabaseManagerSwing extends JFrame
     };
     private Thread           buttonUpdaterThread = null;
     private static final int BUTTON_CHECK_PERIOD = 500;
-    private final Runnable   buttonUpdater       = new Runnable() {
+    private final Runnable         buttonUpdater       = new Runnable() {
 
         public void run() {
 
@@ -1364,9 +1351,8 @@ public class DatabaseManagerSwing extends JFrame
                 havesql = (txtCommand.getText().length() > 0);
 
                 if (jbuttonClear.isEnabled() != havesql) {
-                    SwingUtilities.invokeLater(havesql
-                                               ? enableButtonRunnable
-                                               : disableButtonRunnable);
+                    SwingUtilities.invokeLater(havesql ? enableButtonRunnable
+                                                       : disableButtonRunnable);
                 }
             }
         }
@@ -1417,7 +1403,7 @@ public class DatabaseManagerSwing extends JFrame
      */
     protected void executeCurrentSQL() {
 
-        if (txtCommand.getText().isEmpty()) {
+        if (txtCommand.getText().length() < 1) {
             CommonSwing.errorMessage("No SQL to execute");
 
             return;
@@ -1456,14 +1442,13 @@ public class DatabaseManagerSwing extends JFrame
 
     private void executeSQL() {
 
-        String[] g = new String[1];
+        String[] g   = new String[1];
         String   sql;
 
         try {
             lTime = System.nanoTime();
-            sql   = ((sqlScriptBuffer == null
-                      ? txtCommand.getText()
-                      : sqlScriptBuffer));
+            sql   = ((sqlScriptBuffer == null ? txtCommand.getText()
+                                              : sqlScriptBuffer));
 
             if (sStatement == null) {
                 g[0] = "no connection";
@@ -1523,7 +1508,7 @@ public class DatabaseManagerSwing extends JFrame
 
             if (sqlScriptBuffer == null) {
                 addToRecent(sql);
-                txtCommand.setEnabled(true);             // clear() does this otherwise
+                txtCommand.setEnabled(true);    // clear() does this otherwise
             } else {
                 clear();
             }
@@ -1557,8 +1542,7 @@ public class DatabaseManagerSwing extends JFrame
             // This test can be very liberal.  Too liberal will just do
             // some extra refreshes.  Too conservative will display
             // obsolete info.
-            if (upper.contains("ALTER")
-                    || upper.contains("DROP")
+            if (upper.contains("ALTER") || upper.contains("DROP")
                     || upper.contains("CREATE")) {
                 directRefreshTree();
             }
@@ -1623,11 +1607,10 @@ public class DatabaseManagerSwing extends JFrame
 
             for (int i = 1; i <= col; i++) {
                 h[i - 1] = m.getColumnLabel(i);
-
-                switch (m.getColumnType(i)) {
-                    case java.sql.Types.CHAR :
-                    case java.sql.Types.VARCHAR :
-                    case java.sql.Types.VARBINARY :
+                switch(m.getColumnType(i)) {
+                    case java.sql.Types.CHAR:
+                    case java.sql.Types.VARCHAR:
+                    case java.sql.Types.VARBINARY:
                         nullLiteral[i - 1] = true;
                 }
             }
@@ -1640,13 +1623,9 @@ public class DatabaseManagerSwing extends JFrame
                         h[i - 1] = r.getObject(i);
 
                         if (r.wasNull()) {
-                            h[i - 1] = (nullLiteral[i - 1]
-                                        ? NULL_STR
-                                        : null);
-                        } else if (m.getColumnType(i)
-                                   == java.sql.Types.VARBINARY
-                                   || m.getColumnType(i)
-                                      == java.sql.Types.BINARY) {
+                            h[i - 1] = (nullLiteral[i - 1] ? NULL_STR : null);
+                        } else if (m.getColumnType(i) == java.sql.Types.VARBINARY ||
+                                   m.getColumnType(i) == java.sql.Types.BINARY) {
                             h[i - 1] = r.getString(i);
                         }
                     } catch (SQLException e) {}
@@ -1694,7 +1673,7 @@ public class DatabaseManagerSwing extends JFrame
 
         lTime = System.nanoTime() - lTime;
 
-        while (!all.isEmpty()) {
+        while (!all.equals("")) {
             int    i = all.indexOf(';');
             String sql;
 
@@ -1708,6 +1687,7 @@ public class DatabaseManagerSwing extends JFrame
 
             if (sql.startsWith("--#")) {
                 max = Integer.parseInt(sql.substring(3));
+
                 continue;
             } else if (sql.startsWith("--")) {
                 continue;
@@ -1746,12 +1726,12 @@ public class DatabaseManagerSwing extends JFrame
 
     private void showResultInText() {
 
-        Object[]            col   = gResult.getHead();
-        int                 width = col.length;
-        int[]               size  = new int[width];
-        ArrayList<Object[]> data  = gResult.getData();
-        Object[]            row;
-        int                 height = data.size();
+        Object[] col   = gResult.getHead();
+        int      width = col.length;
+        int[]    size  = new int[width];
+        ArrayList<Object[]> data = gResult.getData();
+        Object[] row;
+        int      height = data.size();
 
         for (int i = 0; i < width; i++) {
             size[i] = col[i].toString().length();
@@ -1761,9 +1741,8 @@ public class DatabaseManagerSwing extends JFrame
             row = data.get(i);
 
             for (int j = 0; j < width; j++) {
-                String item = ((row[j] == null)
-                               ? ""
-                               : row[j].toString());
+                String item = ((row[j] == null) ? ""
+                                                : row[j].toString());
                 int    l    = item.length();
 
                 if (l > size[j]) {
@@ -1798,9 +1777,8 @@ public class DatabaseManagerSwing extends JFrame
             row = data.get(i);
 
             for (int j = 0; j < width; j++) {
-                String item = ((row[j] == null)
-                               ? ""
-                               : row[j].toString());
+                String item = ((row[j] == null) ? ""
+                                                : row[j].toString());
 
                 b.append(item);
 
@@ -1916,13 +1894,16 @@ public class DatabaseManagerSwing extends JFrame
         // create the popup and menus
         JPopupMenu popup = new JPopupMenu();
         JMenuItem  menuItem;
-        String[] menus = new String[]{ "Select", "Delete", "Update", "Insert" };
+        String[]   menus = new String[] {
+            "Select", "Delete", "Update", "Insert"
+        };
 
         // loop throught the menus we want to create, making a PopupListener
         // for each one
         for (int i = 0; i < menus.length; i++) {
-            PopupListener popupListener = new PopupListener(menus[i], treePath);
-            String        title         = popupListener.toString();
+            PopupListener popupListener = new PopupListener(menus[i],
+                treePath);
+            String title = popupListener.toString();
 
             if (title == null) {
                 return;
@@ -1997,16 +1978,18 @@ public class DatabaseManagerSwing extends JFrame
                 tablePath  = treePath.getParentPath();
                 table = treePath.getPathComponent(DEPTH_TABLE - 1).toString();
                 columnPath = treePath;
-                column = treePath.getPathComponent(DEPTH_COLUMN - 1).toString();
+                column = treePath.getPathComponent(DEPTH_COLUMN
+                                                   - 1).toString();
             }
 
             // handle command "SELECT".  Use table and column if set.
-            if (command.equalsIgnoreCase("SELECT")) {
+            if (command.toUpperCase().equals("SELECT")) {
                 String result = "SELECT * FROM " + quoteTableName(table);
 
                 if (column != null) {
                     DefaultMutableTreeNode childNode =
-                        (DefaultMutableTreeNode) treePath.getLastPathComponent();
+                        (DefaultMutableTreeNode) treePath
+                            .getLastPathComponent();
                     String  childName;
                     boolean isChar;
 
@@ -2016,7 +1999,7 @@ public class DatabaseManagerSwing extends JFrame
                         result    += " WHERE " + quoteObjectName(column);
 
                         if (isChar) {
-                            result += " LIKE '%%'";
+                            result += " LIKE \'%%\'";
                         } else {
                             result += " = ";
                         }
@@ -2027,7 +2010,7 @@ public class DatabaseManagerSwing extends JFrame
             }
 
             // handle command "UPDATE".  Use table and column if set.
-            else if (command.equalsIgnoreCase("UPDATE")) {
+            else if (command.toUpperCase().equals("UPDATE")) {
                 String result = "UPDATE " + quoteTableName(table) + " SET ";
 
                 if (column != null) {
@@ -2038,12 +2021,13 @@ public class DatabaseManagerSwing extends JFrame
             }
 
             // handle command "DELETE".  Use table and column if set.
-            else if (command.equalsIgnoreCase("DELETE")) {
+            else if (command.toUpperCase().equals("DELETE")) {
                 String result = "DELETE FROM " + quoteTableName(table);
 
                 if (column != null) {
                     DefaultMutableTreeNode childNode =
-                        (DefaultMutableTreeNode) treePath.getLastPathComponent();
+                        (DefaultMutableTreeNode) treePath
+                            .getLastPathComponent();
                     String  childName;
                     boolean isChar;
 
@@ -2053,7 +2037,7 @@ public class DatabaseManagerSwing extends JFrame
                         result    += " WHERE " + quoteObjectName(column);
 
                         if (isChar) {
-                            result += " LIKE '%%'";
+                            result += " LIKE \'%%\'";
                         } else {
                             result += " = ";
                         }
@@ -2064,7 +2048,7 @@ public class DatabaseManagerSwing extends JFrame
             }
 
             // handle command "INSERT".  Use table and column if set.
-            else if (command.equalsIgnoreCase("INSERT")) {
+            else if (command.toUpperCase().equals("INSERT")) {
                 TreeNode    tableNode;
                 Enumeration enumer;
                 String      columns = "";
@@ -2103,7 +2087,7 @@ public class DatabaseManagerSwing extends JFrame
                     // in the string.  Makes is more obvious to the user when
                     // they need to use a string
                     if (childName.contains("CHAR")) {
-                        quote = "''";
+                        quote = "\'\'";
                     } else {
                         quote = "";
                     }
@@ -2113,8 +2097,8 @@ public class DatabaseManagerSwing extends JFrame
                     comma   = ", ";
                 }
 
-                return "INSERT INTO " + quoteTableName(
-                    table) + "\n( " + columns + " )\nVALUES (" + values + ")";
+                return "INSERT INTO " + quoteTableName(table) + "\n( "
+                       + columns + " )\nVALUES (" + values + ")";
             } else {
                 return "Got here in error " + command
                        + ".  Should never happen";
@@ -2169,10 +2153,8 @@ public class DatabaseManagerSwing extends JFrame
         JPanel pCommand = new JPanel();
 
         pResult = new JPanel();
-        nsSplitPane = new JSplitPane(
-            JSplitPane.VERTICAL_SPLIT,
-            pCommand,
-            pResult);
+        nsSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pCommand,
+                                     pResult);
 
         // Added: (weconsultants@users)
         nsSplitPane.setOneTouchExpandable(true);
@@ -2228,10 +2210,8 @@ public class DatabaseManagerSwing extends JFrame
         txtCommandScroll.setMinimumSize(new Dimension(180, 100));
         gScrollPane.setPreferredSize(new Dimension(460, 300));
 
-        ewSplitPane = new JSplitPane(
-            JSplitPane.HORIZONTAL_SPLIT,
-            tScrollPane,
-            nsSplitPane);
+        ewSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tScrollPane,
+                                     nsSplitPane);
 
         // Added: (weconsultants@users)
         ewSplitPane.setOneTouchExpandable(true);
@@ -2239,8 +2219,8 @@ public class DatabaseManagerSwing extends JFrame
 
         // Added: (weconsultants@users)
         jStatusLine = new JLabel();
-        iReadyStatus = new JButton(
-            new ImageIcon(CommonSwing.getIcon("StatusReady")));
+        iReadyStatus =
+            new JButton(new ImageIcon(CommonSwing.getIcon("StatusReady")));
 
         iReadyStatus.setSelectedIcon(
             new ImageIcon(CommonSwing.getIcon("StatusRunning")));
@@ -2262,8 +2242,7 @@ public class DatabaseManagerSwing extends JFrame
 
     /* Simple tree node factory method - set's parent and user object.
      */
-    private DefaultMutableTreeNode makeNode(
-            Object userObject,
+    private DefaultMutableTreeNode makeNode(Object userObject,
             MutableTreeNode parent) {
 
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(userObject);
@@ -2281,7 +2260,7 @@ public class DatabaseManagerSwing extends JFrame
     private static final String[] nonSystables = {
         "TABLE", "GLOBAL TEMPORARY", "VIEW"
     };
-    private static final HashSet<String> oracleSysUsers = new HashSet<>();
+    private static final HashSet<String> oracleSysUsers = new HashSet<String>();
     private static final String[] oracleSysSchemas = {
         "SYS", "SYSTEM", "OUTLN", "DBSNMP", "OUTLN", "MDSYS", "ORDSYS",
         "ORDPLUGINS", "CTXSYS", "DSSYS", "PERFSTAT", "WKPROXY", "WKSYS",
@@ -2318,9 +2297,7 @@ public class DatabaseManagerSwing extends JFrame
         // over the root node's children and removing them one by one.
         while (treeModel.getChildCount(rootNode) > 0) {
             DefaultMutableTreeNode child =
-                (DefaultMutableTreeNode) treeModel.getChild(
-                    rootNode,
-                    0);
+                (DefaultMutableTreeNode) treeModel.getChild(rootNode, 0);
 
             treeModel.removeNodeFromParent(child);
             child.removeAllChildren();
@@ -2344,21 +2321,21 @@ public class DatabaseManagerSwing extends JFrame
             rootNode.setUserObject(dMeta.getURL());
 
             // get metadata about user tables by building a vector of table names
-            result = dMeta.getTables(null, null, null, (showSys
-                    ? usertables
-                    : nonSystables));
+            result = dMeta.getTables(null, null, null, (showSys ? usertables
+                                                                : nonSystables));
 
-            ArrayList<String> tables  = new ArrayList<>();
-            ArrayList<String> schemas = new ArrayList<>();
+            ArrayList<String> tables  = new ArrayList<String>();
+            ArrayList<String> schemas = new ArrayList<String>();
 
             // sqlbob@users Added remarks.
-            ArrayList<String> remarks = new ArrayList<>();
-            String            schema;
+            ArrayList<String> remarks = new ArrayList<String>();
+            String schema;
 
             while (result.next()) {
                 schema = result.getString(2);
 
-                if ((!showSys) && isOracle && oracleSysUsers.contains(schema)) {
+                if ((!showSys) && isOracle
+                        && oracleSysUsers.contains(schema)) {
                     continue;
                 }
 
@@ -2366,6 +2343,8 @@ public class DatabaseManagerSwing extends JFrame
                     schemas.add(schema);
                     tables.add(result.getString(3));
                     remarks.add(result.getString(5));
+
+                    continue;
                 }
             }
 
@@ -2414,39 +2393,38 @@ public class DatabaseManagerSwing extends JFrame
                         schemaname = schema + '.';
                     }
 
-                    String rowcount      = displayRowCounts
-                                           ? (DECFMT.format(rowCounts[i]))
-                                           : "";
+                    String rowcount = displayRowCounts
+                                      ? (DECFMT.format(rowCounts[i]))
+                                      : "";
                     String displayedName = schemaname + name + rowcount;
 
                     // weconsul@ptd.net Add rowCounts if needed.
                     tableNode = makeNode(displayedName, rootNode);
                     col       = dMeta.getColumns(null, schema, name, null);
 
-                    if ((schema != null) && !schema.trim().isEmpty()) {
+                    if ((schema != null) && !schema.trim().equals("")) {
                         makeNode(schema, tableNode);
                     }
 
                     // sqlbob@users Added remarks.
                     String remark = remarks.get(i);
 
-                    if ((remark != null) && !remark.trim().isEmpty()) {
+                    if ((remark != null) && !remark.trim().equals("")) {
                         makeNode(remark, tableNode);
                     }
 
                     // This block is very slow for some Oracle tables.
                     // With a child for each column containing pertinent attributes
                     while (col.next()) {
-                        String c    = col.getString(4);
-                        DefaultMutableTreeNode columnNode = makeNode(
-                            c,
+                        String c = col.getString(4);
+                        DefaultMutableTreeNode columnNode = makeNode(c,
                             tableNode);
                         String type = col.getString(6);
 
                         makeNode("Type: " + type, columnNode);
 
-                        boolean nullable = col.getInt(
-                            11) != DatabaseMetaData.columnNoNulls;
+                        boolean nullable = col.getInt(11)
+                                           != DatabaseMetaData.columnNoNulls;
 
                         makeNode("Nullable: " + nullable, columnNode);
                     }
@@ -2458,20 +2436,15 @@ public class DatabaseManagerSwing extends JFrame
                     }
                 }
 
-                DefaultMutableTreeNode indexesNode = makeNode(
-                    "Indices",
+                DefaultMutableTreeNode indexesNode = makeNode("Indices",
                     tableNode);
 
                 if (showIndexDetails) {
                     ResultSet ind = null;
 
                     try {
-                        ind = dMeta.getIndexInfo(
-                            null,
-                            schema,
-                            name,
-                            false,
-                            false);
+                        ind = dMeta.getIndexInfo(null, schema, name, false,
+                                                 false);
 
                         String                 oldiname  = null;
                         DefaultMutableTreeNode indexNode = null;
@@ -2481,7 +2454,8 @@ public class DatabaseManagerSwing extends JFrame
                             boolean nonunique = ind.getBoolean(4);
                             String  iname     = ind.getString(6);
 
-                            if ((oldiname == null || !oldiname.equals(iname))) {
+                            if ((oldiname == null
+                                    || !oldiname.equals(iname))) {
                                 indexNode = makeNode(iname, indexesNode);
 
                                 makeNode("Unique: " + !nonunique, indexNode);
@@ -2495,10 +2469,10 @@ public class DatabaseManagerSwing extends JFrame
                     } catch (SQLException se) {
 
                         // Workaround for Oracle
-                        if (se.getMessage() == null
-                                || ((!se.getMessage().startsWith("ORA-25191:"))
-                                && (!se.getMessage().startsWith("ORA-01702:"))
-                                && !se.getMessage().startsWith("ORA-01031:"))) {
+                        if (se.getMessage() == null || ((!se.getMessage()
+                                .startsWith("ORA-25191:")) && (!se.getMessage()
+                                .startsWith("ORA-01702:")) && !se.getMessage()
+                                    .startsWith("ORA-01031:"))) {
                             throw se;
                         }
                     } finally {
@@ -2516,12 +2490,10 @@ public class DatabaseManagerSwing extends JFrame
             makeNode("ReadOnly: " + cConn.isReadOnly(), propertiesNode);
             makeNode("AutoCommit: " + cConn.getAutoCommit(), propertiesNode);
             makeNode("Driver: " + dMeta.getDriverName(), propertiesNode);
-            makeNode(
-                "Product: " + dMeta.getDatabaseProductName(),
-                propertiesNode);
-            makeNode(
-                "Version: " + dMeta.getDatabaseProductVersion(),
-                propertiesNode);
+            makeNode("Product: " + dMeta.getDatabaseProductName(),
+                     propertiesNode);
+            makeNode("Version: " + dMeta.getDatabaseProductVersion(),
+                     propertiesNode);
         } catch (SQLException se) {
             propertiesNode = makeNode("Error getting metadata:", rootNode);
 
@@ -2560,8 +2532,8 @@ public class DatabaseManagerSwing extends JFrame
             long millis   = lTime / 1000000;
             long fraction = (lTime % 1000000) / 100000;
 
-            additionalMsg += " / " + rowCount + " rows retrieved in " + millis
-                             + '.' + fraction + " ms";
+            additionalMsg += " / " + rowCount + " rows retrieved in "
+                                 + millis + '.' + fraction + " ms";
 
             jStatusLine.setText("  " + READY_STATUS + additionalMsg);
         } else {
@@ -2570,7 +2542,8 @@ public class DatabaseManagerSwing extends JFrame
     }
 
     // Added: (weconsultants@users) Needed to aggregate counts per table in jTree
-    protected int[] getRowCounts(ArrayList inTable, ArrayList inSchema) {
+    protected int[] getRowCounts(ArrayList inTable,
+                                 ArrayList inSchema) {
 
         if (!displayRowCounts) {
             return (null);
@@ -2589,21 +2562,22 @@ public class DatabaseManagerSwing extends JFrame
                 try {
                     String schemaPart = (String) inSchema.get(i);
 
-                    schemaPart = schemaPart == null
-                                 ? ""
-                                 : ("\"" + schemaPart + "\".\"");
-                    name       = schemaPart + inTable.get(i) + "\"";
+                    schemaPart = schemaPart == null ? ""
+                                                    : ("\"" + schemaPart
+                                                       + "\".\"");
+                    name = schemaPart + inTable.get(i) + "\"";
 
-                    ResultSet resultSet = select.executeQuery(
-                        rowCountSelect + name);
+                    ResultSet resultSet = select.executeQuery(rowCountSelect
+                        + name);
 
                     while (resultSet.next()) {
                         counts[i] = resultSet.getInt(1);
                     }
                 } catch (Exception e) {
-                    System.err.println(
-                        "Unable to get row count for table " + inSchema.get(i)
-                        + '.' + inTable.get(i) + ".  Using value '0': " + e);
+                    System.err.println("Unable to get row count for table "
+                                       + inSchema.get(i) + '.'
+                                       + inTable.get(i)
+                                       + ".  Using value '0': " + e);
                 }
             }
         } catch (Exception e) {
@@ -2623,41 +2597,39 @@ public class DatabaseManagerSwing extends JFrame
         // I'm dropping "Statement" from  "Execute SQL Statement", etc.,
         // because it may or may not be "one statement", but it is SQL.
         // Build jbuttonClear Buttons - blaine
-        jbuttonClear = new JButton(
-            "Clear SQL",
-            new ImageIcon(CommonSwing.getIcon("Clear")));
+        jbuttonClear =
+            new JButton("Clear SQL",
+                        new ImageIcon(CommonSwing.getIcon("Clear")));
 
         jbuttonClear.putClientProperty("is3DEnabled", Boolean.TRUE);
         tipMap.put(jbuttonClear, "Clear SQL");
-        jbuttonClear.addActionListener(
-            new ActionListener() {
+        jbuttonClear.addActionListener(new ActionListener() {
 
-                public void actionPerformed(ActionEvent actionevent) {
+            public void actionPerformed(ActionEvent actionevent) {
 
-                    if (sqlScriptBuffer == null
-                        && txtCommand.getText().isEmpty()) {
-                        CommonSwing.errorMessage("No SQL to clear");
+                if (sqlScriptBuffer == null
+                        && txtCommand.getText().length() < 1) {
+                    CommonSwing.errorMessage("No SQL to clear");
 
-                        return;
-                    }
-
-                    clear();
+                    return;
                 }
-            });
 
-        jbuttonExecute = new JButton(
-            "Execute SQL",
-            new ImageIcon(CommonSwing.getIcon("Execute")));
+                clear();
+            }
+        });
+
+        jbuttonExecute =
+            new JButton("Execute SQL",
+                        new ImageIcon(CommonSwing.getIcon("Execute")));
 
         tipMap.put(jbuttonExecute, "Execute SQL");
         jbuttonExecute.putClientProperty("is3DEnabled", Boolean.TRUE);
-        jbuttonExecute.addActionListener(
-            new ActionListener() {
+        jbuttonExecute.addActionListener(new ActionListener() {
 
-                public void actionPerformed(ActionEvent actionevent) {
-                    executeCurrentSQL();
-                }
-            });
+            public void actionPerformed(ActionEvent actionevent) {
+                executeCurrentSQL();
+            }
+        });
         jtoolbar.addSeparator();
         jtoolbar.add(jbuttonClear);
         jtoolbar.addSeparator();
@@ -2711,8 +2683,8 @@ public class DatabaseManagerSwing extends JFrame
 
     void resetTooltips() {
 
-        Iterator<AbstractButton> it = tipMap.keySet().iterator();
-        JComponent               component;
+        Iterator<AbstractButton>   it = tipMap.keySet().iterator();
+        JComponent component;
 
         while (it.hasNext()) {
             component = it.next();
@@ -2726,7 +2698,7 @@ public class DatabaseManagerSwing extends JFrame
     private void updateSchemaList() {
 
         ButtonGroup       group  = new ButtonGroup();
-        ArrayList<String> list   = new ArrayList<>();
+        ArrayList<String> list   = new ArrayList<String>();
         ResultSet         result = null;
 
         try {
@@ -2763,8 +2735,8 @@ public class DatabaseManagerSwing extends JFrame
 
             group.add(radioButton);
             mnuSchemas.add(radioButton);
-            radioButton.setSelected(
-                schemaFilter != null && schemaFilter.equals(s));
+            radioButton.setSelected(schemaFilter != null
+                                    && schemaFilter.equals(s));
             radioButton.addActionListener(schemaListListener);
             radioButton.setEnabled(list.size() > 1);
         }
@@ -2847,10 +2819,9 @@ public class DatabaseManagerSwing extends JFrame
                     props.load(fis);
                     fis.close();
                 } catch (IOException ioe) {
-                    throw new IOException(
-                        "Failed to read preferences file '" + prefsFile
-                        + "':  " + ioe.getMessage(),
-                        ioe);
+                    throw new IOException("Failed to read preferences file '"
+                                          + prefsFile + "':  "
+                                          + ioe.getMessage());
                 }
 
                 tmpString = props.getProperty("autoRefresh");
@@ -2884,9 +2855,8 @@ public class DatabaseManagerSwing extends JFrame
                 }
 
                 tmpString = props.getProperty("laf");
-                laf       = ((tmpString == null)
-                             ? CommonSwing.Native
-                             : tmpString);
+                laf       = ((tmpString == null) ? CommonSwing.Native
+                                                 : tmpString);
                 tmpString = props.getProperty("showTooltips");
 
                 if (tmpString != null) {
@@ -2928,8 +2898,8 @@ public class DatabaseManagerSwing extends JFrame
                 fos.close();
             } catch (IOException ioe) {
                 throw new RuntimeException(
-                    "Failed to prepare preferences file '" + prefsFile + "':  "
-                    + ioe.getMessage());
+                    "Failed to prepare preferences file '" + prefsFile
+                    + "':  " + ioe.getMessage());
             }
         }
     }
@@ -2937,9 +2907,8 @@ public class DatabaseManagerSwing extends JFrame
     private static void setLogToSystem(boolean value) {
 
         try {
-            PrintWriter newPrintWriter = (value)
-                                         ? new PrintWriter(System.out)
-                                         : null;
+            PrintWriter newPrintWriter = (value) ? new PrintWriter(System.out)
+                                                 : null;
 
             DriverManager.setLogWriter(newPrintWriter);
         } catch (Exception e) {}

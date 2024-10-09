@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ package org.hsqldb.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
 import java.util.ArrayList;
 
 /**
@@ -43,7 +42,7 @@ import java.util.ArrayList;
  *
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @since    HSQLDB 1.8.0
- * @version  $Revision: 6721 $, $Date: 2024-04-03 18:05:14 +0100 (Wed, 03 Apr 2024) $
+ * @version  $Revision: 6266 $, $Date: 2021-01-25 16:08:06 +0000 (Mon, 25 Jan 2021) $
  */
 public class MainInvoker {
 
@@ -84,27 +83,25 @@ public class MainInvoker {
 
         try {
             while (++curInArg < sa.length) {
-                if (sa[curInArg].isEmpty()) {
-                    if (outList.isEmpty()) {
+                if (sa[curInArg].length() < 1) {
+                    if (outList.size() < 1) {
                         syntaxFailure();
                     }
 
-                    invoke(
-                        (String) outList.remove(0),
-                        (String[]) outList.toArray(emptyStringArray));
+                    invoke((String) outList.remove(0),
+                           (String[]) outList.toArray(emptyStringArray));
                     outList.clear();
                 } else {
                     outList.add(sa[curInArg]);
                 }
             }
 
-            if (outList.isEmpty()) {
+            if (outList.size() < 1) {
                 syntaxFailure();
             }
 
-            invoke(
-                (String) outList.remove(0),
-                (String[]) outList.toArray(emptyStringArray));
+            invoke((String) outList.remove(0),
+                   (String[]) outList.toArray(emptyStringArray));
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
@@ -119,7 +116,6 @@ public class MainInvoker {
         + "    java org.hsqldb.util.MainInvoker --help\n\n"
         + "Note that you can only invoke classes in 'named' (non-default) "
         + "packages.  Delimit multiple classes with empty strings.";
-
     static {
         if (!LS.equals("\n")) {
             SYNTAX_MSG = SYNTAX_MSG.replaceAll("\n", LS);
@@ -128,28 +124,19 @@ public class MainInvoker {
 
     /**
      * Invokes the static main(String[]) method from each specified class.
-     *
-     * @param className String
-     * @param args String[]
-     * @throws ClassNotFoundException if not found
-     * @throws NoSuchMethodException if not found
-     * @throws IllegalAccessException on no access
-     * @throws InvocationTargetException on invocation failure
      */
-    public static void invoke(
-            String className,
-            String[] args)
-            throws ClassNotFoundException,
-                   NoSuchMethodException,
-                   IllegalAccessException,
-                   InvocationTargetException {
+    public static void invoke(String className,
+                              String[] args)
+                              throws ClassNotFoundException,
+                                     NoSuchMethodException,
+                                     IllegalAccessException,
+                                     InvocationTargetException {
 
         Class    c;
         Method   method;
         Class[]  stringArrayCA = { emptyStringArray.getClass() };
-        Object[] objectArray   = { (args == null)
-                                   ? emptyStringArray
-                                   : args };
+        Object[] objectArray   = { (args == null) ? emptyStringArray
+                                                  : args };
 
         c      = Class.forName(className);
         method = c.getMethod("main", stringArrayCA);

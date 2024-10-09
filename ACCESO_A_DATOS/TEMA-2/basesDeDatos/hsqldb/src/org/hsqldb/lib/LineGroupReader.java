@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ package org.hsqldb.lib;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -47,13 +46,14 @@ import org.hsqldb.map.ValuePool;
  * thrown while reading from the reader is handled internally.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.9.0
  */
 public class LineGroupReader {
 
-    private static final String[] defaultContinuations = new String[]{ " ",
-            "*" };
+    private static final String[] defaultContinuations = new String[] {
+        " ", "*"
+    };
     private static final String[] defaultIgnoredStarts = new String[]{ "--" };
     static final String LS = System.getProperty("line.separator", "\n");
 
@@ -72,8 +72,6 @@ public class LineGroupReader {
      * Default constructor for TestUtil usage.
      * Sections start at lines beginning with any non-space character.
      * SQL comment lines are ignored.
-     *
-     * @param reader LineNumberReader
      */
     public LineGroupReader(LineNumberReader reader) {
 
@@ -89,9 +87,6 @@ public class LineGroupReader {
 
     /**
      * Constructor for sections starting with specified strings.
-     *
-     * @param reader LineNumberReader
-     * @param sectionStarts String[]
      */
     public LineGroupReader(LineNumberReader reader, String[] sectionStarts) {
 
@@ -105,10 +100,10 @@ public class LineGroupReader {
         } catch (Exception e) {}
     }
 
-    public HsqlArrayList<String> getNextSection() {
+    public HsqlArrayList getNextSection() {
 
-        String                line;
-        HsqlArrayList<String> list = new HsqlArrayList<>(128);
+        String        line;
+        HsqlArrayList list = new HsqlArrayList(new String[128], 0);
 
         if (nextStartLine != null) {
             list.add(nextStartLine);
@@ -154,29 +149,25 @@ public class LineGroupReader {
     }
 
     public String getSectionAsString() {
-        HsqlArrayList<String> list = getNextSection();
-
+        HsqlArrayList list = getNextSection();
         return convertToString(list, 0);
     }
-
     /**
-     * Returns a map/list which contains the first line of each line group as
-     * key and the rest of the lines as a String value.
-     *
-     * @return OrderedHashMap
+     * Returns a map/list which contains the first line of each line group
+     * as key and the rest of the lines as a String value.
      */
-    public OrderedHashMap<String, String> getAsMap() {
+    public OrderedHashMap getAsMap() {
 
-        OrderedHashMap<String, String> map = new OrderedHashMap<>();
+        OrderedHashMap map = new OrderedHashMap();
 
         while (true) {
-            HsqlArrayList<String> list = getNextSection();
+            HsqlArrayList list = getNextSection();
 
-            if (list.isEmpty()) {
+            if (list.size() == 0) {
                 break;
             }
 
-            String key   = list.get(0);
+            String key   = (String) list.get(0);
             String value = LineGroupReader.convertToString(list, 1);
 
             map.put(key, value);
@@ -222,14 +213,13 @@ public class LineGroupReader {
     }
 
     public void close() {
+
         try {
             reader.close();
         } catch (Exception e) {}
     }
 
-    public static String convertToString(
-            HsqlArrayList<String> list,
-            int offset) {
+    public static String convertToString(HsqlArrayList list, int offset) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -240,14 +230,11 @@ public class LineGroupReader {
         return sb.toString();
     }
 
-    public static OrderedHashMap<String, String> getStatementMap(
-            final String path) {
+    public static OrderedHashMap getStatementMap(final String path) {
 
-        OrderedHashMap<String, String> statementMap;
-        String[]                       starters = new String[]{ "/*" };
-        LineGroupReader                lg       = getGroupReader(
-            path,
-            starters);
+        OrderedHashMap  statementMap;
+        String[]        starters = new String[]{ "/*" };
+        LineGroupReader lg       = getGroupReader(path, starters);
 
         statementMap = lg.getAsMap();
 
@@ -256,19 +243,17 @@ public class LineGroupReader {
         return statementMap;
     }
 
-    public static LineGroupReader getGroupReader(
-            final String path,
+    public static LineGroupReader getGroupReader(final String path,
             final String[] starters) {
 
-        InputStream fis = AccessController.doPrivileged(
-            new PrivilegedAction<InputStream>() {
+        InputStream fis =
+            AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
 
-                public InputStream run() {
-                    return getClass().getResourceAsStream(path);
-                }
-            });
-        InputStreamReader reader = new InputStreamReader(
-            fis,
+            public InputStream run() {
+                return getClass().getResourceAsStream(path);
+            }
+        });
+        InputStreamReader reader = new InputStreamReader(fis,
             JavaSystem.CS_ISO_8859_1);
         LineNumberReader lineReader = new LineNumberReader(reader);
 
@@ -278,4 +263,5 @@ public class LineGroupReader {
     public static LineGroupReader getGroupReader(final String path) {
         return getGroupReader(path, ValuePool.emptyStringArray);
     }
+
 }

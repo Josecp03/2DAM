@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,10 +41,10 @@ import org.hsqldb.error.ErrorCode;
  *
  * @author Bob Preston (sqlbob@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 2.2.6
  */
-public final class TextFileSettings {
+public class TextFileSettings {
 
     //state of Cache
     public static final String NL = System.getProperty("line.separator");
@@ -53,6 +53,7 @@ public final class TextFileSettings {
     public String              lvs;
     public String              qc;
     public char                quoteChar;
+    public String              stringEncoding;
     public boolean             isQuoted;
     public boolean             isAllQuoted;
     public boolean             isIgnoreFirst;
@@ -85,17 +86,15 @@ public final class TextFileSettings {
      *  The source string for a cached table is evaluated and the parameters
      *  are used to open the source file.<p>
      *
-     *  Settings are used in this order of precedence: (1) settings specified in the
+     *  Settings are used in this order: (1) settings specified in the
      *  source string for the table (2) global database settings
      *  (3) program defaults
      */
     TextFileSettings(HsqlDatabaseProperties dbProps, String settingsString) {
 
-        HsqlProperties tableprops = HsqlProperties.delimitedArgPairsToProps(
-            settingsString,
-            "=",
-            ";",
-            "textdb");
+        HsqlProperties tableprops =
+            HsqlProperties.delimitedArgPairsToProps(settingsString, "=", ";",
+                "textdb");
 
         switch (tableprops.errorCodes.length) {
 
@@ -138,7 +137,7 @@ public final class TextFileSettings {
         lvs = translateSep(lvs);
         qc  = translateSep(qc);
 
-        if (fs.isEmpty() || vs.isEmpty() || lvs.isEmpty()) {
+        if (fs.length() == 0 || vs.length() == 0 || lvs.length() == 0) {
             throw Error.error(ErrorCode.X_S0503);
         }
 
@@ -153,47 +152,50 @@ public final class TextFileSettings {
         }
 
         //-- get booleans
-        isIgnoreFirst = dbProps.isPropertyTrue(
-            HsqlDatabaseProperties.textdb_ignore_first);
+        isIgnoreFirst =
+            dbProps.isPropertyTrue(HsqlDatabaseProperties.textdb_ignore_first);
         isIgnoreFirst = tableprops.isPropertyTrue(
-            HsqlDatabaseProperties.textdb_ignore_first,
-            isIgnoreFirst);
-        isQuoted = dbProps.isPropertyTrue(HsqlDatabaseProperties.textdb_quoted);
-        isQuoted = tableprops.isPropertyTrue(
-            HsqlDatabaseProperties.textdb_quoted,
-            isQuoted);
-        isAllQuoted = dbProps.isPropertyTrue(
-            HsqlDatabaseProperties.textdb_all_quoted);
-        isAllQuoted = tableprops.isPropertyTrue(
-            HsqlDatabaseProperties.textdb_all_quoted,
-            isAllQuoted);
-        isNullDef = dbProps.isPropertyTrue(
-            HsqlDatabaseProperties.textdb_null_def);
-        isNullDef = tableprops.isPropertyTrue(
-            HsqlDatabaseProperties.textdb_null_def,
-            isNullDef);
-        charEncoding = dbProps.getStringProperty(
-            HsqlDatabaseProperties.textdb_encoding);
-        charEncoding = tableprops.getProperty(
-            HsqlDatabaseProperties.textdb_encoding,
-            charEncoding);
+            HsqlDatabaseProperties.textdb_ignore_first, isIgnoreFirst);
+        isQuoted =
+            dbProps.isPropertyTrue(HsqlDatabaseProperties.textdb_quoted);
+        isQuoted =
+            tableprops.isPropertyTrue(HsqlDatabaseProperties.textdb_quoted,
+                                      isQuoted);
+        isAllQuoted =
+            dbProps.isPropertyTrue(HsqlDatabaseProperties.textdb_all_quoted);
+        isAllQuoted =
+            tableprops.isPropertyTrue(HsqlDatabaseProperties.textdb_all_quoted,
+                                      isAllQuoted);
+        isNullDef =
+            dbProps.isPropertyTrue(HsqlDatabaseProperties.textdb_null_def);
+        isNullDef =
+            tableprops.isPropertyTrue(HsqlDatabaseProperties.textdb_null_def,
+                                      isNullDef);
+
+        //-- get string
+        stringEncoding =
+            dbProps.getStringProperty(HsqlDatabaseProperties.textdb_encoding);
+        stringEncoding =
+            tableprops.getProperty(HsqlDatabaseProperties.textdb_encoding,
+                                   stringEncoding);
+        charEncoding = stringEncoding;
 
         // UTF-8 files can begin with BOM 3-byte sequence
         // UTF-16 files can begin with BOM 2-byte sequence for big-endian
         // UTF-16BE files (big-endian) have no BOM
         // UTF-16LE files (little-endian) have no BOM
-        if ("UTF8".equals(charEncoding)) {
+        if ("UTF8".equals(stringEncoding)) {
             isUTF8 = true;
-        } else if ("UTF-8".equals(charEncoding)) {
+        } else if ("UTF-8".equals(stringEncoding)) {
             isUTF8 = true;
-        } else if ("UTF-16".equals(charEncoding)) {
+        } else if ("UTF-16".equals(stringEncoding)) {
 
             // avoid repeating the BOM in each encoded string
             charEncoding = "UTF-16BE";
             isUTF16      = true;
-        } else if ("UTF-16BE".equals(charEncoding)) {
+        } else if ("UTF-16BE".equals(stringEncoding)) {
             isUTF16 = true;
-        } else if ("UTF-16LE".equals(charEncoding)) {
+        } else if ("UTF-16LE".equals(stringEncoding)) {
             isUTF16        = true;
             isLittleEndian = true;
         }
@@ -210,24 +212,20 @@ public final class TextFileSettings {
             HsqlDatabaseProperties.textdb_cache_scale);
 
         cacheScale = tableprops.getIntegerProperty(
-            HsqlDatabaseProperties.textdb_cache_scale,
-            cacheScale);
+            HsqlDatabaseProperties.textdb_cache_scale, cacheScale);
 
         int cacheSizeScale = dbProps.getIntegerProperty(
             HsqlDatabaseProperties.textdb_cache_size_scale);
 
         cacheSizeScale = tableprops.getIntegerProperty(
-            HsqlDatabaseProperties.textdb_cache_size_scale,
-            cacheSizeScale);
+            HsqlDatabaseProperties.textdb_cache_size_scale, cacheSizeScale);
 
 //
-        maxCacheRows  = (1 << cacheScale) * 3;
+        maxCacheRows = (1 << cacheScale) * 3;
         maxCacheRows = dbProps.getIntegerProperty(
-            HsqlDatabaseProperties.textdb_cache_rows,
-            maxCacheRows);
+            HsqlDatabaseProperties.textdb_cache_rows, maxCacheRows);
         maxCacheRows = tableprops.getIntegerProperty(
-            HsqlDatabaseProperties.textdb_cache_rows,
-            maxCacheRows);
+            HsqlDatabaseProperties.textdb_cache_rows, maxCacheRows);
         maxCacheBytes = ((1 << cacheSizeScale) * maxCacheRows) / 1024;
 
         if (maxCacheBytes < 4) {
@@ -235,11 +233,9 @@ public final class TextFileSettings {
         }
 
         maxCacheBytes = dbProps.getIntegerProperty(
-            HsqlDatabaseProperties.textdb_cache_size,
-            maxCacheBytes);
+            HsqlDatabaseProperties.textdb_cache_size, maxCacheBytes);
         maxCacheBytes = tableprops.getIntegerProperty(
-            HsqlDatabaseProperties.textdb_cache_size,
-            maxCacheBytes);
+            HsqlDatabaseProperties.textdb_cache_size, maxCacheBytes);
         maxCacheBytes *= 1024;
     }
 
@@ -260,7 +256,7 @@ public final class TextFileSettings {
      */
     void setLittleEndianByteOrderMark() {
 
-        if (charEncoding.startsWith("UTF-16")) {
+        if ("UTF-16".equals(stringEncoding)) {
             charEncoding   = "UTF-16LE";
             isLittleEndian = true;
             hasUTF16BOM    = true;
@@ -273,7 +269,7 @@ public final class TextFileSettings {
         }
     }
 
-    private void setSpaceAndLineEnd() {
+    void setSpaceAndLineEnd() {
 
         try {
             if (isUTF16) {
@@ -281,7 +277,7 @@ public final class TextFileSettings {
                 bytesForSpace   = " ".getBytes(charEncoding);
             }
         } catch (UnsupportedEncodingException e) {
-            throw Error.error(ErrorCode.X_S0531, e);
+            throw Error.error(ErrorCode.X_S0531);
         }
     }
 
@@ -315,6 +311,7 @@ public final class TextFileSettings {
 
                 if (next >= len) {
                     sb.append(BACKSLASH_CHAR);
+
                     break;
                 }
 
@@ -341,9 +338,9 @@ public final class TextFileSettings {
                 } else if (ch == 'u') {
                     start++;
 
-                    String digits = sep.substring(start, start + 4);
-
-                    sb.append((char) Integer.parseInt(digits, 16));
+                    sb.append(
+                        (char) Integer.parseInt(
+                            sep.substring(start, start + 4), 16));
 
                     start += 4;
                 } else if (sep.startsWith("semi", next)) {

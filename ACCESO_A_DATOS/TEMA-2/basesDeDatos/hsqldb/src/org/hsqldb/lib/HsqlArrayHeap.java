@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,15 +39,15 @@ import java.util.Comparator;
  * is non-blocking, dynamically resizing and thread-safe.
  *
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.7.2
  */
 public class HsqlArrayHeap<E> implements HsqlHeap<E> {
 
 // --------------------------------- members -----------------------------------
-    protected Comparator<E> oc;
-    protected int           count;
-    protected Object[]      heap;
+    protected Comparator oc;
+    protected int        count;
+    protected Object[]   heap;
 
 // ------------------------------ constructors ---------------------------------
 
@@ -60,10 +60,9 @@ public class HsqlArrayHeap<E> implements HsqlHeap<E> {
      * @param capacity int
      * @param comparator Comparator
      */
-    public HsqlArrayHeap(
-            int capacity,
-            Comparator<E> comparator)
-            throws IllegalArgumentException {
+    public HsqlArrayHeap(int capacity,
+                         Comparator<E> comparator)
+                         throws IllegalArgumentException {
 
         if (capacity <= 0) {
             throw new IllegalArgumentException("" + capacity);
@@ -123,7 +122,7 @@ public class HsqlArrayHeap<E> implements HsqlHeap<E> {
             pi = (ci - 1) >>> 1;
 
             try {
-                if (oc.compare(o, (E) heap[pi]) >= 0) {
+                if (oc.compare(o, heap[pi]) >= 0) {
                     break;
                 }
             } catch (Exception e) {
@@ -155,12 +154,12 @@ public class HsqlArrayHeap<E> implements HsqlHeap<E> {
 
     public synchronized E remove() {
 
-        int ci;     // current index
-        int li;     // left index
-        int ri;     // right index
-        int chi;    // child index
-        E   co;
-        E   ro;
+        int    ci;     // current index
+        int    li;     // left index
+        int    ri;     // right index
+        int    chi;    // child index
+        E co;
+        E ro;
 
         if (count == 0) {
             return null;
@@ -188,11 +187,10 @@ public class HsqlArrayHeap<E> implements HsqlHeap<E> {
             }
 
             ri  = (ci << 1) + 2;
-            chi = (ri >= count || oc.compare((E) heap[li], (E) heap[ri]) < 0)
-                  ? li
-                  : ri;
+            chi = (ri >= count || oc.compare(heap[li], heap[ri]) < 0) ? li
+                                                                      : ri;
 
-            if (oc.compare(co, (E) heap[chi]) <= 0) {
+            if (oc.compare(co, heap[chi]) <= 0) {
                 break;
             }
 
@@ -286,11 +284,11 @@ public class HsqlArrayHeap<E> implements HsqlHeap<E> {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(super.toString())
-          .append(" : size=")
-          .append(count)
-          .append(' ')
-          .append('[');
+        sb.append(super.toString());
+        sb.append(" : size=");
+        sb.append(count);
+        sb.append(' ');
+        sb.append('[');
 
         for (int i = 0; i < count; i++) {
             sb.append(heap[i]);

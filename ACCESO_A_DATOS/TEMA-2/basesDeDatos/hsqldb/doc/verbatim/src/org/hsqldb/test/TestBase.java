@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@ import junit.framework.TestResult;
  *
  * When running against the Servlet: This assumes you have a WebApplication called HSQLwebApp running in for example Tomcat, with hsqldb.jar
  * (or better hsqldbtest.jar renamed to hsqldb.jar) in the WEB-INF/lib directory and web.xml containing something like this:<p>
+ *      <code>
  * {@literal
  *    <servlet>
  *      <servlet-name>test</servlet-name>
@@ -67,7 +68,7 @@ import junit.framework.TestResult;
  *      <servlet-name>test</servlet-name>
  *      <url-pattern>/test</url-pattern>
  *    </servlet-mapping>
- * }
+ * }</code>
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
  * @version 2.6.0
  * @since 1.7.2
@@ -126,10 +127,6 @@ public abstract class TestBase extends TestCase {
                            + getName() + "   ******");
 
         if (isNetwork) {
-            if (server != null) {
-                return;
-            }
-
             if (!isServlet) {
                 server = isHTTP ? new WebServer()
                                 : new Server();

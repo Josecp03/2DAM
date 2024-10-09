@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,23 +47,19 @@ import org.hsqldb.types.Types;
  * Implementation of aggregate operations
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public class ExpressionAggregate extends Expression {
-
-    Expression condition = Expression.EXPR_TRUE;
 
     ExpressionAggregate(int type, boolean distinct, Expression e) {
 
         super(type);
 
-        nodes               = new Expression[]{ e };
+        nodes               = new Expression[BINARY];
         isDistinctAggregate = distinct;
-
-        if (!OpTypes.aggregateFunctionSet.contains(opType)) {
-            throw Error.runtimeError(ErrorCode.U_S0500, "ExpressionAggregate");
-        }
+        nodes[LEFT]         = e;
+        nodes[RIGHT]        = Expression.EXPR_TRUE;
     }
 
     public boolean isSelfAggregate() {
@@ -73,128 +69,69 @@ public class ExpressionAggregate extends Expression {
     public String getSQL() {
 
         StringBuilder sb   = new StringBuilder(64);
-        String        left = getContextSQL(nodes.length > 0
-                                           ? nodes[LEFT]
-                                           : null);
+        String        left = getContextSQL(nodes.length > 0 ? nodes[LEFT]
+                                                            : null);
 
         switch (opType) {
 
-            case OpTypes.ANY_VALUE :
-                sb.append(' ')
-                  .append(Tokens.T_ANY_VALUE)
-                  .append('(')
-                  .append(left)
-                  .append(')');
-                break;
-
             case OpTypes.COUNT :
-                sb.append(' ')
-                  .append(Tokens.T_COUNT)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_COUNT).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.SUM :
-                sb.append(' ')
-                  .append(Tokens.T_SUM)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_SUM).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.MIN :
-                sb.append(' ')
-                  .append(Tokens.T_MIN)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_MIN).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.MAX :
-                sb.append(' ')
-                  .append(Tokens.T_MAX)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_MAX).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.AVG :
-                sb.append(' ')
-                  .append(Tokens.T_AVG)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_AVG).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.EVERY :
-                sb.append(' ')
-                  .append(Tokens.T_EVERY)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_EVERY).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.SOME :
-                sb.append(' ')
-                  .append(Tokens.T_SOME)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_SOME).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.STDDEV_POP :
-                sb.append(' ')
-                  .append(Tokens.T_STDDEV_POP)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_STDDEV_POP).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.STDDEV_SAMP :
-                sb.append(' ')
-                  .append(Tokens.T_STDDEV_SAMP)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_STDDEV_SAMP).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.VAR_POP :
-                sb.append(' ')
-                  .append(Tokens.T_VAR_POP)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_VAR_POP).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.VAR_SAMP :
-                sb.append(' ')
-                  .append(Tokens.T_VAR_SAMP)
-                  .append('(')
-                  .append(left)
-                  .append(')');
-                break;
-
-            case OpTypes.STDDEV :
-                sb.append(' ')
-                  .append(Tokens.T_STDDEV)
-                  .append('(')
-                  .append(left)
-                  .append(')');
-                break;
-
-            case OpTypes.VARIANCE :
-                sb.append(' ')
-                  .append(Tokens.T_VARIANCE)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_VAR_SAMP).append('(');
+                sb.append(left).append(')');
                 break;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionAggregate");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionAggregate");
         }
 
         return sb.toString();
@@ -211,10 +148,6 @@ public class ExpressionAggregate extends Expression {
         }
 
         switch (opType) {
-
-            case OpTypes.ANY_VALUE :
-                sb.append(Tokens.T_ANY_VALUE).append(' ');
-                break;
 
             case OpTypes.COUNT :
                 sb.append(Tokens.T_COUNT).append(' ');
@@ -260,14 +193,6 @@ public class ExpressionAggregate extends Expression {
                 sb.append(Tokens.T_VAR_SAMP).append(' ');
                 break;
 
-            case OpTypes.STDDEV :
-                sb.append(Tokens.T_STDDEV).append(' ');
-                break;
-
-            case OpTypes.VARIANCE :
-                sb.append(Tokens.T_VARIANCE).append(' ');
-                break;
-
             default :
         }
 
@@ -280,26 +205,19 @@ public class ExpressionAggregate extends Expression {
         return sb.toString();
     }
 
-    public List<Expression> resolveColumnReferences(
-            Session session,
-            RangeGroup rangeGroup,
-            int rangeCount,
-            RangeGroup[] rangeGroups,
-            List<Expression> unresolvedSet,
-            boolean acceptsSequences) {
+    public List resolveColumnReferences(Session session,
+            RangeGroup rangeGroup, int rangeCount, RangeGroup[] rangeGroups,
+            List unresolvedSet, boolean acceptsSequences) {
 
-        List<Expression> conditionSet = condition.resolveColumnReferences(
-            session,
-            rangeGroup,
-            rangeCount,
-            rangeGroups,
-            null,
-            false);
+        List conditionSet = nodes[RIGHT].resolveColumnReferences(session,
+            rangeGroup, rangeCount, rangeGroups, null, false);
 
-        ExpressionColumn.checkColumnsResolved(conditionSet);
+        if (conditionSet != null) {
+            ExpressionColumn.checkColumnsResolved(conditionSet);
+        }
 
         if (unresolvedSet == null) {
-            unresolvedSet = new ArrayListIdentity<>();
+            unresolvedSet = new ArrayListIdentity();
         }
 
         unresolvedSet.add(this);
@@ -378,10 +296,8 @@ public class ExpressionAggregate extends Expression {
                         int digits =
                             ((NumberType) dataType).getDecimalPrecision();
 
-                        return NumberType.getNumberType(
-                            Types.SQL_DECIMAL,
-                            digits + scale,
-                            scale);
+                        return NumberType.getNumberType(Types.SQL_DECIMAL,
+                                                        digits + scale, scale);
 
                     case Types.SQL_REAL :
                     case Types.SQL_FLOAT :
@@ -399,7 +315,6 @@ public class ExpressionAggregate extends Expression {
                         throw Error.error(ErrorCode.X_42563);
                 }
             }
-
             case OpTypes.SUM : {
                 switch (typeCode) {
 
@@ -418,26 +333,20 @@ public class ExpressionAggregate extends Expression {
 
                     case Types.SQL_NUMERIC :
                     case Types.SQL_DECIMAL :
-                        return Type.getType(
-                            dataType.typeCode,
-                            null,
-                            null,
-                            dataType.precision * 2,
-                            dataType.scale);
+                        return Type.getType(dataType.typeCode, null, null,
+                                            dataType.precision * 2,
+                                            dataType.scale);
 
                     case Types.SQL_INTERVAL_MONTH :
                     case Types.SQL_INTERVAL_SECOND :
                         return IntervalType.newIntervalType(
-                            dataType.typeCode,
-                            DTIType.maxIntervalPrecision,
+                            dataType.typeCode, DTIType.maxIntervalPrecision,
                             dataType.scale);
 
                     default :
                         throw Error.error(ErrorCode.X_42563);
                 }
             }
-
-            case OpTypes.ANY_VALUE :
             case OpTypes.MIN :
             case OpTypes.MAX :
                 if (dataType.isArrayType() || dataType.isLobType()) {
@@ -451,28 +360,23 @@ public class ExpressionAggregate extends Expression {
                 if (dataType.isBooleanType()) {
                     return Type.SQL_BOOLEAN;
                 }
-
                 break;
 
-            case OpTypes.STDDEV :
             case OpTypes.STDDEV_POP :
             case OpTypes.STDDEV_SAMP :
-            case OpTypes.VARIANCE :
             case OpTypes.VAR_POP :
             case OpTypes.VAR_SAMP :
                 if (dataType.isNumberType()) {
                     return Type.SQL_DOUBLE;
                 }
-
                 break;
 
             case OpTypes.USER_AGGREGATE :
                 return dataType;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionAggregate");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionAggregate");
         }
 
         throw Error.error(ErrorCode.X_42563);
@@ -482,8 +386,7 @@ public class ExpressionAggregate extends Expression {
 
         if (other instanceof ExpressionAggregate) {
             ExpressionAggregate o = (ExpressionAggregate) other;
-            boolean result = super.equals(o)
-                             && condition.equals(o.condition)
+            boolean result = super.equals(other)
                              && isDistinctAggregate == o.isDistinctAggregate;
 
             return result;
@@ -492,11 +395,10 @@ public class ExpressionAggregate extends Expression {
         return false;
     }
 
-    public SetFunction updateAggregatingValue(
-            Session session,
+    public SetFunction updateAggregatingValue(Session session,
             SetFunction currValue) {
 
-        if (!condition.testCondition(session)) {
+        if (!nodes[RIGHT].testCondition(session)) {
             return currValue;
         }
 
@@ -513,10 +415,8 @@ public class ExpressionAggregate extends Expression {
         return currValue;
     }
 
-    public SetFunction updateAggregatingValue(
-            Session session,
-            SetFunction currValue,
-            SetFunction value) {
+    public SetFunction updateAggregatingValue(Session session,
+                                              SetFunction currValue, SetFunction value) {
 
         if (currValue == null) {
             currValue = getSetFunction(session);
@@ -529,12 +429,9 @@ public class ExpressionAggregate extends Expression {
 
     SetFunction getSetFunction(Session session) {
 
-        return new SetFunctionValueAggregate(
-            session,
-            opType,
-            nodes[LEFT].dataType,
-            dataType,
-            isDistinctAggregate);
+        return new SetFunctionValueAggregate(session, opType,
+                                             nodes[LEFT].dataType, dataType,
+                                             isDistinctAggregate);
     }
 
     /**
@@ -547,23 +444,22 @@ public class ExpressionAggregate extends Expression {
     public Object getAggregatedValue(Session session, SetFunction currValue) {
 
         if (currValue == null) {
-            return opType == OpTypes.COUNT
-                   ? Long.valueOf(0)
-                   : null;
+            return opType == OpTypes.COUNT ? Long.valueOf(0)
+                                           : null;
         }
 
         return currValue.getValue();
     }
 
     public Expression getCondition() {
-        return condition;
+        return nodes[RIGHT];
     }
 
     public boolean hasCondition() {
-        return !condition.isTrue();
+        return !nodes[RIGHT].isTrue();
     }
 
     public void setCondition(Expression e) {
-        condition = e;
+        nodes[RIGHT] = e;
     }
 }

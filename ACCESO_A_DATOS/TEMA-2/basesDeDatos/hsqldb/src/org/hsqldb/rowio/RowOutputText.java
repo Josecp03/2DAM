@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 package org.hsqldb.rowio;
 
 import java.io.UnsupportedEncodingException;
-
 import java.math.BigDecimal;
 
 import org.hsqldb.Row;
@@ -71,6 +70,7 @@ public class RowOutputText extends RowOutputBase {
     protected TextFileSettings textFileSettings;
 
     public RowOutputText(TextFileSettings textFileSettings) {
+
         super();
 
         initTextDatabaseRowOutput(textFileSettings);
@@ -288,14 +288,17 @@ public class RowOutputText extends RowOutputBase {
 
             case Types.SQL_CHAR :
                 writeString(s);
+
                 break;
 
             case Types.SQL_VARCHAR :
                 writeVarString(s);
+
                 break;
 
             default :
                 writeLongVarString(s);
+
                 break;
         }
     }
@@ -345,6 +348,7 @@ public class RowOutputText extends RowOutputBase {
     }
 
     protected void writeOther(JavaObjectData o) {
+
         byte[] ba = o.getBytes();
 
         writeByteArray(ba);
@@ -352,14 +356,14 @@ public class RowOutputText extends RowOutputBase {
 
     protected void writeBit(BinaryData o) {
 
-        String s = StringConverter.byteArrayToBitString(
-            o.getBytes(),
+        String s = StringConverter.byteArrayToBitString(o.getBytes(),
             (int) o.bitLength(null));
 
         writeString(s);
     }
 
     protected void writeUUID(BinaryData o) {
+
         String s = StringConverter.toStringUUID(o.getBytes());
 
         writeString(s);

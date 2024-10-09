@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,21 +39,20 @@ import org.hsqldb.rights.Grantee;
  * Implementation of SQL period metadata.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 2.5.0
  */
 public class PeriodDefinition implements SchemaObject {
 
-    final HsqlName         periodName;
-    final int              periodType;
-    ColumnSchema           startColumn;
-    ColumnSchema           endColumn;
-    OrderedHashSet<String> columnNames;
+    final HsqlName periodName;
+    final int      periodType;
+    ColumnSchema   startColumn;
+    ColumnSchema   endColumn;
+    OrderedHashSet columnNames;
 
-    PeriodDefinition(
-            HsqlName periodName,
-            int periodType,
-            OrderedHashSet<String> columnNames) {
+    PeriodDefinition(HsqlName periodName, int periodType,
+                     OrderedHashSet columnNames) {
+
         this.periodName  = periodName;
         this.periodType  = periodType;
         this.columnNames = columnNames;
@@ -90,6 +89,16 @@ public class PeriodDefinition implements SchemaObject {
     public Grantee getOwner() {
         return periodName.schema.owner;
     }
+
+    public OrderedHashSet getReferences() {
+        return null;
+    }
+
+    public OrderedHashSet getComponents() {
+        return null;
+    }
+
+    public void compile(Session session, SchemaObject parentObject) {}
 
     public String getSQL() {
         return "";

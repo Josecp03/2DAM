@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,34 +32,35 @@
 package org.hsqldb.lib.java;
 
 import java.io.IOException;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
+import java.math.BigDecimal;
 import java.nio.MappedByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Handles invariants, runtime and methods
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.1
  */
 public final class JavaSystem {
 
-    public static final Charset CS_ISO_8859_1 = StandardCharsets.ISO_8859_1;
-    public static final Charset CS_US_ASCII   = StandardCharsets.US_ASCII;
-    public static final Charset CS_UTF8       = StandardCharsets.UTF_8;
+    public static final Charset CS_ISO_8859_1 = Charset.forName("ISO-8859-1");
+    public static final Charset CS_US_ASCII   = Charset.forName("US-ASCII");
+    public static final Charset CS_UTF8       = Charset.forName("UTF-8");
     private static int          javaVersion;
 
     static {
         try {
-            String version = System.getProperty("java.version", "6");
+            String version = System.getProperty("java.specification.version",
+                                                "6");
 
             if (version.startsWith("1.")) {
                 version = version.substring(2);
+            } else if (version.startsWith("0.")) {
+                version = "6";
             }
 
             javaVersion = Integer.parseInt(version);
@@ -80,8 +81,8 @@ public final class JavaSystem {
     }
 
     public static long usedMemory() {
-        return Runtime.getRuntime()
-                      .totalMemory() - Runtime.getRuntime().freeMemory();
+        return Runtime.getRuntime().totalMemory()
+               - Runtime.getRuntime().freeMemory();
     }
 
     public static Throwable unmap(MappedByteBuffer buffer) {
@@ -93,14 +94,12 @@ public final class JavaSystem {
         if (javaVersion > 8) {
             try {
                 Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
-                Field    unsafeField = unsafeClass.getDeclaredField(
-                    "theUnsafe");
+                Field unsafeField = unsafeClass.getDeclaredField("theUnsafe");
 
                 unsafeField.setAccessible(true);
 
                 Object unsafe = unsafeField.get(null);
-                Method invokeCleaner = unsafeClass.getMethod(
-                    "invokeCleaner",
+                Method invokeCleaner = unsafeClass.getMethod("invokeCleaner",
                     java.nio.ByteBuffer.class);
 
                 invokeCleaner.invoke(unsafe, buffer);
@@ -129,7 +128,6 @@ public final class JavaSystem {
             Method cleanMethod = cleaner.getClass().getMethod("clean");
 
             cleanMethod.invoke(cleaner);
-
             return null;
         } catch (NoSuchMethodException e) {}
         catch (IllegalAccessException e) {}
@@ -147,8 +145,8 @@ public final class JavaSystem {
             Method freeMethod = buffer.getClass().getMethod("free");
 
             freeMethod.setAccessible(true);
-            freeMethod.invoke(buffer);
 
+            freeMethod.invoke(buffer);
             return null;
         } catch (Throwable t) {
             return t;

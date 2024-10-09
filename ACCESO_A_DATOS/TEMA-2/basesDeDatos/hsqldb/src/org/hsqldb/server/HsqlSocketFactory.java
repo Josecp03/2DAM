@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ package org.hsqldb.server;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -72,9 +71,8 @@ public class HsqlSocketFactory {
      * @return a new factory
      */
     public static HsqlSocketFactory getInstance(boolean tls) throws Exception {
-        return tls
-               ? getSSLImpl()
-               : getPlainImpl();
+        return tls ? getSSLImpl()
+                   : getPlainImpl();
     }
 
 // -------------------------- public instance methods --------------------------
@@ -97,18 +95,16 @@ public class HsqlSocketFactory {
     }
 
     /**
-     * Returns a server socket bound to the specified port. The socket is
-     * configured with the socket options given to this factory.
+     * Returns a server socket bound to the specified port.
+     * The socket is configured with the socket options
+     * given to this factory.
      *
      * @return the ServerSocket
      * @param port the port to which to bind the ServerSocket
-     * @param address String
      * @throws Exception if a network error occurs
      */
-    public ServerSocket createServerSocket(
-            int port,
-            String address)
-            throws Exception {
+    public ServerSocket createServerSocket(int port,
+                                           String address) throws Exception {
         return new ServerSocket(port, 128, InetAddress.getByName(address));
     }
 
@@ -124,14 +120,10 @@ public class HsqlSocketFactory {
      * @param port the server port
      * @throws Exception if a network error occurs
      */
-    public Socket createSocket(
-            Socket socket,
-            String host,
-            int port)
-            throws Exception {
-        return socket == null
-               ? new Socket(host, port)
-               : socket;
+    public Socket createSocket(Socket socket, String host,
+                               int port) throws Exception {
+        return socket == null ? new Socket(host, port)
+                              : socket;
     }
 
     /**
@@ -158,7 +150,7 @@ public class HsqlSocketFactory {
     }
 
 // ------------------------ static utility methods -----------------------------
-    private static HsqlSocketFactory getPlainImpl() {
+    private static HsqlSocketFactory getPlainImpl() throws Exception {
 
         synchronized (HsqlSocketFactory.class) {
             if (plainImpl == null) {
@@ -173,8 +165,8 @@ public class HsqlSocketFactory {
 
         synchronized (HsqlSocketFactory.class) {
             if (sslImpl == null) {
-                sslImpl = newFactory(
-                    "org.hsqldb.server.HsqlSocketFactorySecure");
+                sslImpl =
+                    newFactory("org.hsqldb.server.HsqlSocketFactorySecure");
             }
         }
 
@@ -196,9 +188,8 @@ public class HsqlSocketFactory {
      * @throws Exception if a new secure socket factory cannot
      *      be constructed
      */
-    private static HsqlSocketFactory newFactory(
-            String implClass)
-            throws Exception {
+    private static HsqlSocketFactory newFactory(String implClass)
+    throws Exception {
 
         Class       clazz;
         Constructor ctor;
@@ -218,9 +209,9 @@ public class HsqlSocketFactory {
         } catch (InvocationTargetException e) {
             Throwable t = e.getTargetException();
 
-            throw(t instanceof Exception)
-                 ? ((Exception) t)
-                 : new RuntimeException(t.toString());
+            throw (t instanceof Exception) ? ((Exception) t)
+                                           : new RuntimeException(
+                                               t.toString());
         }
 
         return (HsqlSocketFactory) factory;

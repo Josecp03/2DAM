@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
 
 package org.hsqldb;
 
-import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.OrderedHashSet;
@@ -42,7 +41,7 @@ import org.hsqldb.result.Result;
  * Implementation of Statement for condition handler objects.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.3.3
  * @since 1.9.0
  */
 public class StatementHandler extends Statement {
@@ -62,15 +61,16 @@ public class StatementHandler extends Statement {
     public final int handlerType;
 
     //
-    private OrderedIntHashSet      conditionGroups = new OrderedIntHashSet();
-    private OrderedHashSet<String> conditionStates = new OrderedHashSet<>();
-    private Statement              statement;
+    private OrderedIntHashSet conditionGroups = new OrderedIntHashSet();
+    private OrderedHashSet    conditionStates = new OrderedHashSet();
+    private Statement         statement;
 
     //
     public static final StatementHandler[] emptyExceptionHandlerArray =
         new StatementHandler[]{};
 
     StatementHandler(int handlerType) {
+
         super(StatementTypes.HANDLER, StatementTypes.X_SQL_CONTROL);
 
         this.handlerType = handlerType;
@@ -165,10 +165,10 @@ public class StatementHandler extends Statement {
         return "";
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
 
         if (statement == null) {
-            return new OrderedHashSet<>();
+            return new OrderedHashSet();
         }
 
         return statement.getReferences();
@@ -179,31 +179,21 @@ public class StatementHandler extends Statement {
         StringBuilder sb = new StringBuilder(64);
         String        s;
 
-        s = handlerType == CONTINUE
-            ? Tokens.T_CONTINUE
-            : handlerType == EXIT
-              ? Tokens.T_EXIT
-              : Tokens.T_UNDO;
+        s = handlerType == CONTINUE ? Tokens.T_CONTINUE
+                                    : handlerType == EXIT ? Tokens.T_EXIT
+                                                          : Tokens.T_UNDO;
 
-        sb.append(Tokens.T_DECLARE)
-          .append(' ')
-          .append(s)
-          .append(' ')
-          .append(Tokens.T_HANDLER)
-          .append(' ')
-          .append(Tokens.T_FOR)
-          .append(' ');
+        sb.append(Tokens.T_DECLARE).append(' ').append(s).append(' ');
+        sb.append(Tokens.T_HANDLER).append(' ').append(Tokens.T_FOR);
+        sb.append(' ');
 
         for (int i = 0; i < conditionStates.size(); i++) {
             if (i > 0) {
                 sb.append(',');
             }
 
-            sb.append(Tokens.T_SQLSTATE)
-              .append(' ')
-              .append('\'')
-              .append(conditionStates.get(i))
-              .append('\'');
+            sb.append(Tokens.T_SQLSTATE).append(' ');
+            sb.append('\'').append(conditionStates.get(i)).append('\'');
         }
 
         for (int i = 0; i < conditionGroups.size(); i++) {

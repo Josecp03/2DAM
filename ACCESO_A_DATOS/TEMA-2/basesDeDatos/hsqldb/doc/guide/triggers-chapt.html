@@ -48,8 +48,8 @@
 </div>
 <div>
 <div class="legalnotice">
-<a name="N14DF8"></a>
-<p>Copyright 2010-2024 Fred Toussi. Permission is granted to
+<a name="N14AFF"></a>
+<p>Copyright 2010-2021 Fred Toussi. Permission is granted to
       distribute this document without any alteration under the terms of the
       HSQLDB license. Additional permission is granted to the HSQL Development
       Group to distribute this document with or without alterations under the
@@ -57,7 +57,7 @@
 </div>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -155,7 +155,7 @@
     defined. HyperSQL supports an extension to the CREATE TRIGGER statement,
     which allows the user to specify the execution order of the new
     trigger.</p>
-<p>A row-level trigger allows access to the deleted or inserted
+<p>A row level trigger allows access to the deleted or inserted
     rows. For UPDATE actions there is both an old and new version of each row.
     A trigger can be specified to activate before or after the action has been
     performed.</p>
@@ -171,7 +171,7 @@
 <p>A trigger that is declared as BEFORE DELETE cannot modify the
       deleted row. In other words, it cannot decide to delete a different row
       by changing the column values of the row. A trigger that is declared as
-      BEFORE INSERT or BEFORE UPDATE can modify the values that are inserted
+      BEFORE INSERT and BEFORE UPDATE can modify the values that are inserted
       into the database. For example, a badly formatted string can be cleaned
       up by a trigger before INSERT or UPDATE.</p>
 <p>BEFORE triggers cannot modify the other tables of the database.
@@ -250,10 +250,9 @@
       being modified satisfy certain conditions.</p>
 <p>An UPDATE trigger can be declared to execute only when certain
       columns are the subject of an update statement. For example, a trigger
-      declared as <code class="literal">AFTER UPDATE OF (datecolumn)</code> will
-      activate only when the UPDATE statement that is executed includes the
-      column, datecolumn, as one of the columns specified in its SET
-      statements.</p>
+      declared as AFTER UPDATE OF (datecolumn) will activate only when the
+      UPDATE statement that is executed includes the column, datecolumn, as
+      one of the columns specified in its SET statements.</p>
 </div>
 <div class="section">
 <div class="titlepage">
@@ -353,7 +352,7 @@
       activated. This is usually written as one or more SQL statements.</p>
 <p>When a row level trigger is activated, there is an OLD ROW, or a
       NEW ROW, or both. An INSERT statement supplies a NEW ROW row to be
-      inserted into a table. A DELETE statement supplies an OLD ROW to be
+      inserted into a table. A DELETE statement supplies an OLD ROW be
       deleted. An UPDATE statement supplies both OLD ROW and NEW ROW that
       represent the updated rows before and after the update. The REFERENCING
       clause gives names to these rows, so that the rows can be referenced in
@@ -397,29 +396,24 @@
 </div>
 <p>A trigger action can be written as a Java class that implements
       the <code class="classname">org.hsqldb.trigger.Trigger</code> interface. This
-      interface has a fire method which is called when the trigger is
+      interface has a single method which is called when the trigger is
       activated, either before or after the event. When the method is called
       by the engine, it supplies the type of trigger as an int value defined
-      by the interface(as type argument), the name of the trigger (as
-      triggerName argument), the name of the table (as tableName argument),
-      the list of names of the columns of the table (as columnNames argument),
-      the OLD ROW (as oldRow argument) and the NEW ROW (as newRow argument).
-      The oldRow argument is null for row level INSERT triggers. The newRow
-      argument is null for row level DELETE triggers. For table level
-      triggers, both arguments are null (that is, there is no access to the
-      data). The type argument is one of the constants in the
-      <code class="interfacename">org.hsqldb.Trigger</code> interface which
-      indicate the type of trigger, for example,
-      <code class="constant">Trigger.INSERT_BEFORE_ROW</code> or
-      <code class="constant">Trigger.UPDATE_AFTER_ROW</code>. For compatibility with
-      older triggers, there is also another fire method signature without the
-      columnNames argument.</p>
+      by the interface(as type argument), the name of the trigger (as trigName
+      argument), the name of the table (as tabName argument), the OLD ROW (as
+      oldRow argument) and the NEW ROW (as newRow argument). The oldRow
+      argument is null for row level INSERT triggers. The newRow argument is
+      null for row level DELETE triggers. For table level triggers, both
+      arguments are null (that is, there is no access to the data). The
+      triggerType argument is one of the constants in the org.hsqldb.Trigger
+      interface which indicate the type of trigger, for example,
+      INSERT_BEFORE_ROW or UPDATE_AFTER_ROW.</p>
 <p>The Java class for the trigger can be reused for several triggers
       on different tables. The method code can distinguish between the
       different tables and triggers using the supplied arguments and take
       appropriate action.</p>
 <div class="informalexample">
-<pre class="programlisting"> fire (int type, String triggerName, String tableName, String[] columnNames, Object oldRow[], Object newRow[])
+<pre class="programlisting"> fire (int type, String tabName, String table, Object oldRow[], Object newRow[])
 </pre>
 </div>
 <p>The Java method for a synchronous trigger (see below) can modify
@@ -427,28 +421,25 @@
       reflected in the row that is being inserted or updated. Any other
       modifications are ignored by the engine.</p>
 <p>A Java trigger that uses an instance of
-      <code class="interfacename">org.hsqldb.trigger.Trigger</code> has two forms,
+      <code class="classname">org.hsqldb.trigger.Trigger</code> has two forms,
       synchronous, or asynchronous (immediate or queued). By default, or when
-      QUEUE 0 is specified, the trigger is synchronous and the action is
-      performed immediately by calling the Java method. This is similar to SQL
-      trigger actions.</p>
-<p>Asynchronous triggers must not modify the row data and they must
-      not execute any SQL statements. When QUEUE n is specified with n larger
-      than 0, the engine uses a separate thread to execute the Java method,
-      using a queue with the size n. For certain applications, such as
-      real-time systems this allows the trigger event to send asynchronous
-      notifications to external systems, without introducing delays in the
-      engine. With asynchronous triggers, an extra parameter, NOWAIT can be
-      used in trigger definition. This overcomes the queue full condition. In
-      this mode, old calls that are still in the queue are discarded one by
-      one and replaced with new calls.</p>
-<p>Synchronous Java row level triggers that are declared with BEFORE
-      trigger action time can modify the row data. Triggers with AFTER trigger
-      action time can modify the database, e.g. insert new rows. If the
-      trigger needs to access the database, the same method as in Java
-      Language Routines SQL/JRT can be used. The Java code should connect to
-      the URL <code class="literal">"jdbc:default:connection"</code> and use this
-      connection to access the database.</p>
+      QUEUE 0 is specified, the action is performed immediately by calling the
+      Java method. This is similar to SQL trigger actions.</p>
+<p>When QUEUE n is specified with n larger than 0, the engine uses a
+      separate thread to execute the Java method, using a queue with the size
+      n. For certain applications, such as real-time systems this allows
+      asynchronous notifications to be sent by the trigger event, without
+      introducing delays in the engine. With asynchronous triggers, an extra
+      parameter, NOWAIT can be used in trigger definition. This overcomes the
+      queue full condition. In this mode, old calls that are still in the
+      queue are discarded one by one and replaced with new calls.</p>
+<p>Java row level triggers that are declared with BEFORE trigger
+      action time can modify the row data. Triggers with AFTER trigger action
+      time can modify the database, e.g. insert new rows. If the trigger needs
+      to access the database, the same method as in Java Language Routines
+      SQL/JRT can be used. The Java code should connect to the URL
+      <code class="literal">"jdbc:default:connection"</code> and use this connection to
+      access the database.</p>
 <p>For sample trigger classes and test code see,
       <code class="classname">org.hsqldb.sample.TriggerSample</code>,
       <code class="classname">org.hsqldb.test.TestTriggers</code>,
@@ -491,7 +482,7 @@
 </div>
 </div>
 </div>
-<a name="N14EC5" class="indexterm"></a>
+<a name="N14BC0" class="indexterm"></a>
 <p>
 <span class="bold"><strong>CREATE TRIGGER</strong></span>
 </p>
@@ -599,7 +590,7 @@
     interface.</p>
 <p>Early releases of HyperSQL version 2.x did not allow the use of
     OLD TABLE or NEW TABLE in statement level triggers.</p>
-<a name="N14F30" class="indexterm"></a>
+<a name="N14C2B" class="indexterm"></a>
 <p>
 <span class="bold"><strong>TRIGGERED SQL
     STATEMENT</strong></span>
@@ -652,7 +643,7 @@
 </pre>
 </div>
 <p></p>
-<a name="N14F54" class="indexterm"></a>
+<a name="N14C4F" class="indexterm"></a>
 <p>
 <span class="bold"><strong>TRIGGER EXECUTION
     ORDER</strong></span>
@@ -670,7 +661,7 @@
     specified other trigger. If this clause is not used, the new trigger is
     executed after all the previously defined triggers of the same scope
     (BEFORE / AFTER, EACH ROW / EACH STATEMENT).</p>
-<a name="N14F65" class="indexterm"></a>
+<a name="N14C60" class="indexterm"></a>
 <p>
 <span class="bold"><strong>DROP TRIGGER</strong></span>
 </p>
@@ -685,7 +676,7 @@
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

@@ -58,12 +58,12 @@
 </div>
 </div>
 <div>
-<p class="releaseinfo">$Revision: 6692 $</p>
+<p class="releaseinfo">$Revision: 6271 $</p>
 </div>
 <div>
 <div class="legalnotice">
-<a name="N14050"></a>
-<p>Copyright 2002-2024 Bob Preston and Fred Toussi. Permission is
+<a name="N13E20"></a>
+<p>Copyright 2002-2021 Bob Preston and Fred Toussi. Permission is
       granted to distribute this document without any alteration under the
       terms of the HSQLDB license. Additional permission is granted to the
       HSQL Development Group to distribute this document with or without
@@ -71,7 +71,7 @@
 </div>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -161,8 +161,8 @@
 </div>
 </div>
 </div>
-<p>Text Tables are defined in a similar way to conventional tables
-      with the added TEXT keyword.</p>
+<p>Text Tables are defined similarly to conventional tables with the
+      added TEXT keyword.</p>
 <div class="informalexample">
 <pre class="programlisting"> CREATE TEXT TABLE &lt;tablename&gt; (&lt;column definition&gt; [&lt;constraint definition&gt;])</pre>
 </div>
@@ -246,10 +246,10 @@
 </div>
 </div>
 <p>The default field separator is a comma (,). A different field
-      separator can be specified within the <code class="literal">SET TABLE
-      SOURCE</code> statement. For example, to change the field separator
-      for the table mytable to a vertical bar, place the following in the SET
-      TABLE SOURCE statement, for example:</p>
+      separator can be specified within the SET TABLE SOURCE statement. For
+      example, to change the field separator for the table mytable to a
+      vertical bar, place the following in the SET TABLE SOURCE statement, for
+      example:</p>
 <div class="informalexample">
 <pre class="programlisting"> SET TABLE mytable SOURCE "myfile;fs=|"</pre>
 </div>
@@ -447,8 +447,8 @@
 <pre class="programlisting"> SET TABLE mytable SOURCE "myfile;ignore_first=true;all_quoted=true;cache_rows=10000;cache_size=1000"</pre>
 </div>
 <p>The properties used in earlier versions, namely the
-      <span class="property">textdb.cache_scale</span> and the
-      <span class="property">textdb.cache_size_scale</span> can still be used for
+      <code class="varname">textdb.cache_scale</code> and the
+      <code class="varname">textdb.cache_size_scale</code> can still be used for
       backward compatibility, but the new properties are preferred.</p>
 <div class="variablelist">
 <p class="title">
@@ -629,7 +629,7 @@
 <li class="listitem">
 <p>With file databases, text file locations are restricted to below
         the directory that contains the database, unless the
-        <span class="property">textdb.allow_full_path</span> property is set true as a
+        <code class="varname">textdb.allow_full_path</code> property is set true as a
         Java system property. This feature is for security, otherwise an admin
         database user may be able to open random files. The specified text
         source path is interpreted differently according to this property. By
@@ -644,7 +644,7 @@
 </li>
 <li class="listitem">
 <p>By default, all-in-memory databases cannot use text tables. To
-        enable this capability the <span class="property">textdb.allow_full_path</span>
+        enable this capability the <code class="varname">textdb.allow_full_path</code>
         property must be set <code class="literal">true</code> as a Java system
         property. The text file path is used as submitted and interpreted as
         an absolute path as described above, or a path relative to the Java
@@ -691,9 +691,8 @@
 <li class="listitem">
 <p>ALTER TABLE commands that add or drop columns or constraints
         (apart from check constraints) are not supported with text tables that
-        are connected to a source. First use the <code class="literal">SET TABLE
-        &lt;name&gt; SOURCE OFF</code>, make the changes, then turn the
-        source ON.</p>
+        are connected to a source. First use the SET TABLE &lt;name&gt; SOURCE
+        OFF, make the changes, then turn the source ON.</p>
 </li>
 <li class="listitem">
 <p>Use the default setting (quoted=true) for selective quoting of
@@ -732,9 +731,9 @@
 <p>The database engine uses a set of defaults for text table
     properties. Each table's data source may override these defaults. It is
     also possible to override the defaults globally, so they apply to all text
-    tables. The statement <code class="literal">SET DATABASE TEXT TABLE DEFAULTS
-    &lt;properties string&gt;</code> can be used to override the default
-    global properties. An example is given below:</p>
+    tables. The statement SET DATABASE TEXT TABLE DEFAULTS &lt;properties
+    string&gt; can be used to override the default global properties. An
+    example is given below:</p>
 <div class="informalexample">
 <pre class="programlisting"> SET DATABASE TEXT TABLE DEFAULTS 'all_quoted=true;encoding=UTF-8;cache_rows=10000;cache_size=2000'</pre>
 </div>
@@ -823,7 +822,7 @@
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

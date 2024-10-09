@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,7 +227,9 @@ final class DatabaseManagerCommon {
             // drop table may fail
             try {
                 sStatement.execute(demo[i]);
-            } catch (SQLException e) {}
+            } catch (SQLException e) {
+                ;
+            }
         }
     }
 
@@ -331,11 +333,8 @@ final class DatabaseManagerCommon {
         }
     }
 
-    static long testStatement(
-            Statement sStatement,
-            String sql,
-            int max)
-            throws SQLException {
+    static long testStatement(Statement sStatement, String sql,
+                              int max) throws SQLException {
 
         long start = System.currentTimeMillis();
 
@@ -353,9 +352,8 @@ final class DatabaseManagerCommon {
                     break;
                 }
 
-                s = s.substring(
-                    0,
-                    j) + ((int) (Math.random() * i)) + s.substring(j + 3);
+                s = s.substring(0, j) + ((int) (Math.random() * i))
+                    + s.substring(j + 3);
             }
 
             while (true) {

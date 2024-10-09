@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package org.hsqldb.types;
 import org.hsqldb.HsqlNameManager;
 import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.SchemaObject;
+import org.hsqldb.Session;
 import org.hsqldb.SqlInvariants;
 import org.hsqldb.Tokens;
 import org.hsqldb.lib.OrderedHashSet;
@@ -43,19 +44,35 @@ import org.hsqldb.rights.Grantee;
  * Implementation of CHARACTER SET objects.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.9.0
  */
 public class Charset implements SchemaObject {
 
     public static final int[][] uppercaseLetters   = new int[][] {
-        { 'A', 'Z' }
+        {
+            'A', 'Z'
+        }
     };
     public static final int[][] unquotedIdentifier = new int[][] {
-        { '0', '9' }, { 'A', 'Z' }, { '_', '_' }
+        {
+            '0', '9'
+        }, {
+            'A', 'Z'
+        }, {
+            '_', '_'
+        }
     };
     public static final int[][] basicIdentifier    = new int[][] {
-        { '0', '9' }, { 'A', 'Z' }, { '_', '_' }, { 'a', 'z' }
+        {
+            '0', '9'
+        }, {
+            'A', 'Z'
+        }, {
+            '_', '_'
+        }, {
+            'a', 'z'
+        }
     };
     public static final Charset SQL_TEXT;
     public static final Charset SQL_IDENTIFIER_CHARSET;
@@ -72,82 +89,59 @@ public class Charset implements SchemaObject {
     static {
         HsqlName name;
 
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "SQL_TEXT",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("SQL_TEXT", false,
+                SchemaObject.CHARSET);
         SQL_TEXT = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "SQL_IDENTIFIER",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("SQL_IDENTIFIER",
+                false, SchemaObject.CHARSET);
         SQL_IDENTIFIER_CHARSET = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "SQL_CHARACTER",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("SQL_CHARACTER", false,
+                SchemaObject.CHARSET);
         SQL_CHARACTER = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "LATIN1",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("LATIN1", false,
+                SchemaObject.CHARSET);
         LATIN1 = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "ASCII_GRAPHIC",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("ASCII_GRAPHIC", false,
+                SchemaObject.CHARSET);
         ASCII_GRAPHIC = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "GRAPHIC_IRV",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("GRAPHIC_IRV", false,
+                SchemaObject.CHARSET);
         GRAPHIC_IRV = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "ASCII_FULL",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("ASCII_FULL", false,
+                SchemaObject.CHARSET);
         ASCII_FULL = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "ISO8BIT",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("ISO8BIT", false,
+                SchemaObject.CHARSET);
         ISO8BIT = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "UTF32",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("UTF32", false,
+                SchemaObject.CHARSET);
         UTF32 = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "UTF16",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("UTF16", false,
+                SchemaObject.CHARSET);
         UTF16 = new Charset(name);
 
         //
-        name = HsqlNameManager.newInfoSchemaObjectName(
-            "UTF8",
-            false,
-            SchemaObject.CHARSET);
+        name = HsqlNameManager.newInfoSchemaObjectName("UTF8", false,
+                SchemaObject.CHARSET);
         UTF8 = new Charset(name);
-
         /*
          * Foundation 4.2.1
          * Character sets defined by standards or by SQL-implementations reside
@@ -193,9 +187,9 @@ public class Charset implements SchemaObject {
         return name.schema.owner;
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
 
-        OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
+        OrderedHashSet set = new OrderedHashSet();
 
         if (base != null) {
             set.add(base);
@@ -204,16 +198,18 @@ public class Charset implements SchemaObject {
         return set;
     }
 
+    public OrderedHashSet getComponents() {
+        return null;
+    }
+
+    public void compile(Session session, SchemaObject parentObject) {}
+
     public String getSQL() {
 
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder();
 
-        sb.append(Tokens.T_CREATE)
-          .append(' ')
-          .append(Tokens.T_CHARACTER)
-          .append(' ')
-          .append(Tokens.T_SET)
-          .append(' ');
+        sb.append(Tokens.T_CREATE).append(' ').append(
+            Tokens.T_CHARACTER).append(' ').append(Tokens.T_SET).append(' ');
 
         if (SqlInvariants.INFORMATION_SCHEMA.equals(name.schema.name)) {
             sb.append(name.getStatementName());
@@ -222,11 +218,9 @@ public class Charset implements SchemaObject {
         }
 
         if (base != null) {
-            sb.append(' ')
-              .append(Tokens.T_AS)
-              .append(' ')
-              .append(Tokens.T_GET)
-              .append(' ');
+            sb.append(' ').append(Tokens.T_AS).append(' ').append(
+                Tokens.T_GET);
+            sb.append(' ');
 
             if (SqlInvariants.INFORMATION_SCHEMA.equals(base.schema.name)) {
                 sb.append(base.getStatementName());
@@ -277,7 +271,11 @@ public class Charset implements SchemaObject {
                 continue;
             }
 
-            return ch >= ranges[i][0];
+            if (ch < ranges[i][0]) {
+                return false;
+            }
+
+            return true;
         }
 
         return false;

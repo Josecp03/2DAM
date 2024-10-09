@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,7 @@ import org.hsqldb.types.Type;
  *
  * @author Fred Toussi (fredt@users dot sourceforge dot net)
  * @author Thomas Mueller (Hypersonic SQL Group)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.6.2
  */
 
@@ -98,9 +98,8 @@ import org.hsqldb.types.Type;
 // fredt@users 1.9.0 - CompareAt() changes for performance suggested by Gary Frost
 class Like implements Cloneable {
 
-    private static final BinaryData maxByteValue = new BinaryData(
-        new byte[]{ -128 },
-        false);
+    private static final BinaryData maxByteValue =
+        new BinaryData(new byte[]{ -128 }, false);
     private char[]   cLike;
     private int[]    wildCardType;
     private int      iLen;
@@ -125,9 +124,8 @@ class Like implements Cloneable {
     private Object getStartsWith() {
 
         if (iLen == 0) {
-            return isBinary
-                   ? BinaryData.zeroLengthBinary
-                   : "";
+            return isBinary ? BinaryData.zeroLengthBinary
+                            : "";
         }
 
         StringBuilder             sb = null;
@@ -153,9 +151,8 @@ class Like implements Cloneable {
             return null;
         }
 
-        return isBinary
-               ? new BinaryData(os.toByteArray(), false)
-               : sb.toString();
+        return isBinary ? new BinaryData(os.toByteArray(), false)
+                        : sb.toString();
     }
 
     Boolean compare(Session session, Object o) {
@@ -172,10 +169,14 @@ class Like implements Cloneable {
             o = ((CharacterType) dataType).upper(session, o);
         }
 
-        long    length   = getLength(session, o);
-        boolean isString = o instanceof String;
+        int length = getLength(session, o);
 
-        if (isString && prefix.length() > 0) {
+        if (o instanceof ClobData) {
+            o = ((ClobData) o).getChars(session, 0,
+                                        (int) ((ClobData) o).length(session));
+        }
+
+        if (!isBinary && prefix.length() > 0) {
             if (length < prefix.length()) {
                 return false;
             }
@@ -187,22 +188,24 @@ class Like implements Cloneable {
             return compare == 0;
         }
 
-        return compareAt(session, o, 0, 0, iLen, length, cLike, wildCardType);
+        return compareAt(session, o, 0, 0, iLen, length, cLike, wildCardType)
+               ? Boolean.TRUE
+               : Boolean.FALSE;
     }
 
-    char getChar(Session session, Object o, long i) {
+    char getChar(Session session, Object o, int i) {
 
         char c;
 
         if (isBinary) {
-            c = (char) ((BlobData) o).getBytes()[(int) i];
+            c = (char) ((BlobData) o).getBytes()[i];
         } else {
-            if (o instanceof String) {
-                c = ((String) o).charAt((int) i);
+            if (o instanceof char[]) {
+                c = ((char[]) o)[i];
             } else if (o instanceof ClobData) {
                 c = ((ClobData) o).getChars(session, i, 1)[0];
             } else {
-                c = ((char[]) o)[(int) i];
+                c = ((String) o).charAt(i);
             }
         }
 
@@ -222,31 +225,24 @@ class Like implements Cloneable {
         return l;
     }
 
-    private boolean compareAt(
-            Session session,
-            Object o,
-            int i,
-            long j,
-            int iLen,
-            long jLen,
-            char[] cLike,
-            int[] wildCardType) {
+    private boolean compareAt(Session session, Object o, int i, int j,
+                              int iLen, int jLen, char[] cLike,
+                              int[] wildCardType) {
 
         for (; i < iLen; i++) {
             switch (wildCardType[i]) {
 
                 case NORMAL_CHAR :        // general character
-                    if ((j >= jLen) || (cLike[i] != getChar(session, o, j++))) {
+                    if ((j >= jLen)
+                            || (cLike[i] != getChar(session, o, j++))) {
                         return false;
                     }
-
                     break;
 
                 case UNDERSCORE_CHAR :    // underscore: do not test this character
                     if (j++ >= jLen) {
                         return false;
                     }
-
                     break;
 
                 case PERCENT_CHAR :       // percent: none or any character(s)
@@ -256,14 +252,8 @@ class Like implements Cloneable {
 
                     while (j < jLen) {
                         if ((cLike[i] == getChar(session, o, j))
-                                && compareAt(session,
-                                             o,
-                                             i,
-                                             j,
-                                             iLen,
-                                             jLen,
-                                             cLike,
-                                             wildCardType)) {
+                                && compareAt(session, o, i, j, iLen, jLen,
+                                             cLike, wildCardType)) {
                             return true;
                         }
 
@@ -277,11 +267,8 @@ class Like implements Cloneable {
         return j == jLen;
     }
 
-    void setPattern(
-            Session session,
-            Object pattern,
-            Object escape,
-            boolean hasEscape) {
+    void setPattern(Session session, Object pattern, Object escape,
+                    boolean hasEscape) {
 
         isNull = pattern == null;
 
@@ -332,6 +319,7 @@ class Like implements Cloneable {
             if (!bEscaping) {
                 if (escapeChar == c) {
                     bEscaping = true;
+
                     continue;
                 } else if (c == '_') {
                     wildCardType[iLen] = UNDERSCORE_CHAR;
@@ -393,20 +381,21 @@ class Like implements Cloneable {
                 case NORMAL_CHAR : {
                     if (found) {
                         found = false;
+
                         break outerloop;
                     }
 
                     break;
                 }
-
                 case UNDERSCORE_CHAR : {
                     found = false;
+
                     break outerloop;
                 }
-
                 case PERCENT_CHAR : {
                     if (found) {
                         found = false;
+
                         break outerloop;
                     }
 
@@ -456,30 +445,22 @@ class Like implements Cloneable {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(super.toString())
-          .append("[\n")
-          .append("escapeChar=")
-          .append(escapeChar)
-          .append('\n')
-          .append("isNull=")
-          .append(isNull)
-          .append('\n')
-          .append("isIgnoreCase=")
-          .append(isIgnoreCase)
-          .append('\n')
-          .append("iLen=")
-          .append(iLen)
-          .append('\n')
-          .append("iFirstWildCard=")
-          .append(iFirstWildCard)
-          .append('\n')
-          .append("cLike=");
+        sb.append(super.toString()).append("[\n");
+        sb.append("escapeChar=").append(escapeChar).append('\n');
+        sb.append("isNull=").append(isNull).append('\n');
+
+//        sb.append("optimised=").append(optimised).append('\n');
+        sb.append("isIgnoreCase=").append(isIgnoreCase).append('\n');
+        sb.append("iLen=").append(iLen).append('\n');
+        sb.append("iFirstWildCard=").append(iFirstWildCard).append('\n');
+        sb.append("cLike=");
 
         if (cLike != null) {
             sb.append(StringUtil.arrayToString(cLike));
         }
 
-        sb.append('\n').append("wildCardType=");
+        sb.append('\n');
+        sb.append("wildCardType=");
 
         if (wildCardType != null) {
             sb.append(StringUtil.arrayToString(wildCardType));

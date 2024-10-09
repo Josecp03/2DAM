@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import java.sql.Statement;
  */
 public class Testdb {
 
-    Connection conn;    //our connnection to the db - presist for life of program
+    Connection conn;                                                //our connnection to the db - presist for life of program
 
     // we dont want this garbage collected until we are done
     public Testdb(String db_file_name_prefix) throws Exception {    // note more general exception
@@ -65,9 +65,10 @@ public class Testdb {
         // of the db.
         // It can contain directory names relative to the
         // current working directory
-        conn = DriverManager.getConnection("jdbc:hsqldb:" + db_file_name_prefix,    // filenames
-                                           "SA",                                    // username
-                                           "");                                     // password
+        conn = DriverManager.getConnection("jdbc:hsqldb:"
+                                           + db_file_name_prefix,    // filenames
+                                           "SA",                     // username
+                                           "");                      // password
     }
 
     public void shutdown() throws SQLException {
@@ -87,7 +88,7 @@ public class Testdb {
         Statement st = null;
         ResultSet rs = null;
 
-        st = conn.createStatement();    // statement objects can be reused with
+        st = conn.createStatement();         // statement objects can be reused with
 
         // repeated calls to execute but we
         // choose to make a new one each time
@@ -134,7 +135,7 @@ public class Testdb {
         // assume we are pointing to BEFORE the first row
         // rs.next() points to next row and returns true
         // or false if there is no next row, which breaks the loop
-        while (rs.next()) {
+        for (; rs.next(); ) {
             for (i = 0; i < colmax; ++i) {
                 o = rs.getObject(i + 1);    // Is SQL the first column is indexed
 
@@ -144,7 +145,7 @@ public class Testdb {
 
             System.out.println(" ");
         }
-    }    //void dump( ResultSet rs )
+    }                                       //void dump( ResultSet rs )
 
     public static void main(String[] args) {
 

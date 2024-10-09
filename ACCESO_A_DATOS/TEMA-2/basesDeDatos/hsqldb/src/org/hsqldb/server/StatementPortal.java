@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,23 +45,20 @@ import org.hsqldb.types.Type;
  */
 class StatementPortal {
 
-    public Object[]                      parameters;
-    public Result                        bindResult, ackResult;
-    public String                        lcQuery;
-    public String                        handle;
-    private Map<String, StatementPortal> containingMap;
-    private Session                      session;
+    public Object[] parameters;
+    public Result   bindResult, ackResult;
+    public String   lcQuery;
+    public String   handle;
+    private Map     containingMap;
+    private Session session;
 
     /**
      * Convenience wrapper for the 3-param constructor.
      *
      * @see #StatementPortal(String, OdbcPreparedStatement, Object[], Map)
      */
-    public StatementPortal(
-            String handle,
-            OdbcPreparedStatement odbcPs,
-            Map<String, StatementPortal> containingMap)
-            throws RecoverableOdbcFailure {
+    public StatementPortal(String handle, OdbcPreparedStatement odbcPs,
+                           Map containingMap) throws RecoverableOdbcFailure {
         this(handle, odbcPs, new Object[0], containingMap);
     }
 
@@ -71,12 +68,9 @@ class StatementPortal {
      *
      * @param paramObjs Param values are either String or BinaryData instances
      */
-    public StatementPortal(
-            String handle,
-            OdbcPreparedStatement odbcPs,
-            Object[] paramObjs,
-            Map<String, StatementPortal> containingMap)
-            throws RecoverableOdbcFailure {
+    public StatementPortal(String handle, OdbcPreparedStatement odbcPs,
+                           Object[] paramObjs,
+                           Map containingMap) throws RecoverableOdbcFailure {
 
         this.handle        = handle;
         lcQuery            = odbcPs.query.toLowerCase();
@@ -93,7 +87,6 @@ class StatementPortal {
 
             case ResultConstants.ERROR :
                 throw new RecoverableOdbcFailure(ackResult);
-
             default :
                 throw new RecoverableOdbcFailure(
                     "Output Result from secondary Statement prep is of "
@@ -115,8 +108,7 @@ class StatementPortal {
                 throw new RecoverableOdbcFailure(
                     null,
                     "Client didn't specify all " + paramTypes.length
-                    + " parameters (" + paramObjs.length + ')',
-                    "08P01");
+                    + " parameters (" + paramObjs.length + ')', "08P01");
             }
 
             parameters = new Object[paramObjs.length];
@@ -126,9 +118,9 @@ class StatementPortal {
                     if (paramObjs[i] instanceof String) {
                         PgType pgType = PgType.getPgType(paramTypes[i]);
 
-                        parameters[i] = pgType.getParameter(
-                            (String) paramObjs[i],
-                            session);
+                        parameters[i] =
+                            pgType.getParameter((String) paramObjs[i],
+                                                session);
                     } else {
                         parameters[i] = paramObjs[i];
                     }
@@ -138,9 +130,8 @@ class StatementPortal {
             }
         }
 
-        bindResult = Result.newPreparedExecuteRequest(
-            paramTypes,
-            odbcPs.ackResult.getStatementID());
+        bindResult = Result.newPreparedExecuteRequest(paramTypes,
+                odbcPs.ackResult.getStatementID());
 
         containingMap.put(handle, this);
     }

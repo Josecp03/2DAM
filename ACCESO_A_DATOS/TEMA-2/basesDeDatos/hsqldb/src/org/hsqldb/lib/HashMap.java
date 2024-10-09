@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,15 @@
 
 package org.hsqldb.lib;
 
+import org.hsqldb.lib.Map.Entry;
+
 import org.hsqldb.map.BaseHashMap;
 
 /**
  * This class does not store null keys.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.7.2
  */
 public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
@@ -51,25 +53,23 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
     }
 
     public HashMap(int initialCapacity) throws IllegalArgumentException {
-
-        super(
-            initialCapacity,
-            BaseHashMap.objectKeyOrValue,
-            BaseHashMap.objectKeyOrValue,
-            false);
+        super(initialCapacity, BaseHashMap.objectKeyOrValue,
+              BaseHashMap.objectKeyOrValue, false);
     }
 
-    public HashMap(
-            int initialCapacity,
-            ObjectComparator<K> comparator)
-            throws IllegalArgumentException {
+    public HashMap(int initialCapacity, ObjectComparator comparator) throws IllegalArgumentException {
         this(initialCapacity);
 
         this.comparator = comparator;
     }
 
     public boolean containsKey(Object key) {
-        return super.containsObjectKey(key);
+
+        if (key == null) {
+            throw new NullPointerException();
+        }
+
+        return super.containsKey(key);
     }
 
     public boolean containsValue(Object value) {
@@ -107,7 +107,7 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
             throw new NullPointerException();
         }
 
-        return (V) super.removeObject(key, false);
+        return (V) super.remove(0, 0, key, null, false, false);
     }
 
     /**
@@ -117,7 +117,8 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
      * @param value the value
      * @return the value associated with the key, or null if none
      */
-    public boolean remove(K key, V value) {
+
+    public boolean remove(Object key, Object value) {
 
         if (key == null) {
             throw new NullPointerException();
@@ -128,9 +129,10 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
         return result != null;
     }
 
-    public void putAll(Map<K, V> m) {
 
-        Iterator<K> it = m.keySet().iterator();
+    public void putAll(Map<? extends K, ? extends V> m) {
+
+        Iterator<? extends K> it = m.keySet().iterator();
 
         while (it.hasNext()) {
             K key = it.next();
@@ -170,7 +172,6 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
     }
 
     public Set<Entry<K, V>> entrySet() {
-
         if (entries == null) {
             entries = new EntrySet();
         }
@@ -178,8 +179,7 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
         return entries;
     }
 
-    private class EntrySet extends AbstractReadOnlyCollection<Entry<K, V>>
-            implements Set<Entry<K, V>> {
+    private class EntrySet extends AbstractReadOnlyCollection<Entry<K, V>> implements Set<Entry<K, V>> {
 
         public Iterator<Entry<K, V>> iterator() {
             return HashMap.this.new EntrySetIterator();
@@ -194,23 +194,21 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
         }
     }
 
-    private class EntrySetIterator extends BaseHashIterator {
+    private class EntrySetIterator extends BaseHashIterator{
 
         EntrySetIterator() {
             super(true);
         }
 
         public Entry<K, V> next() {
-
             K key   = (K) super.next();
             V value = (V) objectValueTable[lookup];
 
-            return new MapEntry<K, V>(key, value);
+            return new MapEntry(key, value);
         }
     }
 
-    private class KeySet extends AbstractReadOnlyCollection<K>
-            implements Set<K> {
+    private class KeySet<K> extends AbstractReadOnlyCollection<K> implements Set<K> {
 
         public Iterator<K> iterator() {
             return HashMap.this.new BaseHashIterator(true);
@@ -220,12 +218,24 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
             return HashMap.this.size();
         }
 
+        public boolean contains(Object key) {
+            return containsKey(key);
+        }
+
         public boolean isEmpty() {
             return size() == 0;
         }
+
+        public Object[] toArray() {
+            return HashMap.this.toArray(true);
+        }
+
+        public <T> T[] toArray(T[] array) {
+            return HashMap.this.toArray(array, true);
+        }
     }
 
-    private class Values extends AbstractReadOnlyCollection<V> {
+    private class Values<V> extends AbstractReadOnlyCollection<V> {
 
         public Iterator<V> iterator() {
             return HashMap.this.new BaseHashIterator(false);
@@ -237,6 +247,14 @@ public class HashMap<K, V> extends BaseHashMap implements Map<K, V> {
 
         public boolean isEmpty() {
             return size() == 0;
+        }
+
+        public Object[] toArray() {
+            return HashMap.this.toArray(false);
+        }
+
+        public <T> T[] toArray(T[] array) {
+            return HashMap.this.toArray(array, false);
         }
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,17 @@
 package org.hsqldb.jdbc;
 
 import java.io.PrintWriter;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Wrapper;
-
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicIntegerArray;
-
 import javax.naming.NamingException;
 import javax.naming.Reference;
 import javax.naming.Referenceable;
 import javax.naming.StringRefAddr;
-
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.DataSource;
@@ -63,7 +59,7 @@ import org.hsqldb.jdbc.pool.JDBCPooledDataSource;
  *
  * <!-- start Release-specific documentation -->
  * <div class="ReleaseSpecificDocumentation">
- * <p class="rshead">HSQLDB-Specific Information:</p>
+ * <h1>HSQLDB-Specific Information:</h1> <p>
  *
  * A connection pool for HyperSQL connections. This implementation of
  * {@link javax.sql.DataSource DataSource} is dedicated to HyperSQL and
@@ -72,17 +68,17 @@ import org.hsqldb.jdbc.pool.JDBCPooledDataSource;
  *
  * The methods of the parent class,
  * {@link JDBCCommonDataSource} are used to specify the database URL, user,
- * password, and / or connection properties.
+ * password, and / or connection properties.<p>
  *
  * </div>
  * <!-- end Release-specific documentation -->
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
- * @since HSQLDB 2.2.9
+ * @version 2.3.4
+ * @since 2.2.9
  */
 @SuppressWarnings("serial")
-public class JDBCPool
-        implements DataSource, Referenceable, ConnectionEventListener,
+public class JDBCPool implements DataSource,
+                   Referenceable, ConnectionEventListener,
                    StatementEventListener, Wrapper {
 
     /**
@@ -90,13 +86,13 @@ public class JDBCPool
      * set.
      *
      * @return  a connection to the data source
-     * @throws SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs
      */
     public Connection getConnection() throws SQLException {
 
         int retries = 300;
 
-        if (source.loginTimeout != 0) {
+        if (source.loginTimeout != 0){
             retries = source.loginTimeout * 10;
         }
 
@@ -106,22 +102,19 @@ public class JDBCPool
 
         for (int count = 0; count < retries; count++) {
             for (int i = 0; i < states.length(); i++) {
-                if (states.compareAndSet(i,
-                                         RefState.available,
-                                         RefState.allocated)) {
+                if (states.compareAndSet(i, RefState.available,
+                                        RefState.allocated)) {
                     return connections[i].getConnection();
                 }
 
-                if (states.compareAndSet(i,
-                                         RefState.empty,
-                                         RefState.allocated)) {
+                if (states.compareAndSet(i, RefState.empty,
+                                        RefState.allocated)) {
                     try {
                         JDBCPooledConnection connection =
                             (JDBCPooledConnection) source.getPooledConnection();
 
                         connection.addConnectionEventListener(this);
                         connection.addStatementEventListener(this);
-
                         connections[i] = connection;
 
                         return connections[i].getConnection();
@@ -152,11 +145,9 @@ public class JDBCPool
      *  being made
      * @param password the user's password
      * @return  a connection to the data source
-     * @throws SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs
      */
-    public Connection getConnection(
-            String username,
-            String password)
+    public Connection getConnection(String username, String password)
             throws SQLException {
 
         String user = getUser();
@@ -165,7 +156,7 @@ public class JDBCPool
             throw JDBCUtil.nullArgument();
         }
 
-        if (user == null) {
+        if ( user == null) {
             setUser(username);
             setPassword(password);
         } else if (!user.equals(username)) {
@@ -186,9 +177,9 @@ public class JDBCPool
      * or a proxy for the receiver. If the receiver is a wrapper
      * and the wrapped object implements the interface then the result is the
      * wrapped object or a proxy for the wrapped object. Otherwise return the
-     * result of calling {@code unwrap} recursively on the wrapped object
+     * the result of calling <code>unwrap</code> recursively on the wrapped object
      * or a proxy for that result. If the receiver is not a
-     * wrapper and does not implement the interface, then an {@code SQLException} is thrown.
+     * wrapper and does not implement the interface, then an <code>SQLException</code> is thrown.
      *
      * @param iface A Class defining an interface that the result must implement.
      * @return an object that implements the interface. May be a proxy for the actual implementing object.
@@ -196,8 +187,7 @@ public class JDBCPool
      * @since JDK 1.6, HSQLDB 2.0
      */
     @SuppressWarnings("unchecked")
-    public <T> T unwrap(java.lang.Class<T> iface) throws java.sql.SQLException {
-
+    public <T>T unwrap(java.lang.Class<T> iface) throws java.sql.SQLException {
         if (isWrapperFor(iface)) {
             return (T) this;
         }
@@ -208,11 +198,11 @@ public class JDBCPool
     /**
      * Returns true if this either implements the interface argument or is directly or indirectly a wrapper
      * for an object that does. Returns false otherwise. If this implements the interface then return true,
-     * else if this is a wrapper then return the result of recursively calling {@code isWrapperFor} on the wrapped
+     * else if this is a wrapper then return the result of recursively calling <code>isWrapperFor</code> on the wrapped
      * object. If this does not implement the interface and is not a wrapper, return false.
-     * This method should be implemented as a low-cost operation compared to {@code unwrap} so that
-     * callers can use this method to avoid expensive {@code unwrap} calls that may fail. If this method
-     * returns true then calling {@code unwrap} with the same argument should succeed.
+     * This method should be implemented as a low-cost operation compared to <code>unwrap</code> so that
+     * callers can use this method to avoid expensive <code>unwrap</code> calls that may fail. If this method
+     * returns true then calling <code>unwrap</code> with the same argument should succeed.
      *
      * @param iface a Class defining an interface.
      * @return true if this implements the interface or directly or indirectly wraps an object that does.
@@ -220,8 +210,7 @@ public class JDBCPool
      * for an object with the given interface.
      * @since JDK 1.6, HSQLDB 2.0
      */
-    public boolean isWrapperFor(
-            java.lang.Class<?> iface)
+    public boolean isWrapperFor(java.lang.Class<?> iface)
             throws java.sql.SQLException {
         return ((iface != null) && iface.isAssignableFrom(this.getClass()));
     }
@@ -230,50 +219,43 @@ public class JDBCPool
      * Retrieves the Reference of this object.
      *
      * @return The non-null Reference of this object.
-     * @throws NamingException If a naming exception was encountered
+     * @exception NamingException If a naming exception was encountered
      *          while retrieving the reference.
      */
     public Reference getReference() throws NamingException {
-
         String    cname = "org.hsqldb.jdbc.JDBCDataSourceFactory";
         Reference ref   = new Reference(getClass().getName(), cname, null);
 
         ref.add(new StringRefAddr("database", source.getDatabase()));
         ref.add(new StringRefAddr("user", source.getUser()));
         ref.add(new StringRefAddr("password", source.password));
-        ref.add(
-            new StringRefAddr("loginTimeout",
-                              Integer.toString(source.loginTimeout)));
-        ref.add(
-            new StringRefAddr("poolSize",
-                              Integer.toString(connections.length)));
+        ref.add(new StringRefAddr("loginTimeout",
+                                  Integer.toString(source.loginTimeout)));
+        ref.add(new StringRefAddr("poolSize", Integer.toString(connections.length)));
 
         return ref;
     }
 
     // ------------------------ event listener ------------------------
     public void connectionClosed(ConnectionEvent event) {
-
         PooledConnection connection = (PooledConnection) event.getSource();
 
         for (int i = 0; i < connections.length; i++) {
             if (connections[i] == connection) {
                 states.set(i, RefState.available);
+
                 break;
             }
         }
     }
 
     public void connectionErrorOccurred(ConnectionEvent event) {
-
         PooledConnection connection = (PooledConnection) event.getSource();
 
         for (int i = 0; i < connections.length; i++) {
             if (connections[i] == connection) {
                 states.set(i, RefState.allocated);
-
                 connections[i] = null;
-
                 states.set(i, RefState.empty);
                 break;
             }
@@ -284,10 +266,10 @@ public class JDBCPool
 
     public void statementErrorOccurred(StatementEvent event) {}
 
-    // ------------------------ event listener ------------------------
 
+    // ------------------------ event listener ------------------------
     /**
-     * <p>Retrieves the log writer for this {@code DataSource}
+     * <p>Retrieves the log writer for this <code>DataSource</code>
      * object.
      *
      * <p>The log writer is a character output stream to which all logging
@@ -296,14 +278,14 @@ public class JDBCPool
      * object, messages printed by methods of other objects manufactured
      * by this object, and so on.  Messages printed to a data source
      * specific log writer are not printed to the log writer associated
-     * with the {@code java.sql.DriverManager} class.  When a
-     * {@code DataSource} object is
+     * with the <code>java.sql.DriverManager</code> class.  When a
+     * <code>DataSource</code> object is
      * created, the log writer is initially null; in other words, the
      * default is for logging to be disabled.
      *
      * @return the log writer for this data source or null if
      *        logging is disabled
-     * @throws java.sql.SQLException if a database access error occurs
+     * @exception java.sql.SQLException if a database access error occurs
      * @see #setLogWriter
      * @since 1.4
      */
@@ -312,8 +294,8 @@ public class JDBCPool
     }
 
     /**
-     * <p>Sets the log writer for this {@code DataSource}
-     * object to the given {@code java.io.PrintWriter} object.
+     * <p>Sets the log writer for this <code>DataSource</code>
+     * object to the given <code>java.io.PrintWriter</code> object.
      *
      * <p>The log writer is a character output stream to which all logging
      * and tracing messages for this data source will be
@@ -321,13 +303,13 @@ public class JDBCPool
      * object, messages printed by methods of other objects manufactured
      * by this object, and so on.  Messages printed to a data source-
      * specific log writer are not printed to the log writer associated
-     * with the {@code java.sql.DriverManager} class. When a
-     * {@code DataSource} object is created the log writer is
+     * with the <code>java.sql.DriverManager</code> class. When a
+     * <code>DataSource</code> object is created the log writer is
      * initially null; in other words, the default is for logging to be
      * disabled.
      *
      * @param out the new log writer; to disable logging, set to null
-     * @throws SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs
      * @see #getLogWriter
      * @since 1.4
      */
@@ -340,11 +322,11 @@ public class JDBCPool
      * while attempting to connect to a database.  A value of zero
      * specifies that the timeout is the default system timeout
      * if there is one; otherwise, it specifies that there is no timeout.
-     * When a {@code DataSource} object is created, the login timeout is
+     * When a <code>DataSource</code> object is created, the login timeout is
      * initially zero.
      *
      * @param seconds the data source login time limit
-     * @throws SQLException if a database access error occurs.
+     * @exception SQLException if a database access error occurs.
      * @see #getLoginTimeout
      * @since 1.4
      */
@@ -357,11 +339,11 @@ public class JDBCPool
      * while attempting to connect to a database.  A value of zero
      * means that the timeout is the default system timeout
      * if there is one; otherwise, it means that there is no timeout.
-     * When a {@code DataSource} object is created, the login timeout is
+     * When a <code>DataSource</code> object is created, the login timeout is
      * initially zero.
      *
      * @return the data source login time limit
-     * @throws SQLException if a database access error occurs.
+     * @exception SQLException if a database access error occurs.
      * @see #setLoginTimeout
      * @since 1.4
      */
@@ -372,7 +354,7 @@ public class JDBCPool
     // ------------------------ custom public methods ------------------------
 
     /**
-     * Retrieves the description of the data source.
+     * Retrieves the description of the data source. <p>
      *
      * @return the description
      */
@@ -381,7 +363,7 @@ public class JDBCPool
     }
 
     /**
-     * Retrieves the name of the data source.
+     * Retrieves the name of the data source. <p>
      *
      * @return the description
      */
@@ -408,7 +390,7 @@ public class JDBCPool
     }
 
     /**
-     * Retrieves the jdbc database connection url attribute.
+     * Retrieves the jdbc database connection url attribute. <p>
      *
      * @return the jdbc database connection url attribute
      */
@@ -417,7 +399,7 @@ public class JDBCPool
     }
 
     /**
-     * Retrieves the jdbc database connection url attribute.
+     * Retrieves the jdbc database connection url attribute. <p>
      *
      * @return the jdbc database connection url attribute
      */
@@ -426,7 +408,7 @@ public class JDBCPool
     }
 
     /**
-     * Retrieves the user name for the connection.
+     * Retrieves the user name for the connection. <p>
      *
      * @return the username for the connection
      */
@@ -435,7 +417,7 @@ public class JDBCPool
     }
 
     /**
-     * Synonym for setUrl(String).
+     * Synonym for setUrl(String). <p>
      *
      * @param databaseName the new value for the attribute
      */
@@ -444,7 +426,7 @@ public class JDBCPool
     }
 
     /**
-     * Synonym for setUrl(String).
+     * Synonym for setUrl(String). <p>
      *
      * @param database the new value for the attribute
      */
@@ -453,7 +435,7 @@ public class JDBCPool
     }
 
     /**
-     * Sets the jdbc database URL.
+     * Sets the jdbc database URL. <p>
      *
      * @param url the new value of this object's jdbc database connection
      *      url attribute
@@ -463,7 +445,7 @@ public class JDBCPool
     }
 
     /**
-     * Sets the jdbc database URL.
+     * Sets the jdbc database URL. <p>
      *
      * @param url the new value of this object's jdbc database connection
      *      url attribute
@@ -473,7 +455,7 @@ public class JDBCPool
     }
 
     /**
-     * Sets the password for the username.
+     * Sets the password for the user name.
      *
      * @param password the password
      */
@@ -512,12 +494,12 @@ public class JDBCPool
      * In the worst case, this may be the root Logger.
      *
      * @return the parent Logger for this data source
-     * @throws SQLFeatureNotSupportedException if the data source does not use {@code java.util.logging}.
-     * @since JDK 1.7, HSQLDB 2.2.9
+     * @throws SQLFeatureNotSupportedException if the data source does not use <code>java.util.logging</code>.
+     * @since JDK 1.7 M11 2010/09/10 (b123), HSQLDB 2.2.9
      */
     public java.util.logging.Logger getParentLogger()
-            throws java.sql.SQLFeatureNotSupportedException {
-        throw(java.sql.SQLFeatureNotSupportedException) JDBCUtil.notSupported();
+    throws java.sql.SQLFeatureNotSupportedException {
+        throw (java.sql.SQLFeatureNotSupportedException) JDBCUtil.notSupported();
     }
 
     // ------------------------ custom public methods ------------------------
@@ -537,10 +519,9 @@ public class JDBCPool
      * @param size int maximum size of the pool
      */
     public JDBCPool(int size) {
-        source      = new JDBCPooledDataSource();
+        source = new JDBCPooledDataSource();
         connections = new JDBCPooledConnection[size];
-        states      = new AtomicIntegerArray(size);
-    }
+        states = new AtomicIntegerArray(size);    }
 
     /**
      * Closes the pool immediately. Waits the given number of seconds before
@@ -551,10 +532,9 @@ public class JDBCPool
      */
     public void close(int wait) throws SQLException {
 
-        if (wait < 0 || wait > 60) {
+        if (wait <0 || wait > 60) {
             throw JDBCUtil.outOfRangeArgument();
         }
-
         if (closed) {
             return;
         }
@@ -573,17 +553,16 @@ public class JDBCPool
 
         Arrays.fill(connections, null);
     }
-
     // ------------------------ internal ------------------------
     interface RefState {
-
         int empty     = 0;
         int available = 1;
         int allocated = 2;
     }
 
-    AtomicIntegerArray     states;
-    JDBCPooledConnection[] connections;
-    JDBCPooledDataSource   source;
-    volatile boolean       closed;
+
+    AtomicIntegerArray       states;
+    JDBCPooledConnection[]   connections;
+    JDBCPooledDataSource     source;
+    volatile boolean         closed;
 }

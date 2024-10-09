@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,12 @@ import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
 import org.hsqldb.result.Result;
 
+/* $Id: JDBCUtil.java 6266 2021-01-25 16:08:06Z fredt $ */
+
+// campbell-burnet@users - 20060523 - patch 1.9.0 - removed some unused imports
+// Revision 1.16  2006/07/12 11:53:53  boucherb
+//  - merging back remaining material overwritten by Fred's type-system upgrades
+
 /**
  * Provides driver constants and a gateway from internal HsqlExceptions to
  * external SQLExceptions.
@@ -54,26 +60,18 @@ import org.hsqldb.result.Result;
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  * @version 2.5.0
- * @since HSQLDB 1.7.2
+ * @since 1.7.2
  */
 public final class JDBCUtil {
 
     public static SQLException sqlException(HsqlException e) {
-
-        return sqlException(
-            e.getMessage(),
-            e.getSQLState(),
-            e.getErrorCode(),
-            e);
+        return sqlException(e.getMessage(), e.getSQLState(), e.getErrorCode(),
+                            e);
     }
 
     public static SQLException sqlException(HsqlException e, Throwable cause) {
-
-        return sqlException(
-            e.getMessage(),
-            e.getSQLState(),
-            e.getErrorCode(),
-            cause);
+        return sqlException(e.getMessage(), e.getSQLState(), e.getErrorCode(),
+                            cause);
     }
 
     public static SQLException sqlException(int id) {
@@ -88,9 +86,7 @@ public final class JDBCUtil {
         return sqlException(Error.error(id, message));
     }
 
-    public static SQLException sqlException(
-            int id,
-            String message,
+    public static SQLException sqlException(int id, String message,
             Throwable cause) {
         return sqlException(Error.error(id, message), cause);
     }
@@ -107,10 +103,8 @@ public final class JDBCUtil {
 
         HsqlException e = Error.error(ErrorCode.X_0A000);
 
-        return new SQLFeatureNotSupportedException(
-            e.getMessage(),
-            e.getSQLState(),
-            -ErrorCode.X_0A000);
+        return new SQLFeatureNotSupportedException(e.getMessage(),
+                e.getSQLState(), -ErrorCode.X_0A000);
     }
 
     static SQLException notUpdatableColumn() {
@@ -135,7 +129,6 @@ public final class JDBCUtil {
 
     public static SQLException invalidArgument(int id) {
         String message = Error.getMessage(id);
-
         return sqlException(ErrorCode.JDBC_INVALID_ARGUMENT, message);
     }
 
@@ -152,11 +145,8 @@ public final class JDBCUtil {
     }
 
     public static SQLWarning sqlWarning(Result r) {
-
-        return new SQLWarning(
-            r.getMainString(),
-            r.getSubString(),
-            r.getErrorCode());
+        return new SQLWarning(r.getMainString(), r.getSubString(),
+                              r.getErrorCode());
     }
 
     public static SQLException sqlException(Throwable t) {
@@ -164,12 +154,8 @@ public final class JDBCUtil {
     }
 
     public static SQLException sqlException(Result r) {
-
-        return sqlException(
-            r.getMainString(),
-            r.getSubString(),
-            r.getErrorCode(),
-            r.getException());
+        return sqlException(r.getMainString(), r.getSubString(),
+                            r.getErrorCode(), r.getException());
     }
 
 // TODO: Needs review.
@@ -207,11 +193,8 @@ public final class JDBCUtil {
 // 004=08003 The database is shutdown
 // 094=08003 Database does not exists                          - better 08001 ?
 //
-    public static SQLException sqlException(
-            String msg,
-            String sqlstate,
-            int code,
-            Throwable cause) {
+    public static SQLException sqlException(String msg, String sqlstate,
+            int code, Throwable cause) {
 
         if (sqlstate.startsWith("08")) {
             if (!sqlstate.endsWith("3")) {
@@ -221,37 +204,24 @@ public final class JDBCUtil {
                 //            - the network configuration, server availability
                 //              may change spuriously
                 //            - keystore location/content may change spuriously
-                return new SQLTransientConnectionException(
-                    msg,
-                    sqlstate,
-                    code,
-                    cause);
+                return new SQLTransientConnectionException(msg, sqlstate,
+                        code, cause);
             } else {
 
                 // the database is (permanently) shut down or the connection is
                 // (permanently) closed or broken
-                return new SQLNonTransientConnectionException(
-                    msg,
-                    sqlstate,
-                    code,
-                    cause);
+                return new SQLNonTransientConnectionException(msg, sqlstate,
+                        code, cause);
             }
         } else if (sqlstate.startsWith("22")) {
             return new SQLDataException(msg, sqlstate, code, cause);
         } else if (sqlstate.startsWith("23")) {
-            return new SQLIntegrityConstraintViolationException(
-                msg,
-                sqlstate,
-                code,
-                cause);
+            return new SQLIntegrityConstraintViolationException(msg, sqlstate,
+                    code, cause);
         } else if (sqlstate.startsWith("28")) {
-            return new SQLInvalidAuthorizationSpecException(
-                msg,
-                sqlstate,
-                code,
-                cause);
-        } else if (sqlstate.startsWith("42")
-                   || sqlstate.startsWith("37")
+            return new SQLInvalidAuthorizationSpecException(msg, sqlstate,
+                    code, cause);
+        } else if (sqlstate.startsWith("42") || sqlstate.startsWith("37")
                    || sqlstate.startsWith("2A")) {
 
             // TODO:
@@ -325,17 +295,11 @@ public final class JDBCUtil {
             // 40003  transaction rollback  - statement completion unknown
             // 40004  transaction rollback  - triggered action exception
             //
-            return new SQLTransactionRollbackException(
-                msg,
-                sqlstate,
-                code,
-                cause);
+            return new SQLTransactionRollbackException(msg, sqlstate, code,
+                    cause);
         } else if (sqlstate.startsWith("0A")) {    // JSR 221 2005-12-14 prd
-            return new SQLFeatureNotSupportedException(
-                msg,
-                sqlstate,
-                code,
-                cause);
+            return new SQLFeatureNotSupportedException(msg, sqlstate, code,
+                    cause);
         } else {
 
             // TODO resolved:

@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,7 +76,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
-
 import java.util.ArrayList;
 
 // fredt@users 20020315 - patch 1.7.0 - minor fixes
@@ -117,12 +116,13 @@ import java.util.ArrayList;
  */
 public class CodeSwitcher {
 
-    private static final String ls = System.getProperty("line.separator", "\n");
-    private ArrayList<String>   vList;
-    private ArrayList<String>   vSwitchOn;
-    private ArrayList<String>   vSwitchOff;
-    private ArrayList<String>   vSwitches;
-    private static final int    MAX_LINELENGTH = 82;
+    private static final String ls = System.getProperty("line.separator",
+        "\n");
+    private ArrayList<String> vList;
+    private ArrayList<String> vSwitchOn;
+    private ArrayList<String> vSwitchOff;
+    private ArrayList<String> vSwitches;
+    private static final int  MAX_LINELENGTH = 82;
 
     public static void main(String[] a) {
 
@@ -159,9 +159,9 @@ public class CodeSwitcher {
                     "--basedir= setting ignored, since only used for list files");
             } else {
                 if (!baseDir.isDirectory()) {
-                    System.err.println(
-                        "Skipping listfile since basedir '"
-                        + baseDir.getAbsolutePath() + "' is not a directory");
+                    System.err.println("Skipping listfile since basedir '"
+                                       + baseDir.getAbsolutePath()
+                                       + "' is not a directory");
 
                     listFile = null;
                 }
@@ -170,37 +170,34 @@ public class CodeSwitcher {
 
         if (listFile != null) {
             try {
-                BufferedReader br = new BufferedReader(
-                    new FileReader(listFile));
-                String         st, p;
-                int            hashIndex;
-                File           f;
+                BufferedReader br =
+                    new BufferedReader(new FileReader(listFile));
+                String st, p;
+                int    hashIndex;
+                File   f;
 
                 while ((st = br.readLine()) != null) {
                     hashIndex = st.indexOf('#');
-                    p         = ((hashIndex > -1)
-                                 ? st.substring(0, hashIndex)
-                                 : st).trim();
+                    p         = ((hashIndex > -1) ? st.substring(0, hashIndex)
+                                                  : st).trim();
 
-                    if (p.isEmpty()) {
+                    if (p.length() < 1) {
                         continue;
                     }
 
-                    f = (baseDir == null)
-                        ? (new File(p))
-                        : (new File(baseDir, p));
+                    f = (baseDir == null) ? (new File(p))
+                                          : (new File(baseDir, p));
 
                     if (f.isFile()) {
                         s.addDir(f);
                     } else {
-                        System.err.println(
-                            "Skipping non-file '" + p.trim() + "'");
+                        System.err.println("Skipping non-file '" + p.trim()
+                                           + "'");
                     }
                 }
             } catch (Exception e) {
-                System.err.println(
-                    "Failed to read pathlist file '"
-                    + listFile.getAbsolutePath() + "'");
+                System.err.println("Failed to read pathlist file '"
+                                   + listFile.getAbsolutePath() + "'");
             }
         }
 
@@ -211,15 +208,14 @@ public class CodeSwitcher {
 
         s.process();
 
-        if (s.vSwitchOff.isEmpty() && s.vSwitchOn.isEmpty()) {
+        if (s.vSwitchOff.size() == 0 && s.vSwitchOn.size() == 0) {
             s.printSwitches();
         }
     }
 
     public int size() {
-        return (vList == null)
-               ? 0
-               : vList.size();
+        return (vList == null) ? 0
+                               : vList.size();
     }
 
     /**
@@ -250,10 +246,10 @@ public class CodeSwitcher {
      */
     CodeSwitcher() {
 
-        vList      = new ArrayList<>();
-        vSwitchOn  = new ArrayList<>();
-        vSwitchOff = new ArrayList<>();
-        vSwitches  = new ArrayList<>();
+        vList      = new ArrayList<String>();
+        vSwitchOn  = new ArrayList<String>();
+        vSwitchOff = new ArrayList<String>();
+        vSwitches  = new ArrayList<String>();
     }
 
     /**
@@ -321,7 +317,7 @@ public class CodeSwitcher {
 
         try {
             ArrayList<String> v  = getFileLines(f);
-            ArrayList<String> v1 = new ArrayList<>(v.size());
+            ArrayList<String> v1 = new ArrayList<String>(v.size());
 
             for (int i = 0; i < v.size(); i++) {
                 v1.add(v.get(i));
@@ -337,6 +333,7 @@ public class CodeSwitcher {
                 if (working) {
                     if (line.equals("/*") || line.equals("*/")) {
                         v.remove(i--);
+
                         continue;
                     }
                 }
@@ -344,9 +341,7 @@ public class CodeSwitcher {
                 if (line.startsWith("//#")) {
                     if (line.startsWith("//#ifdef ")) {
                         if (state != 0) {
-                            printError(
-                                "'#ifdef' not allowed inside '#ifdef' at line "
-                                + i);
+                            printError("'#ifdef' not allowed inside '#ifdef'");
 
                             return false;
                         }
@@ -355,10 +350,10 @@ public class CodeSwitcher {
 
                         String s = line.substring(9);
 
-                        if (vSwitchOn.contains(s)) {
+                        if (vSwitchOn.indexOf(s) != -1) {
                             working   = true;
                             switchoff = false;
-                        } else if (vSwitchOff.contains(s)) {
+                        } else if (vSwitchOff.indexOf(s) != -1) {
                             working = true;
 
                             v.add(++i, "/*");
@@ -366,12 +361,13 @@ public class CodeSwitcher {
                             switchoff = true;
                         }
 
-                        if (!vSwitches.contains(s)) {
+                        if (vSwitches.indexOf(s) == -1) {
                             vSwitches.add(s);
                         }
                     } else if (line.startsWith("//#ifndef ")) {
                         if (state != 0) {
-                            printError("'#ifndef' not allowed inside '#ifdef'");
+                            printError(
+                                "'#ifndef' not allowed inside '#ifdef'");
 
                             return false;
                         }
@@ -380,10 +376,10 @@ public class CodeSwitcher {
 
                         String s = line.substring(10);
 
-                        if (vSwitchOff.contains(s)) {
+                        if (vSwitchOff.indexOf(s) != -1) {
                             working   = true;
                             switchoff = false;
-                        } else if (vSwitchOn.contains(s)) {
+                        } else if (vSwitchOn.indexOf(s) != -1) {
                             working = true;
 
                             v.add(++i, "/*");
@@ -391,7 +387,7 @@ public class CodeSwitcher {
                             switchoff = true;
                         }
 
-                        if (!vSwitches.contains(s)) {
+                        if (vSwitches.indexOf(s) == -1) {
                             vSwitches.add(s);
                         }
                     } else if (line.startsWith("//#else")) {
@@ -405,7 +401,7 @@ public class CodeSwitcher {
 
                         if (!working) {}
                         else if (switchoff) {
-                            if (v.get(i - 1).isEmpty()) {
+                            if (v.get(i - 1).equals("")) {
                                 v.add(i - 1, "*/");
 
                                 i++;
@@ -429,7 +425,7 @@ public class CodeSwitcher {
                         state = 0;
 
                         if (working && switchoff) {
-                            if (v.get(i - 1).isEmpty()) {
+                            if (v.get(i - 1).equals("")) {
                                 v.add(i - 1, "*/");
 
                                 i++;
@@ -454,6 +450,7 @@ public class CodeSwitcher {
             for (int i = 0; i < v.size(); i++) {
                 if (!v1.get(i).equals(v.get(i))) {
                     filechanged = true;
+
                     break;
                 }
             }
@@ -461,8 +458,6 @@ public class CodeSwitcher {
             if (!filechanged) {
                 return true;
             }
-
-            long timestamp = f.lastModified();
 
             writeFileLines(v, fnew);
 
@@ -474,7 +469,6 @@ public class CodeSwitcher {
             File fcopy = new File(name);
 
             fnew.renameTo(fcopy);
-            fcopy.setLastModified(timestamp);
             fbak.delete();
 
             return true;
@@ -488,7 +482,7 @@ public class CodeSwitcher {
     static ArrayList<String> getFileLines(File f) throws IOException {
 
         LineNumberReader  read = new LineNumberReader(new FileReader(f));
-        ArrayList<String> v    = new ArrayList<>();
+        ArrayList<String> v    = new ArrayList<String>();
 
         for (;;) {
             String line = read.readLine();

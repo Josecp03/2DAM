@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,7 @@
 
 package org.hsqldb;
 
-import java.util.TimeZone;
-
 import org.hsqldb.HsqlNameManager.HsqlName;
-import org.hsqldb.SessionInterface.Attributes;
 import org.hsqldb.ParserDQL.CompileContext;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
@@ -43,7 +40,6 @@ import org.hsqldb.lib.List;
 import org.hsqldb.result.Result;
 import org.hsqldb.rights.Grantee;
 import org.hsqldb.rights.User;
-import org.hsqldb.types.DateTimeType;
 import org.hsqldb.types.DTIType;
 import org.hsqldb.types.IntervalSecondData;
 import org.hsqldb.types.Type;
@@ -53,32 +49,28 @@ import org.hsqldb.types.Types;
  * Implementation of Statement for SQL session statements.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.4.0
  * @since 1.9.0
  */
 public class StatementSession extends Statement {
 
     public static final StatementSession commitNoChainStatement =
-        new StatementSession(
-            StatementTypes.COMMIT_WORK,
-            new Object[]{ Boolean.FALSE });
+        new StatementSession(StatementTypes.COMMIT_WORK,
+                             new Object[]{ Boolean.FALSE });
     public static final StatementSession rollbackNoChainStatement =
-        new StatementSession(
-            StatementTypes.ROLLBACK_WORK,
-            new Object[]{ Boolean.FALSE });
+        new StatementSession(StatementTypes.ROLLBACK_WORK,
+                             new Object[]{ Boolean.FALSE });
     public static final StatementSession commitAndChainStatement =
-        new StatementSession(
-            StatementTypes.COMMIT_WORK,
-            new Object[]{ Boolean.TRUE });
+        new StatementSession(StatementTypes.COMMIT_WORK,
+                             new Object[]{ Boolean.TRUE });
     public static final StatementSession rollbackAndChainStatement =
-        new StatementSession(
-            StatementTypes.ROLLBACK_WORK,
-            new Object[]{ Boolean.TRUE });
+        new StatementSession(StatementTypes.ROLLBACK_WORK,
+                             new Object[]{ Boolean.TRUE });
 
     static {
-        commitNoChainStatement.sql                 = Tokens.T_COMMIT;
-        commitAndChainStatement.sql = Tokens.T_COMMIT + ' ' + Tokens.T_CHAIN;
-        rollbackNoChainStatement.sql               = Tokens.T_ROLLBACK;
+        commitNoChainStatement.sql   = Tokens.T_COMMIT;
+        commitAndChainStatement.sql  = Tokens.T_COMMIT + ' ' + Tokens.T_CHAIN;
+        rollbackNoChainStatement.sql = Tokens.T_ROLLBACK;
         rollbackAndChainStatement.sql = Tokens.T_ROLLBACK + ' '
                                         + Tokens.T_CHAIN;
         commitNoChainStatement.compileTimestamp    = Long.MAX_VALUE;
@@ -90,11 +82,8 @@ public class StatementSession extends Statement {
     Expression[] expressions;
     Object[]     arguments;
 
-    StatementSession(
-            Session session,
-            CompileContext context,
-            int type,
-            Expression[] args) {
+    StatementSession(Session session, CompileContext context, int type,
+                     Expression[] args) {
 
         super(type);
 
@@ -107,11 +96,8 @@ public class StatementSession extends Statement {
         switch (type) {
 
             case StatementTypes.SET_TIME_ZONE :
-                List<Expression> unresolved = e.resolveColumnReferences(
-                    session,
-                    RangeGroup.emptyGroup,
-                    RangeGroup.emptyArray,
-                    null);
+                List unresolved = e.resolveColumnReferences(session,
+                    RangeGroup.emptyGroup, RangeGroup.emptyArray, null);
 
                 ExpressionColumn.checkColumnsResolved(unresolved);
                 e.resolveTypes(session, null);
@@ -120,9 +106,12 @@ public class StatementSession extends Statement {
                     e.setDataType(session, Type.SQL_INTERVAL_HOUR_TO_MINUTE);
                 }
 
-                if (e.dataType.isCharacterType()) {}
-                else if (e.dataType.typeCode
-                         != Types.SQL_INTERVAL_HOUR_TO_MINUTE) {
+                if (e.dataType.isCharacterType()) {
+                    e = new ExpressionOp(e, Type.SQL_INTERVAL_HOUR_TO_MINUTE);
+                    expressions[0] = e;
+                }
+
+                if (e.dataType.typeCode != Types.SQL_INTERVAL_HOUR_TO_MINUTE) {
                     throw Error.error(ErrorCode.X_42563);
                 }
 
@@ -141,36 +130,33 @@ public class StatementSession extends Statement {
                 break;
 
             default :
-                throw Error.runtimeError(ErrorCode.U_S0500, "StatementSession");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "StatementSession");
         }
 
-        // e is null for SET ROLE NONE
-        if (e != null) {
-            e.resolveTypes(session, null);
+        e.resolveTypes(session, null);
 
-            switch (e.getType()) {
+        switch (e.getType()) {
 
-                case OpTypes.VALUE :
+            case OpTypes.VALUE :
+                break;
+
+            case OpTypes.DYNAMIC_PARAM :
+                e.setDataType(session, Type.SQL_VARCHAR_DEFAULT);
+                break;
+
+            case OpTypes.SQL_FUNCTION :
+                if (((FunctionSQL) e).isValueFunction()) {
                     break;
+                }
 
-                case OpTypes.DYNAMIC_PARAM :
-                    e.setDataType(session, Type.SQL_VARCHAR_DEFAULT);
-                    break;
-
-                case OpTypes.SQL_FUNCTION :
-                    if (((FunctionSQL) e).isValueFunction()) {
-                        break;
-                    }
-
-                    throw Error.error(ErrorCode.X_0P000);
-
-                default :
-                    throw Error.error(ErrorCode.X_0P000);
-            }
-
-            if (!e.getDataType().isCharacterType()) {
                 throw Error.error(ErrorCode.X_0P000);
-            }
+            default :
+                throw Error.error(ErrorCode.X_0P000);
+        }
+
+        if (!e.getDataType().isCharacterType()) {
+            throw Error.error(ErrorCode.X_0P000);
         }
 
         setDatabaseObjects(session, context);
@@ -276,7 +262,8 @@ public class StatementSession extends Statement {
                 break;
 
             default :
-                throw Error.runtimeError(ErrorCode.U_S0500, "StatementSession");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "StatementSession");
         }
     }
 
@@ -298,7 +285,8 @@ public class StatementSession extends Statement {
                 break;
 
             default :
-                throw Error.runtimeError(ErrorCode.U_S0500, "StatementSession");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "StatementSession");
         }
     }
 
@@ -334,9 +322,8 @@ public class StatementSession extends Statement {
         boolean startTransaction = false;
 
         if (this.isExplain) {
-            return Result.newSingleColumnStringResult(
-                "OPERATION",
-                describe(session));
+            return Result.newSingleColumnStringResult("OPERATION",
+                    describe(session));
         }
 
         switch (type) {
@@ -358,7 +345,6 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.DEALLOCATE_DESCRIPTOR :
             case StatementTypes.DEALLOCATE_PREPARE :
                 return Result.updateZeroResult;
@@ -392,7 +378,6 @@ public class StatementSession extends Statement {
             case StatementTypes.TRANSACTION_LOCK_TABLE : {
                 return Result.updateZeroResult;
             }
-
             case StatementTypes.RELEASE_SAVEPOINT : {
                 String savepoint = (String) arguments[0];
 
@@ -404,7 +389,6 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.ROLLBACK_WORK : {
                 boolean chain = ((Boolean) arguments[0]).booleanValue();
 
@@ -412,7 +396,6 @@ public class StatementSession extends Statement {
 
                 return Result.updateZeroResult;
             }
-
             case StatementTypes.ROLLBACK_SAVEPOINT : {
                 String savepoint = (String) arguments[0];
 
@@ -424,7 +407,6 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.SAVEPOINT : {
                 String savepoint = (String) arguments[0];
 
@@ -432,31 +414,24 @@ public class StatementSession extends Statement {
 
                 return Result.updateZeroResult;
             }
-
             case StatementTypes.SET_CATALOG : {
                 String name;
 
                 try {
                     name = (String) expressions[0].getValue(session);
-                    name = (String) Type.SQL_VARCHAR.trim(
-                        session,
-                        name,
-                        ' ',
-                        true,
-                        true);
+                    name = (String) Type.SQL_VARCHAR.trim(session, name, ' ',
+                                                          true, true);
 
                     if (session.database.getCatalogName().name.equals(name)) {
                         return Result.updateZeroResult;
                     }
 
                     return Result.newErrorResult(
-                        Error.error(ErrorCode.X_3D000),
-                        sql);
+                        Error.error(ErrorCode.X_3D000), sql);
                 } catch (HsqlException e) {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.SET_CONNECTION :
             case StatementTypes.SET_CONSTRAINT :
             case StatementTypes.SET_DESCRIPTOR :
@@ -468,15 +443,9 @@ public class StatementSession extends Statement {
                 if (expressions[0].getType() == OpTypes.VALUE
                         && expressions[0].getConstantValueNoCheck(session)
                            == null) {
-                    session.resetTimeZone();
+                    session.setZoneSeconds(session.sessionTimeZoneSeconds);
 
-                    Result result = Result.newUpdateZeroResult();
-                    Result attribute = session.getSetAttributeResult(
-                        Attributes.INFO_TIMEZONE);
-
-                    result.addChainedResult(attribute);
-
-                    return result;
+                    return Result.updateZeroResult;
                 }
 
                 try {
@@ -503,77 +472,31 @@ public class StatementSession extends Statement {
                             result.getNavigator().release();
 
                             return Result.newErrorResult(
-                                Error.error(ErrorCode.X_22009),
-                                sql);
+                                Error.error(ErrorCode.X_22009), sql);
                         }
                     } else {
                         return Result.newErrorResult(
-                            Error.error(ErrorCode.X_22009),
-                            sql);
+                            Error.error(ErrorCode.X_22009), sql);
                     }
                 } else {
                     if (value == null) {
                         return Result.newErrorResult(
-                            Error.error(ErrorCode.X_22009),
-                            sql);
+                            Error.error(ErrorCode.X_22009), sql);
                     }
                 }
 
-                if (value instanceof String) {
-                    String zoneString = (String) value;
+                long seconds = ((IntervalSecondData) value).getSeconds();
 
-                    if (DateTimeType.zoneIDs.contains(zoneString)) {
-                        TimeZone zone = TimeZone.getTimeZone(zoneString);
+                if (-DTIType.timezoneSecondsLimit <= seconds
+                        && seconds <= DTIType.timezoneSecondsLimit) {
+                    session.setZoneSeconds((int) seconds);
 
-                        session.setTimeZone(zone);
-
-                        Result result = Result.newUpdateZeroResult();
-                        Result attribute = session.getSetAttributeResult(
-                            Attributes.INFO_TIMEZONE);
-
-                        result.addChainedResult(attribute);
-
-                        return result;
-                    } else {
-                        value =
-                            Type.SQL_INTERVAL_HOUR_TO_MINUTE.convertToDefaultType(
-                                session,
-                                value);
-                    }
+                    return Result.updateZeroResult;
                 }
 
-                if (value instanceof IntervalSecondData) {
-                    IntervalSecondData interval = (IntervalSecondData) value;
-                    long               seconds  = interval.getSeconds();
-
-                    if (-DTIType.timezoneSecondsLimit <= seconds
-                            && seconds <= DTIType.timezoneSecondsLimit) {
-                        String i =
-                            Type.SQL_INTERVAL_HOUR_TO_MINUTE.convertToString(
-                                interval);
-                        String   sign       = seconds < 0
-                                              ? ""
-                                              : "+";
-                        String   zoneString = "GMT" + sign + i;
-                        TimeZone zone       = TimeZone.getTimeZone(zoneString);
-
-                        session.setTimeZone(zone);
-
-                        Result result = Result.newUpdateZeroResult();
-                        Result attribute = session.getSetAttributeResult(
-                            Attributes.INFO_TIMEZONE);
-
-                        result.addChainedResult(attribute);
-
-                        return result;
-                    }
-                }
-
-                return Result.newErrorResult(
-                    Error.error(ErrorCode.X_22009),
-                    sql);
+                return Result.newErrorResult(Error.error(ErrorCode.X_22009),
+                                             sql);
             }
-
             case StatementTypes.SET_NAMES :
                 return Result.updateZeroResult;
 
@@ -585,46 +508,36 @@ public class StatementSession extends Statement {
                 Grantee role = null;
 
                 try {
-                    if (expressions[0] != null) {
-                        name = (String) expressions[0].getValue(session);
+                    name = (String) expressions[0].getValue(session);
 
-                        if (name == null) {
-                            return Result.newErrorResult(
-                                Error.error(ErrorCode.X_0P000),
-                                sql);
-                        }
-
-                        name = (String) Type.SQL_VARCHAR.trim(
-                            session,
-                            name,
-                            ' ',
-                            true,
-                            true);
+                    if (name != null) {
+                        name = (String) Type.SQL_VARCHAR.trim(session, name,
+                                                              ' ', true, true);
                         role = session.database.granteeManager.getRole(name);
                     }
                 } catch (HsqlException e) {
                     return Result.newErrorResult(
-                        Error.error(ErrorCode.X_0P000),
-                        sql);
+                        Error.error(ErrorCode.X_0P000), sql);
                 }
 
                 if (session.isInMidTransaction()) {
                     return Result.newErrorResult(
-                        Error.error(ErrorCode.X_25001),
-                        sql);
+                        Error.error(ErrorCode.X_25001), sql);
                 }
 
-                if (role == null || session.getGrantee().hasRole(role)) {
+                if (role == null) {
+                    session.setRole(null);
+                }
+
+                if (session.getGrantee().hasRole(role)) {
                     session.setRole(role);
 
                     return Result.updateZeroResult;
                 } else {
                     return Result.newErrorResult(
-                        Error.error(ErrorCode.X_0P000),
-                        sql);
+                        Error.error(ErrorCode.X_0P000), sql);
                 }
             }
-
             case StatementTypes.SET_SCHEMA : {
                 String   name;
                 HsqlName schema;
@@ -636,14 +549,10 @@ public class StatementSession extends Statement {
                         name = (String) expressions[0].getValue(session);
                     }
 
-                    name = (String) Type.SQL_VARCHAR.trim(
-                        session,
-                        name,
-                        ' ',
-                        true,
-                        true);
-                    schema = session.database.schemaManager.getSchemaHsqlName(
-                        name);
+                    name = (String) Type.SQL_VARCHAR.trim(session, name, ' ',
+                                                          true, true);
+                    schema =
+                        session.database.schemaManager.getSchemaHsqlName(name);
 
                     session.setCurrentSchemaHsqlName(schema);
 
@@ -652,12 +561,10 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.SET_SESSION_AUTHORIZATION : {
                 if (session.isInMidTransaction()) {
                     return Result.newErrorResult(
-                        Error.error(ErrorCode.X_25001),
-                        sql);
+                        Error.error(ErrorCode.X_25001), sql);
                 }
 
                 try {
@@ -665,12 +572,8 @@ public class StatementSession extends Statement {
                     String password = null;
 
                     user = (String) expressions[0].getValue(session);
-                    user = (String) Type.SQL_VARCHAR.trim(
-                        session,
-                        user,
-                        ' ',
-                        true,
-                        true);
+                    user = (String) Type.SQL_VARCHAR.trim(session, user, ' ',
+                                                          true, true);
 
                     if (expressions[1] != null) {
                         password = (String) expressions[1].getValue(session);
@@ -681,8 +584,9 @@ public class StatementSession extends Statement {
                     if (password == null) {
                         userObject = session.database.userManager.get(user);
                     } else {
-                        userObject = session.database.getUserManager()
-                                                     .getUser(user, password);
+                        userObject =
+                            session.database.getUserManager().getUser(user,
+                                password);
                     }
 
                     if (userObject == null) {
@@ -696,8 +600,7 @@ public class StatementSession extends Statement {
                         return Result.updateZeroResult;
                     }
 
-                    if (password == null
-                            && !session.isProcessingLog()
+                    if (password == null && !session.isProcessingLog()
                             && userObject.isAdmin()
                             && !session.getGrantee().isAdmin()) {
                         throw Error.error(ErrorCode.X_28000);
@@ -716,7 +619,6 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.SET_SESSION_CHARACTERISTICS : {
                 try {
                     if (arguments[0] != null) {
@@ -737,7 +639,6 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.SET_COLLATION :
                 return Result.updateZeroResult;
 
@@ -776,33 +677,22 @@ public class StatementSession extends Statement {
             //
             case StatementTypes.SET_SESSION_AUTOCOMMIT : {
                 boolean mode = ((Boolean) arguments[0]).booleanValue();
-                int     rows = ((Integer) arguments[1]).intValue();
 
                 try {
-                    if (rows < 0) {
-                        session.setAutoCommit(mode);
-                    } else {
-                        session.setAutoCommitRows(rows);
-                    }
+                    session.setAutoCommit(mode);
 
-                    Result result = Result.newUpdateZeroResult();
-                    Result attribute = session.getSetAttributeResult(
-                        Attributes.INFO_AUTOCOMMIT);
-
-                    result.addChainedResult(attribute);
-
-                    return result;
+                    return Result.updateZeroResult;
                 } catch (HsqlException e) {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.DECLARE_VARIABLE : {
                 ColumnSchema[] variables = (ColumnSchema[]) arguments[0];
 
                 try {
                     for (int i = 0; i < variables.length; i++) {
-                        session.sessionContext.addSessionVariable(variables[i]);
+                        session.sessionContext.addSessionVariable(
+                            variables[i]);
                     }
 
                     return Result.updateZeroResult;
@@ -810,7 +700,6 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.SET_SESSION_FEATURE : {
                 String  feature = (String) arguments[0];
                 Boolean value   = (Boolean) arguments[1];
@@ -819,7 +708,6 @@ public class StatementSession extends Statement {
 
                 return Result.updateZeroResult;
             }
-
             case StatementTypes.SET_SESSION_RESULT_MAX_ROWS : {
                 int size = ((Integer) arguments[0]).intValue();
 
@@ -827,7 +715,6 @@ public class StatementSession extends Statement {
 
                 return Result.updateZeroResult;
             }
-
             case StatementTypes.SET_SESSION_RESULT_MEMORY_ROWS : {
                 int size = ((Integer) arguments[0]).intValue();
 
@@ -835,7 +722,6 @@ public class StatementSession extends Statement {
 
                 return Result.updateZeroResult;
             }
-
             case StatementTypes.SET_SESSION_SQL_IGNORECASE : {
                 try {
                     boolean mode = ((Boolean) arguments[0]).booleanValue();
@@ -847,22 +733,17 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.DECLARE_SESSION_TABLE : {
-                Table         table       = (Table) arguments[0];
-                HsqlArrayList<Constraint> tempConstraints =
-                    (HsqlArrayList<Constraint>) arguments[1];
-                StatementDMQL statement   = (StatementDMQL) arguments[3];
-                Boolean       ifNotExists = (Boolean) arguments[4];
+                Table         table           = (Table) arguments[0];
+                HsqlArrayList tempConstraints = (HsqlArrayList) arguments[1];
+                StatementDMQL statement       = (StatementDMQL) arguments[3];
+                Boolean       ifNotExists     = (Boolean) arguments[4];
 
                 try {
-                    if (tempConstraints.size() > 0) {
-                        table = ParserDDL.addTableConstraintDefinitions(
-                            session,
-                            table,
-                            tempConstraints,
-                            null,
-                            false);
+                    if (tempConstraints.size() != 0) {
+                        table =
+                            ParserDDL.addTableConstraintDefinitions(session,
+                                table, tempConstraints, null, false);
                     }
 
                     table.compile(session, null);
@@ -870,7 +751,8 @@ public class StatementSession extends Statement {
                     try {
                         session.sessionContext.addSessionTable(table);
                     } catch (HsqlException e) {
-                        if (ifNotExists != null && ifNotExists.booleanValue()) {
+                        if (ifNotExists != null
+                                && ifNotExists.booleanValue()) {
                             return Result.updateZeroResult;
                         } else {
                             return Result.newErrorResult(e, sql);
@@ -892,12 +774,11 @@ public class StatementSession extends Statement {
                     return Result.newErrorResult(e, sql);
                 }
             }
-
             case StatementTypes.DROP_TABLE : {
                 HsqlName name     = (HsqlName) arguments[0];
                 Boolean  ifExists = (Boolean) arguments[1];
-                Table table = session.sessionContext.findSessionTable(
-                    name.name);
+                Table table =
+                    session.sessionContext.findSessionTable(name.name);
 
                 if (table == null) {
                     if (ifExists.booleanValue()) {
@@ -913,9 +794,9 @@ public class StatementSession extends Statement {
 
                 return Result.updateZeroResult;
             }
-
             default :
-                throw Error.runtimeError(ErrorCode.U_S0500, "StatementSession");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "StatementSession");
         }
     }
 

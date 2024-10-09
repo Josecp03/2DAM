@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,18 +55,13 @@ import org.hsqldb.types.Type;
  */
 public class RowOutputTextLog extends RowOutputBase {
 
-    private static final byte[] BYTES_NULL = Tokens.T_NULL.getBytes(
-        JavaSystem.CS_ISO_8859_1);
-    private static final byte[] BYTES_TRUE = Tokens.T_TRUE.getBytes(
-        JavaSystem.CS_ISO_8859_1);
-    private static final byte[] BYTES_FALSE = Tokens.T_FALSE.getBytes(
-        JavaSystem.CS_ISO_8859_1);
-    private static final byte[] BYTES_AND = " AND ".getBytes(
-        JavaSystem.CS_ISO_8859_1);
-    private static final byte[] BYTES_IS = " IS ".getBytes(
-        JavaSystem.CS_ISO_8859_1);
-    private static final byte[] BYTES_ARRAY = " ARRAY[".getBytes(
-        JavaSystem.CS_ISO_8859_1);
+    private static byte[] BYTES_NULL  = Tokens.T_NULL.getBytes(JavaSystem.CS_ISO_8859_1);
+    private static byte[] BYTES_TRUE  = Tokens.T_TRUE.getBytes(JavaSystem.CS_ISO_8859_1);
+    private static byte[] BYTES_FALSE = Tokens.T_FALSE.getBytes(JavaSystem.CS_ISO_8859_1);
+    private static byte[] BYTES_AND   = " AND ".getBytes(JavaSystem.CS_ISO_8859_1);
+    private static byte[] BYTES_IS    = " IS ".getBytes(JavaSystem.CS_ISO_8859_1);
+    private static byte[] BYTES_ARRAY = " ARRAY[".getBytes(JavaSystem.CS_ISO_8859_1);
+
     public static final int MODE_DELETE = 1;
     public static final int MODE_INSERT = 0;
     private boolean         isWritten;
@@ -87,6 +82,7 @@ public class RowOutputTextLog extends RowOutputBase {
     }
 
     protected void writeChar(String s, Type t) {
+
         write('\'');
         StringConverter.stringToUnicodeBytes(this, s, true);
         write('\'');
@@ -113,8 +109,7 @@ public class RowOutputTextLog extends RowOutputBase {
         ensureRoom((int) (o.length(null) * 8 + 2));
         write('\'');
 
-        String s = StringConverter.byteArrayToBitString(
-            o.getBytes(),
+        String s = StringConverter.byteArrayToBitString(o.getBytes(),
             (int) o.bitLength(null));
 
         writeBytes(s);
@@ -126,10 +121,8 @@ public class RowOutputTextLog extends RowOutputBase {
         ensureRoom(40);
         write('\'');
 
-        count += StringConverter.writeUUIDHexBytes(
-            getBuffer(),
-            count,
-            o.getBytes());
+        count += StringConverter.writeUUIDHexBytes(getBuffer(), count,
+                o.getBytes());
 
         write('\'');
     }
@@ -139,10 +132,8 @@ public class RowOutputTextLog extends RowOutputBase {
         ensureRoom((int) (o.length(null) * 2 + 2));
         write('\'');
 
-        count += StringConverter.writeHexBytes(
-            getBuffer(),
-            count,
-            o.getBytes());
+        count += StringConverter.writeHexBytes(getBuffer(), count,
+                                               o.getBytes());
 
         write('\'');
     }
@@ -227,9 +218,8 @@ public class RowOutputTextLog extends RowOutputBase {
     }
 
     protected void writeBoolean(Boolean o) {
-        write(o.booleanValue()
-              ? BYTES_TRUE
-              : BYTES_FALSE);
+        write(o.booleanValue() ? BYTES_TRUE
+                               : BYTES_FALSE);
     }
 
     protected void writeDecimal(BigDecimal o, Type type) {
@@ -258,30 +248,35 @@ public class RowOutputTextLog extends RowOutputBase {
     }
 
     protected void writeTime(TimeData o, Type type) {
+
         write('\'');
         writeBytes(type.convertToString(o));
         write('\'');
     }
 
     protected void writeDate(TimestampData o, Type type) {
+
         write('\'');
         writeBytes(type.convertToString(o));
         write('\'');
     }
 
     protected void writeTimestamp(TimestampData o, Type type) {
+
         write('\'');
         writeBytes(type.convertToString(o));
         write('\'');
     }
 
     protected void writeYearMonthInterval(IntervalMonthData o, Type type) {
+
         write('\'');
         writeBytes(type.convertToString(o));
         write('\'');
     }
 
     protected void writeDaySecondInterval(IntervalSecondData o, Type type) {
+
         write('\'');
         writeBytes(type.convertToString(o));
         write('\'');
@@ -296,6 +291,7 @@ public class RowOutputTextLog extends RowOutputBase {
     }
 
     public void reset() {
+
         super.reset();
 
         isWritten = false;

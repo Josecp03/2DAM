@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ public interface ResultConstants {
     /**
      * Not a result
      */
-    int NONE = HSQL_API_BASE;
+    int NONE = HSQL_API_BASE + 0;
 
     /**
      * Indicates that the Result object encapsulates an update
@@ -650,7 +650,6 @@ public interface ResultConstants {
 //     * tables described by the Information Schema of the connected data source.
 //     */
 //    int SQLTABLEPRIVILEGES  = SQL_API_BASE + 70;
-
 /*
  Codes for transaction termination:
 
@@ -694,7 +693,6 @@ public interface ResultConstants {
      * for example a call having no return value
      */
     int SUCCESS_NO_INFO = -2;
-
 /*
    SQL standard properties
    The operational sensitivity property (either SENSITIVE, INSENSITIVE, or ASENSITIVE).
@@ -730,8 +728,8 @@ public interface ResultConstants {
     int CLOSE_CURSORS_AT_COMMIT  = 2;
 
     /** Constants indicating generated key return behaviour */
-    int RETURN_GENERATED_KEYS = 1;                 // matching java.sql.Statement constant
-    int RETURN_NO_GENERATED_KEYS = 2;              // matching java.sql.Statement constant
+    int RETURN_GENERATED_KEYS             = 1;     // matching java.sql.Statement constant
+    int RETURN_NO_GENERATED_KEYS          = 2;     // matching java.sql.Statement constant
     int RETURN_GENERATED_KEYS_COL_NAMES   = 11;    // constant in HSQLDB only
     int RETURN_GENERATED_KEYS_COL_INDEXES = 21;    // constant in HSQLDB only
     int RETURN_PRIMARY_KEYS               = 31;    // constant in HSQLDB only

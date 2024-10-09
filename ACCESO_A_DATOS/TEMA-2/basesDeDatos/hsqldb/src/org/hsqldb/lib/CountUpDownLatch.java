@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * as down.
  *
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  */
 public class CountUpDownLatch {
 
@@ -144,10 +144,8 @@ public class CountUpDownLatch {
      * @throws InterruptedException if the current thread is interrupted while
      *                              waiting
      */
-    public boolean await(
-            long timeout,
-            TimeUnit unit)
-            throws InterruptedException {
+    public boolean await(long timeout,
+                         TimeUnit unit) throws InterruptedException {
         return sync.tryAcquireSharedNanos(1, unit.toNanos(timeout));
     }
 
@@ -198,7 +196,7 @@ public class CountUpDownLatch {
      * <p>
      * If the current {@code count} is zero, no action occurs and false is
      * returned immediately; otherwise, {@code count} is decremented by the
-     * lesser of {@code amount} and current {@code count} i.e. if
+     * lesser of {@code amount} and current {@code count} (i.e. if
      * {@code amount} is greater than current {@code count}, then new
      * {@code count} is zero, else new {@code count} is current {@code count}
      * minus {@code amount}.
@@ -250,7 +248,8 @@ public class CountUpDownLatch {
      *         {@code count}.
      */
     public String toString() {
-        return String.format("%s[count=%d]", super.toString(), sync.getCount());
+        return String.format("%s[count=%d]", super.toString(),
+                             sync.getCount());
     }
 
     /**
@@ -328,9 +327,8 @@ public class CountUpDownLatch {
          *         case a subsequent waiting thread must check availability.
          */
         protected int tryAcquireShared(int ignored) {
-            return getState() == 0
-                   ? 1
-                   : -1;
+            return getState() == 0 ? 1
+                                   : -1;
         }
 
         /**
@@ -349,7 +347,8 @@ public class CountUpDownLatch {
 
             if (newCount < 0) {
                 throw new IllegalArgumentException(
-                    String.format("amount must be non-negative: %d", newCount));
+                    String.format(
+                        "amount must be non-negative: %d", newCount));
             }
 
             boolean requestedZero = newCount == 0;
@@ -363,7 +362,8 @@ public class CountUpDownLatch {
 
                 // assert newCount >= 0;
                 if (compareAndSetState(c, newCount)) {
-                    return requestedZero && releaseShared(0);
+                    return requestedZero ? releaseShared(0)
+                                         : false;
                 }
             }
         }
@@ -416,13 +416,13 @@ public class CountUpDownLatch {
                     return false;
                 }
 
-                int nextc = amount >= c
-                            ? 0
-                            : c - amount;
+                int nextc = amount >= c ? 0
+                                        : c - amount;
 
                 // assert nextc >= 0;
                 if (super.compareAndSetState(c, nextc)) {
-                    return nextc == 0 && releaseShared(0);
+                    return nextc == 0 ? releaseShared(0)
+                                      : false;
                 }
             }
         }
@@ -463,7 +463,7 @@ public class CountUpDownLatch {
          *                                  cause a silent numeric overflow,
          *                                  resulting in a negative
          *                                  {@code count}.
-         * @throws IllegalArgumentException if {@code amount is less than one}
+         * @throws IllegalArgumentException if {@code amount is less than one)
          *
          */
         boolean countUp(int amount) {

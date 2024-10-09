@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
@@ -49,7 +48,7 @@ import org.hsqldb.lib.java.JavaSystem;
  * Creates a direct, compressed or decompressed copy of a file.
  *
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
- * @version 2.5.1
+ * @version 1.9.0
  * @since 1.9.0
  */
 public class FileArchiver {
@@ -77,25 +76,15 @@ public class FileArchiver {
                 infilename, outfilename, storage, COMPRESSION_NONE);
     }
     */
-    public static void copyFile(
-            String infilename,
-            String outfilename,
-            FileAccess storage)
-            throws IOException {
-
-        FileArchiver.archive(
-            infilename,
-            outfilename,
-            storage,
-            COMPRESSION_NONE);
+    public static void copyFile(String infilename, String outfilename,
+                                FileAccess storage) throws IOException {
+        FileArchiver.archive(infilename, outfilename, storage,
+                             COMPRESSION_NONE);
     }
 
-    public static void archive(
-            String infilename,
-            String outfilename,
-            FileAccess storage,
-            int compressionType)
-            throws IOException {
+    public static void archive(String infilename, String outfilename,
+                               FileAccess storage,
+                               int compressionType) throws IOException {
 
         InputStream          in        = null;
         OutputStream         f         = null;
@@ -119,8 +108,7 @@ public class FileArchiver {
 
                 case COMPRESSION_ZIP :
                     f = deflater = new DeflaterOutputStream(f,
-                            new Deflater(Deflater.BEST_SPEED),
-                            b.length);
+                            new Deflater(Deflater.BEST_SPEED), b.length);
                     break;
 
                 case COMPRESSION_GZIP :
@@ -131,8 +119,8 @@ public class FileArchiver {
                     break;
 
                 default :
-                    throw new RuntimeException(
-                        "FileArchiver" + compressionType);
+                    throw new RuntimeException("FileArchiver"
+                                               + compressionType);
             }
 
             while (true) {
@@ -175,12 +163,9 @@ public class FileArchiver {
         }
     }
 
-    public static void unarchive(
-            String infilename,
-            String outfilename,
-            FileAccess storage,
-            int compressionType)
-            throws IOException {
+    public static void unarchive(String infilename, String outfilename,
+                                 FileAccess storage,
+                                 int compressionType) throws IOException {
 
         InputStream  f         = null;
         OutputStream outstream = null;
@@ -211,8 +196,8 @@ public class FileArchiver {
                     break;
 
                 default :
-                    throw new RuntimeException(
-                        "FileArchiver: " + compressionType);
+                    throw new RuntimeException("FileArchiver: "
+                                               + compressionType);
             }
 
             outstream = storage.openOutputStreamElement(outfilename);

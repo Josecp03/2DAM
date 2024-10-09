@@ -2,6 +2,7 @@
 # https://bnd.bndtools.org/
 
 Bundle-Version: ${hsqldb.version}
+Build-Vendor: ${build.vendor}
 Bundle-Description: ${build.description}
 Bundle-Name: ${hsqldb.title}
 Bundle-SymbolicName: org.hsqldb.hsqldb

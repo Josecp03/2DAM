@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import org.hsqldb.lib.List;
 import org.hsqldb.lib.OrderedHashSet;
 import org.hsqldb.lib.OrderedIntHashSet;
 import org.hsqldb.map.ValuePool;
-import org.hsqldb.rights.GrantConstants;
 import org.hsqldb.rights.Grantee;
 import org.hsqldb.rights.GranteeManager;
 import org.hsqldb.rights.Right;
@@ -57,11 +56,11 @@ import org.hsqldb.types.UserTypeModifier;
  * Parser for DDL statements
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public class ParserDDL extends ParserRoutine {
-    //J-
+
     static final int[]   schemaCommands             = new int[] {
         Tokens.CREATE, Tokens.GRANT
     };
@@ -71,8 +70,6 @@ public class ParserDDL extends ParserRoutine {
     static final short[] startStatementTokensSchema = new short[] {
         Tokens.CREATE, Tokens.GRANT,
     };
-
-    //J+
 
     ParserDDL(Session session, Scanner scanner) {
         super(session, scanner);
@@ -103,6 +100,13 @@ public class ParserDDL extends ParserRoutine {
                 break;
 
             case Tokens.TEMP :
+                read();
+                readThis(Tokens.TABLE);
+
+                isTable   = true;
+                tableType = TableBase.TEMP_TABLE;
+                break;
+
             case Tokens.TEMPORARY :
                 read();
                 readThis(Tokens.TABLE);
@@ -244,7 +248,6 @@ public class ParserDDL extends ParserRoutine {
             case Tokens.INDEX : {
                 return compileAlterIndex();
             }
-
             case Tokens.SCHEMA : {
                 read();
 
@@ -255,7 +258,6 @@ public class ParserDDL extends ParserRoutine {
 
                 return compileRenameSchema(name, SchemaObject.SCHEMA);
             }
-
             case Tokens.CATALOG : {
                 read();
                 checkIsSimpleName();
@@ -267,49 +269,38 @@ public class ParserDDL extends ParserRoutine {
                 readThis(Tokens.RENAME);
                 readThis(Tokens.TO);
 
-                return compileRenameObject(
-                    database.getCatalogName(),
-                    SchemaObject.CATALOG,
-                    false);
+                return compileRenameObject(database.getCatalogName(),
+                                           SchemaObject.CATALOG, false);
             }
-
             case Tokens.SEQUENCE : {
                 return compileAlterSequence();
             }
-
             case Tokens.TABLE : {
                 return compileAlterTable();
             }
-
             case Tokens.USER : {
                 return compileAlterUser();
             }
-
             case Tokens.DOMAIN : {
                 return compileAlterDomain();
             }
-
             case Tokens.VIEW : {
                 return compileAlterView();
             }
-
             case Tokens.SESSION : {
                 return compileAlterSession();
             }
-
             case Tokens.SPECIFIC : {
                 return compileAlterSpecificRoutine();
             }
-
             case Tokens.ROUTINE : {
                 return compileAlterRoutine();
             }
-
             case Tokens.CONSTRAINT : {
                 read();
 
-                Constraint constraint = (Constraint) readSchemaObjectName(
-                    SchemaObject.CONSTRAINT);
+                Constraint constraint =
+                    (Constraint) readSchemaObjectName(SchemaObject.CONSTRAINT);
 
                 if (readIfThis(Tokens.INDEX)) {
                     return compileAlterFKIndex(constraint);
@@ -318,12 +309,9 @@ public class ParserDDL extends ParserRoutine {
                 readThis(Tokens.RENAME);
                 readThis(Tokens.TO);
 
-                return compileRenameObject(
-                    constraint.getName(),
-                    SchemaObject.CONSTRAINT,
-                    false);
+                return compileRenameObject(constraint.getName(),
+                                           SchemaObject.CONSTRAINT, false);
             }
-
             default : {
                 throw unexpectedToken();
             }
@@ -335,8 +323,8 @@ public class ParserDDL extends ParserRoutine {
         readThis(Tokens.SPECIFIC);
         readThis(Tokens.ROUTINE);
 
-        Routine routine = (Routine) readSchemaObjectName(
-            SchemaObject.SPECIFIC_ROUTINE);
+        Routine routine =
+            (Routine) readSchemaObjectName(SchemaObject.SPECIFIC_ROUTINE);
 
         switch (token.tokenType) {
 
@@ -344,10 +332,9 @@ public class ParserDDL extends ParserRoutine {
                 read();
                 readThis(Tokens.TO);
 
-                return compileRenameObject(
-                    routine.getSpecificName(),
-                    SchemaObject.SPECIFIC_ROUTINE,
-                    false);
+                return compileRenameObject(routine.getSpecificName(),
+                                           SchemaObject.SPECIFIC_ROUTINE,
+                                           false);
             }
         }
 
@@ -371,26 +358,25 @@ public class ParserDDL extends ParserRoutine {
 
         readThis(Tokens.AS);
 
-        Index index = (Index) database.schemaManager.findSchemaObject(name);
+        Index index = (Index) database.schemaManager.getSchemaObject(name);
 
         if (index == null) {
             throw Error.error(ErrorCode.X_42501);
         }
 
-        Table table = (Table) database.schemaManager.findSchemaObject(
+        Table table = (Table) database.schemaManager.getSchemaObject(
             index.getName().parent);
-        int[]    indexColumns = readColumnList(table, true);
-        String   sql          = getLastPart();
-        Object[] args = new Object[]{ table, indexColumns, index.getName() };
-        HsqlName[] writeLockNames = new HsqlName[]{ database.getCatalogName(),
-                table.getName() };
+        int[]      indexColumns   = readColumnList(table, true);
+        String     sql            = getLastPart();
+        Object[]   args           = new Object[] {
+            table, indexColumns, index.getName()
+        };
+        HsqlName[] writeLockNames = new HsqlName[] {
+            database.getCatalogName(), table.getName()
+        };
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_INDEX,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_INDEX, args,
+                                   null, writeLockNames);
     }
 
     Statement compileAlterFKIndex(Constraint constraint) {
@@ -415,33 +401,30 @@ public class ParserDDL extends ParserRoutine {
             throw Error.error(ErrorCode.X_0A001);
         }
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ table, newColumns, constraint.getName() };
-        HsqlName[] writeLockNames = new HsqlName[]{ database.getCatalogName(),
-                table.getName() };
+        String     sql            = getLastPart();
+        Object[]   args           = new Object[] {
+            table, newColumns, constraint.getName()
+        };
+        HsqlName[] writeLockNames = new HsqlName[] {
+            database.getCatalogName(), table.getName()
+        };
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_CONSTRAINT,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_CONSTRAINT, args,
+                                   null, writeLockNames);
     }
 
     Statement compileAlterRoutine() {
 
         readThis(Tokens.ROUTINE);
 
-        RoutineSchema routine = (RoutineSchema) readSchemaObjectName(
-            SchemaObject.ROUTINE);
+        RoutineSchema routine =
+            (RoutineSchema) readSchemaObjectName(SchemaObject.ROUTINE);
 
         readThis(Tokens.RENAME);
         readThis(Tokens.TO);
 
-        return compileRenameObject(
-            routine.getName(),
-            routine.getName().type,
-            false);
+        return compileRenameObject(routine.getName(), routine.getName().type,
+                                   false);
     }
 
     Statement compileDrop() {
@@ -468,18 +451,18 @@ public class ParserDDL extends ParserRoutine {
                 statementType = StatementTypes.DROP_INDEX;
                 objectType    = SchemaObject.INDEX;
                 useIfExists   = true;
+
                 break;
             }
-
             case Tokens.ASSERTION : {
                 read();
 
                 statementType = StatementTypes.DROP_ASSERTION;
                 objectType    = SchemaObject.ASSERTION;
                 canCascade    = true;
+
                 break;
             }
-
             case Tokens.SPECIFIC : {
                 read();
 
@@ -499,9 +482,9 @@ public class ParserDDL extends ParserRoutine {
                 objectType    = SchemaObject.SPECIFIC_ROUTINE;
                 canCascade    = true;
                 useIfExists   = true;
+
                 break;
             }
-
             case Tokens.PROCEDURE : {
                 read();
 
@@ -509,9 +492,9 @@ public class ParserDDL extends ParserRoutine {
                 objectType    = SchemaObject.PROCEDURE;
                 canCascade    = true;
                 useIfExists   = true;
+
                 break;
             }
-
             case Tokens.FUNCTION : {
                 read();
 
@@ -519,9 +502,9 @@ public class ParserDDL extends ParserRoutine {
                 objectType    = SchemaObject.FUNCTION;
                 canCascade    = true;
                 useIfExists   = true;
+
                 break;
             }
-
             case Tokens.SCHEMA : {
                 read();
 
@@ -529,9 +512,9 @@ public class ParserDDL extends ParserRoutine {
                 objectType    = SchemaObject.SCHEMA;
                 canCascade    = true;
                 useIfExists   = true;
+
                 break;
             }
-
             case Tokens.SEQUENCE : {
                 read();
 
@@ -539,9 +522,9 @@ public class ParserDDL extends ParserRoutine {
                 objectType    = SchemaObject.SEQUENCE;
                 canCascade    = true;
                 useIfExists   = true;
+
                 break;
             }
-
             case Tokens.TRIGGER : {
                 read();
 
@@ -549,27 +532,27 @@ public class ParserDDL extends ParserRoutine {
                 objectType    = SchemaObject.TRIGGER;
                 canCascade    = false;
                 useIfExists   = true;
+
                 break;
             }
-
             case Tokens.USER : {
                 read();
 
                 statementType = StatementTypes.DROP_USER;
                 objectType    = SchemaObject.GRANTEE;
                 canCascade    = true;
+
                 break;
             }
-
             case Tokens.ROLE : {
                 read();
 
                 statementType = StatementTypes.DROP_ROLE;
                 objectType    = SchemaObject.GRANTEE;
                 canCascade    = true;
+
                 break;
             }
-
             case Tokens.DOMAIN :
                 read();
 
@@ -665,31 +648,31 @@ public class ParserDDL extends ParserRoutine {
                 object = database.getUserManager().get(token.tokenString);
 
                 read();
+
                 break;
             }
-
             case Tokens.ROLE : {
                 checkIsSimpleName();
                 checkDatabaseUpdateAuthorisation();
 
-                object = database.getGranteeManager()
-                                 .getRole(token.tokenString);
+                object =
+                    database.getGranteeManager().getRole(token.tokenString);
 
                 read();
+
                 break;
             }
-
             case Tokens.SCHEMA : {
                 name   = readNewSchemaName();
                 object = database.schemaManager.findSchema(name.name);
+
                 break;
             }
-
             case Tokens.TABLE : {
-                boolean isSession = token.namePrePrefix == null
-                                    && (Tokens.T_SESSION.equals(
-                                        token.namePrefix) || Tokens.T_MODULE.equals(
-                                            token.namePrefix));
+                boolean isSession =
+                    token.namePrePrefix == null
+                    && (Tokens.T_SESSION.equals(token.namePrefix)
+                        || Tokens.T_MODULE.equals(token.namePrefix));
 
                 if (isSession) {
                     name = readNewSchemaObjectName(objectType, false);
@@ -701,12 +684,12 @@ public class ParserDDL extends ParserRoutine {
                         ifExists = true;
                     }
 
-                    Object[] args = new Object[]{ name,
-                                                  Boolean.valueOf(ifExists) };
+                    Object[] args = new Object[] {
+                        name, Boolean.valueOf(ifExists)
+                    };
 
-                    return new StatementSession(
-                        StatementTypes.DROP_TABLE,
-                        args);
+                    return new StatementSession(StatementTypes.DROP_TABLE,
+                                                args);
                 }
             }
 
@@ -716,10 +699,8 @@ public class ParserDDL extends ParserRoutine {
 
                 name.setSchemaIfNull(session.getCurrentSchemaHsqlName());
 
-                object = database.schemaManager.findSchemaObject(
-                    name.name,
-                    name.schema.name,
-                    name.type);
+                object = database.schemaManager.findSchemaObject(name.name,
+                        name.schema.name, name.type);
         }
 
         if (!ifExists && useIfExists && token.tokenType == Tokens.IF) {
@@ -753,19 +734,17 @@ public class ParserDDL extends ParserRoutine {
                 name = object.getName();
             }
 
-            writeLockNames = database.schemaManager.getCatalogAndBaseTableNames(
-                name);
+            writeLockNames =
+                database.schemaManager.getCatalogAndBaseTableNames(name);
         }
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ name, Integer.valueOf(
-            objectType), Boolean.valueOf(cascade), Boolean.valueOf(ifExists) };
-        Statement cs = new StatementSchema(
-            sql,
-            statementType,
-            args,
-            null,
-            writeLockNames);
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            name, Integer.valueOf(objectType), Boolean.valueOf(cascade),
+            Boolean.valueOf(ifExists)
+        };
+        Statement cs = new StatementSchema(sql, statementType, args, null,
+                                           writeLockNames);
 
         return cs;
     }
@@ -799,9 +778,8 @@ public class ParserDDL extends ParserRoutine {
         Table t;
 
         if (ifExists) {
-            t = database.schemaManager.findUserTable(
-                name.name,
-                name.schema.name);
+            t = (Table) database.schemaManager.findUserTable(name.name,
+                    name.schema.name);
         } else {
             t = database.schemaManager.getUserTable(name);
         }
@@ -813,7 +791,7 @@ public class ParserDDL extends ParserRoutine {
         }
 
         if (ifExists && token.tokenType != Tokens.RENAME) {
-            throw unexpectedToken(Tokens.IF);
+            unexpectedToken(Tokens.IF);
         }
 
         switch (token.tokenType) {
@@ -843,7 +821,6 @@ public class ParserDDL extends ParserRoutine {
 
                 return compileRenameObject(name, SchemaObject.TABLE, ifExists);
             }
-
             case Tokens.ADD : {
                 read();
 
@@ -854,9 +831,8 @@ public class ParserDDL extends ParserRoutine {
                     read();
 
                     ifNotExists = readIfNotExists();
-                    cname = readNewDependentSchemaObjectName(
-                        t.getName(),
-                        SchemaObject.CONSTRAINT);
+                    cname = readNewDependentSchemaObjectName(t.getName(),
+                            SchemaObject.CONSTRAINT);
                 }
 
                 switch (token.tokenType) {
@@ -865,10 +841,8 @@ public class ParserDDL extends ParserRoutine {
                         read();
                         readThis(Tokens.KEY);
 
-                        return compileAlterTableAddForeignKeyConstraint(
-                            t,
-                            cname,
-                            ifNotExists);
+                        return compileAlterTableAddForeignKeyConstraint(t,
+                                cname, ifNotExists);
 
                     case Tokens.UNIQUE :
                         read();
@@ -879,27 +853,21 @@ public class ParserDDL extends ParserRoutine {
                             }
                         }
 
-                        return compileAlterTableAddUniqueConstraint(
-                            t,
-                            cname,
-                            ifNotExists);
+                        return compileAlterTableAddUniqueConstraint(t, cname,
+                                ifNotExists);
 
                     case Tokens.CHECK :
                         read();
 
-                        return compileAlterTableAddCheckConstraint(
-                            t,
-                            cname,
-                            ifNotExists);
+                        return compileAlterTableAddCheckConstraint(t, cname,
+                                ifNotExists);
 
                     case Tokens.PRIMARY :
                         read();
                         readThis(Tokens.KEY);
 
-                        return compileAlterTableAddPrimaryKey(
-                            t,
-                            cname,
-                            ifNotExists);
+                        return compileAlterTableAddPrimaryKey(t, cname,
+                                                              ifNotExists);
 
                     case Tokens.PERIOD :
                         if (cname != null) {
@@ -928,17 +896,6 @@ public class ParserDDL extends ParserRoutine {
 
                         return compileAlterTableAddColumn(t);
 
-                    case Tokens.INDEX :
-                    case Tokens.KEY :
-                        if (!database.sqlSyntaxMys) {
-                            throw unexpectedToken();
-                        }
-
-                        read();
-                        checkIsSimpleName();
-
-                        return compileAlterTableAddIndex(t);
-
                     default :
                         if (cname != null) {
                             throw unexpectedToken();
@@ -949,7 +906,6 @@ public class ParserDDL extends ParserRoutine {
                         return compileAlterTableAddColumn(t);
                 }
             }
-
             case Tokens.DROP : {
                 read();
 
@@ -961,13 +917,11 @@ public class ParserDDL extends ParserRoutine {
 
                         return compileAlterTableDropPrimaryKey(t);
                     }
-
                     case Tokens.CONSTRAINT : {
                         read();
 
                         return compileAlterTableDropConstraint(t);
                     }
-
                     case Tokens.PERIOD :
                         read();
                         readThis(Tokens.FOR);
@@ -989,32 +943,6 @@ public class ParserDDL extends ParserRoutine {
                         return compileAlterTableDropColumn(t);
                 }
             }
-
-            case Tokens.MODIFY : {
-                if (!database.sqlSyntaxOra) {
-                    throw unexpectedToken();
-                }
-
-                read();
-
-                boolean      bracket     = readIfThis(Tokens.OPENBRACKET);
-                int          columnIndex = t.getColumnIndex(token.tokenString);
-                ColumnSchema column      = t.getColumn(columnIndex);
-
-                read();
-
-                Statement alterStatement = compileModifyColumn(
-                    t,
-                    column,
-                    columnIndex);
-
-                if (bracket) {
-                    readThis(Tokens.CLOSEBRACKET);
-                }
-
-                return alterStatement;
-            }
-
             case Tokens.ALTER : {
                 read();
 
@@ -1029,7 +957,6 @@ public class ParserDDL extends ParserRoutine {
 
                 return compileAlterColumn(t, column, columnIndex);
             }
-
             default : {
                 throw unexpectedToken();
             }
@@ -1039,8 +966,7 @@ public class ParserDDL extends ParserRoutine {
     private Statement compileAlterTableDropConstraint(Table table) {
 
         boolean cascade = false;
-        SchemaObject object = readSchemaObjectName(
-            table.getSchemaName(),
+        SchemaObject object = readSchemaObjectName(table.getSchemaName(),
             SchemaObject.CONSTRAINT);
 
         if (token.tokenType == Tokens.RESTRICT) {
@@ -1051,30 +977,25 @@ public class ParserDDL extends ParserRoutine {
             cascade = true;
         }
 
-        String   sql           = getLastPart();
-        Object[] args = new Object[]{ object.getName(),
-                                      ValuePool.getInt(
-                                          SchemaObject.CONSTRAINT), Boolean.valueOf(
-                                                  cascade), Boolean.FALSE };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            object.getName(), ValuePool.getInt(SchemaObject.CONSTRAINT),
+            Boolean.valueOf(cascade), Boolean.FALSE
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
         HsqlName mainTableName = ((Constraint) object).getMainTableName();
 
         if (mainTableName != null && mainTableName != table.getName()) {
-            writeLockNames = (HsqlName[]) ArrayUtil.toAdjustedArray(
-                writeLockNames,
-                mainTableName,
-                writeLockNames.length,
-                1);
+            writeLockNames =
+                (HsqlName[]) ArrayUtil.toAdjustedArray(writeLockNames,
+                    mainTableName, writeLockNames.length, 1);
         }
 
-        Statement cs = new StatementSchema(
-            sql,
-            StatementTypes.DROP_CONSTRAINT,
-            args,
-            null,
-            writeLockNames);
+        Statement cs = new StatementSchema(sql,
+                                           StatementTypes.DROP_CONSTRAINT,
+                                           args, null, writeLockNames);
 
         return cs;
     }
@@ -1097,19 +1018,16 @@ public class ParserDDL extends ParserRoutine {
 
         String       sql    = getLastPart();
         SchemaObject object = table.getPrimaryConstraint();
-        Object[] args = new Object[]{ object.getName(),
-                                      ValuePool.getInt(
-                                          SchemaObject.CONSTRAINT), Boolean.valueOf(
-                                                  cascade), Boolean.FALSE };
+        Object[]     args   = new Object[] {
+            object.getName(), ValuePool.getInt(SchemaObject.CONSTRAINT),
+            Boolean.valueOf(cascade), Boolean.FALSE
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
-        Statement cs = new StatementSchema(
-            sql,
-            StatementTypes.DROP_CONSTRAINT,
-            args,
-            null,
-            writeLockNames);
+        Statement cs = new StatementSchema(sql,
+                                           StatementTypes.DROP_CONSTRAINT,
+                                           args, null, writeLockNames);
 
         return cs;
     }
@@ -1135,9 +1053,8 @@ public class ParserDDL extends ParserRoutine {
 
         boolean isSession = token.namePrePrefix == null
                             && (token.namePrefix == null
-                                || Tokens.T_SESSION.equals(
-                                    token.namePrefix) || Tokens.T_MODULE.equals(
-                                        token.namePrefix));
+                                || Tokens.T_SESSION.equals(token.namePrefix)
+                                || Tokens.T_MODULE.equals(token.namePrefix));
 
         if (!isSession) {
             throw unexpectedToken();
@@ -1146,7 +1063,7 @@ public class ParserDDL extends ParserRoutine {
         boolean  ifNot = readIfNotExists();
         HsqlName name  = readNewSchemaObjectName(SchemaObject.TABLE, false);
 
-        name.schema = SqlInvariants.SESSION_SCHEMA_HSQLNAME;
+        name.schema = SqlInvariants.SYSTEM_SCHEMA_HSQLNAME;
 
         Table           table = new Table(database, name, tableType);
         StatementSchema cs;
@@ -1156,11 +1073,10 @@ public class ParserDDL extends ParserRoutine {
         } else {
             cs = compileCreateTableBody(table, ifNot);
 
-            HsqlArrayList<Constraint> constraints =
-                (HsqlArrayList<Constraint>) cs.arguments[1];
+            HsqlArrayList constraints = (HsqlArrayList) cs.arguments[1];
 
             for (int i = 0; i < constraints.size(); i++) {
-                Constraint c = constraints.get(i);
+                Constraint c = (Constraint) constraints.get(i);
 
                 if (c.getConstraintType()
                         == SchemaObject.ConstraintTypes.FOREIGN_KEY) {
@@ -1169,9 +1085,9 @@ public class ParserDDL extends ParserRoutine {
             }
         }
 
-        StatementSession ss = new StatementSession(
-            StatementTypes.DECLARE_SESSION_TABLE,
-            cs.arguments);
+        StatementSession ss =
+            new StatementSession(StatementTypes.DECLARE_SESSION_TABLE,
+                                 cs.arguments);
 
         return ss;
     }
@@ -1237,23 +1153,18 @@ public class ParserDDL extends ParserRoutine {
 
         view.setStatement(statementSQL);
 
-        StatementQuery s = new StatementQuery(
-            session,
-            queryExpression,
-            compileContext);
+        StatementQuery s = new StatementQuery(session, queryExpression,
+                                              compileContext);
         String     fullSQL        = getLastPart();
-        Object[]   args           = new Object[]{ view, ifNotExists };
-        int        type           = alter
-                                    ? StatementTypes.ALTER_VIEW
-                                    : StatementTypes.CREATE_VIEW;
+        Object[]   args           = new Object[] {
+            view, ifNotExists
+        };
+        int        type           = alter ? StatementTypes.ALTER_VIEW
+                                          : StatementTypes.CREATE_VIEW;
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            fullSQL,
-            type,
-            args,
-            s.readTableNames,
-            writeLockNames);
+        return new StatementSchema(fullSQL, type, args, s.readTableNames,
+                                   writeLockNames);
     }
 
     StatementSchema compileCreateSequence() {
@@ -1261,7 +1172,6 @@ public class ParserDDL extends ParserRoutine {
         read();
 
         Boolean ifNotExists = readIfNotExists();
-
         /*
                 CREATE SEQUENCE <name>
                 [AS {INTEGER | BIGINT}]
@@ -1274,15 +1184,13 @@ public class ParserDDL extends ParserRoutine {
         readSequenceOptions(sequence, true, false, false);
 
         String     sql            = getLastPart();
-        Object[]   args           = new Object[]{ sequence, ifNotExists };
+        Object[]   args           = new Object[] {
+            sequence, ifNotExists
+        };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_SEQUENCE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.CREATE_SEQUENCE, args,
+                                   null, writeLockNames);
     }
 
     StatementSchema compileCreateDomain() {
@@ -1303,16 +1211,14 @@ public class ParserDDL extends ParserRoutine {
             defaultClause = readDefaultClause(type);
         }
 
-        userTypeModifier = new UserTypeModifier(
-            name,
-            SchemaObject.DOMAIN,
-            type);
+        userTypeModifier = new UserTypeModifier(name, SchemaObject.DOMAIN,
+                type);
 
         userTypeModifier.setDefaultClause(defaultClause);
 
         type.userTypeModifier = userTypeModifier;
 
-        HsqlArrayList<Constraint> tempConstraints = new HsqlArrayList<>();
+        HsqlArrayList tempConstraints = new HsqlArrayList();
 
         compileContext.currentDomain = type;
 
@@ -1339,7 +1245,7 @@ public class ParserDDL extends ParserRoutine {
         compileContext.currentDomain = null;
 
         for (int i = 0; i < tempConstraints.size(); i++) {
-            Constraint c = tempConstraints.get(i);
+            Constraint c = (Constraint) tempConstraints.get(i);
 
             c.prepareDomainCheckConstraint(session);
             userTypeModifier.addConstraint(c);
@@ -1349,12 +1255,8 @@ public class ParserDDL extends ParserRoutine {
         Object[]   args           = new Object[]{ type };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_DOMAIN,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.CREATE_DOMAIN, args,
+                                   null, writeLockNames);
     }
 
     StatementSchema compileCreateType(boolean orReplace) {
@@ -1369,21 +1271,15 @@ public class ParserDDL extends ParserRoutine {
 
         readIfThis(Tokens.FINAL);
 
-        type.userTypeModifier = new UserTypeModifier(
-            name,
-            SchemaObject.TYPE,
-            type);
+        type.userTypeModifier = new UserTypeModifier(name, SchemaObject.TYPE,
+                type);
 
         String     sql            = getLastPart();
         Object[]   args           = new Object[]{ type };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_TYPE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.CREATE_TYPE, args,
+                                   null, writeLockNames);
     }
 
     StatementSchema compileCreateCharacterSet() {
@@ -1397,10 +1293,9 @@ public class ParserDDL extends ParserRoutine {
         readThis(Tokens.GET);
 
         String schema = token.namePrefix;
-        Charset source = (Charset) database.schemaManager.getCharacterSet(
-            session,
-            token.tokenString,
-            schema);
+        Charset source =
+            (Charset) database.schemaManager.getCharacterSet(session,
+                token.tokenString, schema);
 
         read();
 
@@ -1415,12 +1310,8 @@ public class ParserDDL extends ParserRoutine {
         Object[]   args           = new Object[]{ charset };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_CHARACTER_SET,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.CREATE_CHARACTER_SET,
+                                   args, null, writeLockNames);
     }
 
     StatementSchema compileCreateCollation() {
@@ -1432,14 +1323,12 @@ public class ParserDDL extends ParserRoutine {
         name.setSchemaIfNull(session.getCurrentSchemaHsqlName());
         readThis(Tokens.FOR);
 
-        HsqlName charsetName = readNewSchemaObjectName(
-            SchemaObject.CHARSET,
+        HsqlName charsetName = readNewSchemaObjectName(SchemaObject.CHARSET,
             false);
 
         readThis(Tokens.FROM);
 
-        HsqlName sourceName = readNewSchemaObjectName(
-            SchemaObject.COLLATION,
+        HsqlName sourceName = readNewSchemaObjectName(SchemaObject.COLLATION,
             false);
         Boolean padSpace = null;
 
@@ -1453,39 +1342,30 @@ public class ParserDDL extends ParserRoutine {
             padSpace = Boolean.TRUE;
         }
 
-        String schemaName = charsetName.schema == null
-                            ? null
-                            : charsetName.schema.name;
-        Charset charset = (Charset) database.schemaManager.getCharacterSet(
-            session,
-            charsetName.name,
-            schemaName);
+        String schemaName = charsetName.schema == null ? null
+                                                       : charsetName.schema
+                                                           .name;
+        Charset charset =
+            (Charset) database.schemaManager.getCharacterSet(session,
+                charsetName.name, schemaName);
 
         if (charset == null) {
-            throw Error.error(
-                ErrorCode.X_42501,
-                charsetName.getSchemaQualifiedStatementName());
+            throw Error.error(ErrorCode.X_42501,
+                              charsetName.getSchemaQualifiedStatementName());
         }
 
-        schemaName = sourceName.schema == null
-                     ? null
-                     : sourceName.schema.name;
+        schemaName = sourceName.schema == null ? null
+                                               : sourceName.schema.name;
 
-        Collation source = database.schemaManager.getCollation(
-            session,
-            sourceName.name,
-            schemaName);
+        Collation source = database.schemaManager.getCollation(session,
+            sourceName.name, schemaName);
         Collation  collation = new Collation(name, source, charset, padSpace);
         String     sql            = getLastPart();
         Object[]   args           = new Object[]{ collation };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_COLLATION,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.CREATE_COLLATION, args,
+                                   null, writeLockNames);
     }
 
     StatementSchema compileCreateAlias() {
@@ -1515,12 +1395,11 @@ public class ParserDDL extends ParserRoutine {
         }
 
         if (alias != null) {
-            HsqlName schema = database.schemaManager.getDefaultSchemaHsqlName();
+            HsqlName schema =
+                database.schemaManager.getDefaultSchemaHsqlName();
 
-            name = database.nameManager.newHsqlName(
-                schema,
-                alias,
-                SchemaObject.FUNCTION);
+            name = database.nameManager.newHsqlName(schema, alias,
+                    SchemaObject.FUNCTION);
 
             Method[] methods = Routine.getMethods(methodFQN);
 
@@ -1528,47 +1407,13 @@ public class ParserDDL extends ParserRoutine {
         }
 
         String     sql            = getLastPart();
-        Object[]   args           = new Object[]{ name, routines };
+        Object[]   args           = new Object[] {
+            name, routines
+        };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_ALIAS,
-            args,
-            null,
-            writeLockNames);
-    }
-
-    StatementSchema compileAlterTableAddIndex(Table table) {
-
-        HsqlName indexHsqlName = readNewDependentSchemaObjectName(
-            table.getName(),
-            SchemaObject.INDEX);
-
-        if (database.sqlSyntaxMys) {
-            if (readIfThis(Tokens.USING)) {
-                if (!readIfThis("HASH")) {
-                    readThis("BTREE");
-                }
-            }
-
-            if (readIfThis(Tokens.COMMENT)) {
-                indexHsqlName.comment = readQuotedString();
-            }
-        }
-
-        int[]    cols = readColumnList(table, true);
-        String   sql  = getLastPart();
-        Object[] args = new Object[] {
-            table, cols, indexHsqlName, Boolean.FALSE, null, Boolean.FALSE
-        };
-
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_INDEX,
-            args,
-            null,
-            new HsqlName[]{ database.getCatalogName(), table.getName() });
+        return new StatementSchema(sql, StatementTypes.CREATE_ALIAS, args,
+                                   null, writeLockNames);
     }
 
     StatementSchema compileCreateIndex(boolean unique) {
@@ -1622,16 +1467,14 @@ public class ParserDDL extends ParserRoutine {
 
         String   sql  = getLastPart();
         Object[] args = new Object[] {
-            table, indexColumns, indexHsqlName, Boolean.valueOf(
-                unique), null, ifNotExists
+            table, indexColumns, indexHsqlName, Boolean.valueOf(unique), null,
+            ifNotExists
         };
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_INDEX,
-            args,
-            null,
-            new HsqlName[]{ database.getCatalogName(), table.getName() });
+        return new StatementSchema(sql, StatementTypes.CREATE_INDEX, args,
+                                   null, new HsqlName[] {
+            database.getCatalogName(), table.getName()
+        });
     }
 
     StatementSchema compileCreateSchema() {
@@ -1657,16 +1500,17 @@ public class ParserDDL extends ParserRoutine {
             read();
 
             if (schemaName == null) {
-                Grantee owner = database.getGranteeManager().get(authorisation);
+                Grantee owner =
+                    database.getGranteeManager().get(authorisation);
 
                 if (owner == null) {
                     throw Error.error(ErrorCode.X_28501, authorisation);
                 }
 
-                schemaName = database.nameManager.newHsqlName(
-                    owner.getName().name,
-                    isDelimitedIdentifier(),
-                    SchemaObject.SCHEMA);
+                schemaName =
+                    database.nameManager.newHsqlName(owner.getName().name,
+                                                     isDelimitedIdentifier(),
+                                                     SchemaObject.SCHEMA);
 
                 SqlInvariants.checkSchemaNameNotSystem(token.tokenString);
             }
@@ -1676,24 +1520,22 @@ public class ParserDDL extends ParserRoutine {
             throw Error.error(ErrorCode.X_28502, authorisation);
         }
 
-        Grantee owner = authorisation == null
-                        ? session.getGrantee()
-                        : database.getGranteeManager().get(authorisation);
+        Grantee owner = authorisation == null ? session.getGrantee()
+                                              : database.getGranteeManager()
+                                                  .get(authorisation);
 
         if (owner == null) {
             throw Error.error(ErrorCode.X_28501, authorisation);
         }
 
         if (!session.getGrantee().isSchemaCreator()) {
-            throw Error.error(
-                ErrorCode.X_0L501,
-                session.getGrantee().getName().getNameString());
+            throw Error.error(ErrorCode.X_0L501,
+                              session.getGrantee().getName().getNameString());
         }
 
         if (owner instanceof User && ((User) owner).isExternalOnly) {
-            throw Error.error(
-                ErrorCode.X_0L000,
-                session.getGrantee().getName().getNameString());
+            throw Error.error(ErrorCode.X_0L000,
+                              session.getGrantee().getName().getNameString());
         }
 
         if (database.schemaManager.schemaExists(schemaName.name)) {
@@ -1715,24 +1557,21 @@ public class ParserDDL extends ParserRoutine {
             readThis(Tokens.CHARACTER);
             readThis(Tokens.SET);
 
-            characterSetName = readNewSchemaObjectName(
-                SchemaObject.CHARSET,
-                false);
+            characterSetName = readNewSchemaObjectName(SchemaObject.CHARSET,
+                    false);
         }
 
         String     sql            = getLastPart();
-        Object[]   args = new Object[]{ schemaName, owner, ifNotExists };
+        Object[]   args           = new Object[] {
+            schemaName, owner, ifNotExists
+        };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
-        StatementSchema cs = new StatementSchema(
-            sql,
-            StatementTypes.CREATE_SCHEMA,
-            args,
-            null,
-            writeLockNames);
+        StatementSchema cs = new StatementSchema(sql,
+            StatementTypes.CREATE_SCHEMA, args, null, writeLockNames);
 
         cs.setSchemaHsqlName(schemaName);
 
-        HsqlArrayList<StatementSchema> list = new HsqlArrayList<>(128);
+        HsqlArrayList list = new HsqlArrayList(128);
 
         list.add(cs);
         getCompiledStatementBody(list);
@@ -1760,7 +1599,7 @@ public class ParserDDL extends ParserRoutine {
         return new StatementSchemaDefinition(array);
     }
 
-    void getCompiledStatementBody(List<StatementSchema> list) {
+    void getCompiledStatementBody(List list) {
 
         int    position;
         String sql;
@@ -1783,12 +1622,10 @@ public class ParserDDL extends ParserRoutine {
                         case Tokens.USER :
                         case Tokens.UNIQUE :
                             throw unexpectedToken();
-
                         case Tokens.INDEX :
                             statementType = StatementTypes.CREATE_INDEX;
-                            sql = getStatement(
-                                position,
-                                startStatementTokensSchema);
+                            sql = getStatement(position,
+                                               startStatementTokensSchema);
                             cs = new StatementSchema(sql, statementType);
                             break;
 
@@ -1804,9 +1641,8 @@ public class ParserDDL extends ParserRoutine {
 
                         case Tokens.DOMAIN :
                             statementType = StatementTypes.CREATE_DOMAIN;
-                            sql = getStatement(
-                                position,
-                                startStatementTokensSchema);
+                            sql = getStatement(position,
+                                               startStatementTokensSchema);
                             cs = new StatementSchema(sql, statementType);
                             break;
 
@@ -1823,7 +1659,6 @@ public class ParserDDL extends ParserRoutine {
                         // no supported
                         case Tokens.ASSERTION :
                             throw unexpectedToken();
-
                         case Tokens.TABLE :
                         case Tokens.MEMORY :
                         case Tokens.CACHED :
@@ -1832,41 +1667,42 @@ public class ParserDDL extends ParserRoutine {
                         case Tokens.TEMPORARY :
                         case Tokens.TEXT :
                             statementType = StatementTypes.CREATE_TABLE;
-                            sql = getStatement(
-                                position,
-                                startStatementTokensSchema);
+                            sql = getStatement(position,
+                                               startStatementTokensSchema);
                             cs = new StatementSchema(sql, statementType);
                             break;
 
                         case Tokens.TRIGGER :
                             statementType = StatementTypes.CREATE_TRIGGER;
-                            sql = getStatement(
-                                position,
-                                startStatementTokensSchema);
+                            sql = getStatement(position,
+                                               startStatementTokensSchema);
                             cs = new StatementSchema(sql, statementType);
                             break;
 
                         case Tokens.VIEW :
                             statementType = StatementTypes.CREATE_VIEW;
-                            sql = getStatement(
-                                position,
-                                startStatementTokensSchema);
+                            sql = getStatement(position,
+                                               startStatementTokensSchema);
                             cs = new StatementSchema(sql, statementType);
                             break;
 
                         case Tokens.FUNCTION :
+                            statementType = StatementTypes.CREATE_ROUTINE;
+                            sql = getStatementForRoutine(
+                                position, startStatementTokensSchema);
+                            cs = new StatementSchema(sql, statementType);
+                            break;
+
                         case Tokens.PROCEDURE :
                             statementType = StatementTypes.CREATE_ROUTINE;
                             sql = getStatementForRoutine(
-                                position,
-                                startStatementTokensSchema);
+                                position, startStatementTokensSchema);
                             cs = new StatementSchema(sql, statementType);
                             break;
 
                         default :
                             throw unexpectedToken();
                     }
-
                     break;
 
                 case Tokens.GRANT :
@@ -1905,12 +1741,8 @@ public class ParserDDL extends ParserRoutine {
         Object[]   args           = new Object[]{ name };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_ROLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.CREATE_ROLE, args,
+                                   null, writeLockNames);
     }
 
     StatementSchema compileCreateUser() {
@@ -1942,16 +1774,13 @@ public class ParserDDL extends ParserRoutine {
         checkDatabaseUpdateAuthorisation();
 
         String     sql            = getLastPart();
-        Object[] args = new Object[]{ name, password, grantor, admin,
-                                      isDigest };
+        Object[]   args           = new Object[] {
+            name, password, grantor, admin, isDigest
+        };
         HsqlName[] writeLockNames = database.schemaManager.catalogNameArray;
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_USER,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.CREATE_USER, args,
+                                   null, writeLockNames);
     }
 
     HsqlName readNewUserIdentifier() {
@@ -1966,9 +1795,7 @@ public class ParserDDL extends ParserRoutine {
             isQuoted = false;
         }
 
-        HsqlName name = database.nameManager.newHsqlName(
-            tokenS,
-            isQuoted,
+        HsqlName name = database.nameManager.newHsqlName(tokenS, isQuoted,
             SchemaObject.GRANTEE);
 
         read();
@@ -1996,21 +1823,22 @@ public class ParserDDL extends ParserRoutine {
 
         read();
 
-        synonymHsqlName = readNewSchemaObjectName(SchemaObject.REFERENCE, true);
+        synonymHsqlName = readNewSchemaObjectName(SchemaObject.REFERENCE,
+                true);
 
         readThis(Tokens.FOR);
 
         targetHsqlName = readNewSchemaObjectName(SchemaObject.REFERENCE, true);
 
         String   sql  = getLastPart();
-        Object[] args = new Object[]{ synonymHsqlName, targetHsqlName };
+        Object[] args = new Object[] {
+            synonymHsqlName, targetHsqlName
+        };
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.CREATE_REFERENCE,
-            args,
-            null,
-            new HsqlName[]{ database.getCatalogName() });
+        return new StatementSchema(sql, StatementTypes.CREATE_REFERENCE, args,
+                                   null,
+                                   new HsqlName[]{
+                                       database.getCatalogName() });
     }
 
     Statement compileRenameObject(HsqlName name, int type, boolean ifExists) {
@@ -2032,83 +1860,58 @@ public class ParserDDL extends ParserRoutine {
                 checkSchemaUpdateAuthorisation(session, name.schema);
         }
 
-        Object[] args = new Object[]{ name, newName, Boolean.valueOf(
-            ifExists) };
+        Object[] args = new Object[] {
+            name, newName, Boolean.valueOf(ifExists)
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogNameArray();
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.RENAME_OBJECT,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.RENAME_OBJECT, args,
+                                   null, writeLockNames);
     }
 
-    Statement compileAlterTableAddUniqueConstraint(
-            Table table,
-            HsqlName name,
+    Statement compileAlterTableAddUniqueConstraint(Table table, HsqlName name,
             Boolean ifNotExists) {
 
         if (name == null) {
-            name = database.nameManager.newAutoName(
-                "CT",
-                table.getSchemaName(),
-                table.getName(),
-                SchemaObject.CONSTRAINT);
+            name = database.nameManager.newAutoName("CT",
+                    table.getSchemaName(), table.getName(),
+                    SchemaObject.CONSTRAINT);
         }
 
-        int[]  cols = readColumnList(table, false);
+        int[] cols = readColumnList(table, false);
         HsqlName indexName =
             session.database.nameManager.newConstraintIndexName(
-                table.getName(),
-                name,
-                session.database.sqlSysIndexNames);
-        Index index = table.createIndexStructure(
-            indexName,
-            cols,
-            null,
-            null,
-            false,
-            true,
-            true,
-            false);
-        Constraint constraint = new Constraint(
-            name,
-            table,
-            index,
-            SchemaObject.ConstraintTypes.UNIQUE);
-        String sql  = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ADD_CONSTRAINT, table,
-                                      constraint, ifNotExists };
+                table.getName(), name, session.database.sqlSysIndexNames);
+        Index index = table.createIndexStructure(indexName, cols, null, null,
+            false, true, true, false);
+        Constraint constraint =
+            new Constraint(name, table, index,
+                           SchemaObject.ConstraintTypes.UNIQUE);
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            StatementTypes.ADD_CONSTRAINT, table, constraint, ifNotExists
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
-    Statement compileAlterTableAddForeignKeyConstraint(
-            Table table,
-            HsqlName name,
-            Boolean ifNotExists) {
+    Statement compileAlterTableAddForeignKeyConstraint(Table table,
+            HsqlName name, Boolean ifNotExists) {
 
         if (name == null) {
-            name = database.nameManager.newAutoName(
-                "FK",
-                table.getSchemaName(),
-                table.getName(),
-                SchemaObject.CONSTRAINT);
+            name = database.nameManager.newAutoName("FK",
+                    table.getSchemaName(), table.getName(),
+                    SchemaObject.CONSTRAINT);
         }
 
-        OrderedHashSet<String> set           = readColumnNames(false);
-        Constraint             c = readFKReferences(table, name, set);
-        HsqlName               mainTableName = c.getMainTableName();
+        OrderedHashSet set           = readColumnNames(false);
+        Constraint     c             = readFKReferences(table, name, set);
+        HsqlName       mainTableName = c.getMainTableName();
 
         c.core.mainTable = database.schemaManager.getUserTable(mainTableName);
 
@@ -2118,84 +1921,71 @@ public class ParserDDL extends ParserRoutine {
             throw Error.error(ErrorCode.X_42593);
         }
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ADD_CONSTRAINT, table, c,
-                                      ifNotExists };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            StatementTypes.ADD_CONSTRAINT, table, c, ifNotExists
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
         if (mainTableName != table.getName()) {
-            writeLockNames = (HsqlName[]) ArrayUtil.toAdjustedArray(
-                writeLockNames,
-                mainTableName,
-                writeLockNames.length,
-                1);
+            writeLockNames =
+                (HsqlName[]) ArrayUtil.toAdjustedArray(writeLockNames,
+                    mainTableName, writeLockNames.length, 1);
         }
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
-    Statement compileAlterTableAddCheckConstraint(
-            Table table,
-            HsqlName name,
+    Statement compileAlterTableAddCheckConstraint(Table table, HsqlName name,
             Boolean ifNotExists) {
 
         Constraint check;
 
         if (name == null) {
-            name = database.nameManager.newAutoName(
-                "CT",
-                table.getSchemaName(),
-                table.getName(),
-                SchemaObject.CONSTRAINT);
+            name = database.nameManager.newAutoName("CT",
+                    table.getSchemaName(), table.getName(),
+                    SchemaObject.CONSTRAINT);
         }
 
         check = new Constraint(name, null, SchemaObject.ConstraintTypes.CHECK);
 
         readCheckConstraintCondition(check);
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ADD_CONSTRAINT, table,
-                                      check, ifNotExists };
-        HsqlName[] writeLockNames = new HsqlName[]{ database.getCatalogName(),
-                table.getName() };
+        String     sql            = getLastPart();
+        Object[]   args           = new Object[] {
+            StatementTypes.ADD_CONSTRAINT, table, check, ifNotExists
+        };
+        HsqlName[] writeLockNames = new HsqlName[] {
+            database.getCatalogName(), table.getName()
+        };
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
     Statement compileAlterTableAddColumn(Table table) {
 
-        int                       colIndex    = table.getColumnCount();
-        HsqlArrayList<Constraint> list        = new HsqlArrayList<>();
-        Constraint constraint = new Constraint(
-            null,
-            null,
-            SchemaObject.ConstraintTypes.TEMP);
-        Boolean                   ifNotExists = readIfNotExists();
+        int           colIndex = table.getColumnCount();
+        HsqlArrayList list     = new HsqlArrayList();
+        Constraint constraint =
+            new Constraint(null, null, SchemaObject.ConstraintTypes.TEMP);
+        Boolean ifNotExists = readIfNotExists();
 
         list.add(constraint);
         checkIsSimpleName();
         checkIsSchemaObjectName();
 
-        HsqlName hsqlName = database.nameManager.newColumnHsqlName(
-            table.getName(),
-            token.tokenString,
-            isDelimitedIdentifier());
+        HsqlName hsqlName =
+            database.nameManager.newColumnHsqlName(table.getName(),
+                token.tokenString, isDelimitedIdentifier());
 
         read();
 
-        ColumnSchema column = readColumnDefinitionOrNull(table, hsqlName, list);
+        ColumnSchema column = readColumnDefinitionOrNull(table, hsqlName,
+            list);
 
         if (column == null) {
             throw Error.error(ErrorCode.X_42000);
@@ -2211,56 +2001,43 @@ public class ParserDDL extends ParserRoutine {
 
         String   sql  = getLastPart();
         Object[] args = new Object[] {
-            Integer.valueOf(
-                StatementTypes.ADD_COLUMN), table, column, Integer.valueOf(
-                    colIndex), list, ifNotExists
+            Integer.valueOf(StatementTypes.ADD_COLUMN), table, column,
+            Integer.valueOf(colIndex), list, ifNotExists
         };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
-    Statement compileAlterTableAddPrimaryKey(
-            Table table,
-            HsqlName name,
+    Statement compileAlterTableAddPrimaryKey(Table table, HsqlName name,
             Boolean ifNotExists) {
 
         if (name == null) {
-            name = session.database.nameManager.newAutoName(
-                "PK",
-                table.getSchemaName(),
-                table.getName(),
-                SchemaObject.CONSTRAINT);
+            name = session.database.nameManager.newAutoName("PK",
+                    table.getSchemaName(), table.getName(),
+                    SchemaObject.CONSTRAINT);
         }
 
-        OrderedHashSet<String> set = readColumnNames(false);
-        Constraint constraint = new Constraint(
-            name,
-            set,
-            SchemaObject.ConstraintTypes.PRIMARY_KEY);
+        OrderedHashSet set = readColumnNames(false);
+        Constraint constraint =
+            new Constraint(name, set,
+                           SchemaObject.ConstraintTypes.PRIMARY_KEY);
 
         constraint.setColumnsIndexes(table);
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ADD_CONSTRAINT, table,
-                                      constraint, ifNotExists };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            StatementTypes.ADD_CONSTRAINT, table, constraint, ifNotExists
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
     Statement compileAlterTableDropColumn(Table table) {
@@ -2287,26 +2064,22 @@ public class ParserDDL extends ParserRoutine {
             throw Error.error(ErrorCode.X_42591);
         }
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ table.getColumn(
-            colindex).getName(), ValuePool.getInt(
-                SchemaObject.COLUMN), Boolean.valueOf(cascade), Boolean.FALSE };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            table.getColumn(colindex).getName(),
+            ValuePool.getInt(SchemaObject.COLUMN), Boolean.valueOf(cascade),
+            Boolean.FALSE
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.DROP_COLUMN,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.DROP_COLUMN, args,
+                                   null, writeLockNames);
     }
 
-    Statement compileAlterColumn(
-            Table table,
-            ColumnSchema column,
-            int columnIndex) {
+    Statement compileAlterColumn(Table table, ColumnSchema column,
+                                 int columnIndex) {
 
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
@@ -2321,79 +2094,63 @@ public class ParserDDL extends ParserRoutine {
 
                 return compileAlterColumnRename(table, column);
             }
-
             case Tokens.DROP : {
                 read();
 
                 if (token.tokenType == Tokens.DEFAULT) {
                     read();
 
-                    String sql = getLastPart();
-                    Object[] args = new Object[]{
-                        StatementTypes.ALTER_COLUMN_DROP_DEFAULT,
-                        table, column,
-                        Integer.valueOf(
-                            columnIndex) };
+                    String   sql  = getLastPart();
+                    Object[] args = new Object[] {
+                        StatementTypes.ALTER_COLUMN_DROP_DEFAULT, table,
+                        column, Integer.valueOf(columnIndex)
+                    };
 
-                    return new StatementSchema(
-                        sql,
-                        StatementTypes.ALTER_TABLE,
-                        args,
-                        null,
-                        writeLockNames);
+                    return new StatementSchema(sql,
+                                               StatementTypes.ALTER_TABLE,
+                                               args, null, writeLockNames);
                 } else if (token.tokenType == Tokens.EXPRESSION) {
                     read();
 
-                    String sql = getLastPart();
-                    Object[] args = new Object[]{
-                        StatementTypes.ALTER_COLUMN_DROP_EXPRESSION,
-                        table, column,
-                        Integer.valueOf(
-                            columnIndex) };
+                    String   sql  = getLastPart();
+                    Object[] args = new Object[] {
+                        StatementTypes.ALTER_COLUMN_DROP_EXPRESSION, table,
+                        column, Integer.valueOf(columnIndex)
+                    };
 
-                    return new StatementSchema(
-                        sql,
-                        StatementTypes.ALTER_TABLE,
-                        args,
-                        null,
-                        writeLockNames);
+                    return new StatementSchema(sql,
+                                               StatementTypes.ALTER_TABLE,
+                                               args, null, writeLockNames);
                 } else if (token.tokenType == Tokens.GENERATED
                            || token.tokenType == Tokens.IDENTITY) {
                     read();
 
-                    String sql = getLastPart();
-                    Object[] args = new Object[]{
-                        StatementTypes.ALTER_COLUMN_DROP_GENERATED,
-                        table, column,
-                        Integer.valueOf(
-                            columnIndex) };
+                    String   sql  = getLastPart();
+                    Object[] args = new Object[] {
+                        StatementTypes.ALTER_COLUMN_DROP_GENERATED, table,
+                        column, Integer.valueOf(columnIndex)
+                    };
 
-                    return new StatementSchema(
-                        sql,
-                        StatementTypes.ALTER_TABLE,
-                        args,
-                        null,
-                        writeLockNames);
+                    return new StatementSchema(sql,
+                                               StatementTypes.ALTER_TABLE,
+                                               args, null, writeLockNames);
                 } else if (token.tokenType == Tokens.NOT) {
                     read();
                     readThis(Tokens.NULL);
 
-                    String sql = getLastPart();
-                    Object[] args = new Object[]{
-                        StatementTypes.ALTER_COLUMN_NULL,
-                        table, column, Boolean.TRUE };
+                    String   sql  = getLastPart();
+                    Object[] args = new Object[] {
+                        StatementTypes.ALTER_COLUMN_NULL, table, column,
+                        Boolean.TRUE
+                    };
 
-                    return new StatementSchema(
-                        sql,
-                        StatementTypes.ALTER_TABLE,
-                        args,
-                        null,
-                        writeLockNames);
+                    return new StatementSchema(sql,
+                                               StatementTypes.ALTER_TABLE,
+                                               args, null, writeLockNames);
                 } else {
                     throw unexpectedToken();
                 }
             }
-
             case Tokens.SET : {
                 read();
 
@@ -2405,44 +2162,31 @@ public class ParserDDL extends ParserRoutine {
 
                         return compileAlterColumnDataType(table, column);
                     }
-
                     case Tokens.DEFAULT : {
                         read();
 
-                        return compileAlterColumnDefault(
-                            table,
-                            column,
-                            columnIndex);
+                        return compileAlterColumnDefault(table, column,
+                                                         columnIndex);
                     }
-
                     case Tokens.NOT : {
 
                         //ALTER TABLE .. ALTER COLUMN .. SET NOT NULL
                         read();
                         readThis(Tokens.NULL);
 
-                        return compileAlterColumnSetNullability(
-                            table,
-                            column,
-                            false);
+                        return compileAlterColumnSetNullability(table, column,
+                                false);
                     }
-
                     case Tokens.NULL : {
                         read();
 
-                        return compileAlterColumnSetNullability(
-                            table,
-                            column,
-                            true);
+                        return compileAlterColumnSetNullability(table, column,
+                                true);
                     }
-
                     case Tokens.GENERATED : {
-                        return compileAlterColumnAddSequence(
-                            table,
-                            column,
-                            columnIndex);
+                        return compileAlterColumnAddSequence(table, column,
+                                                             columnIndex);
                     }
-
                     default :
                         rewind(position);
                         read();
@@ -2451,7 +2195,6 @@ public class ParserDDL extends ParserRoutine {
 
                 break;
             }
-
             case Tokens.TYPE : {
                 if (database.sqlSyntaxPgs) {
                     read();
@@ -2461,12 +2204,9 @@ public class ParserDDL extends ParserRoutine {
 
                 break;
             }
-
             case Tokens.GENERATED :
-                return compileAlterColumnAddSequence(
-                    table,
-                    column,
-                    columnIndex);
+                return compileAlterColumnAddSequence(table, column,
+                                                     columnIndex);
 
             default :
         }
@@ -2477,137 +2217,11 @@ public class ParserDDL extends ParserRoutine {
                 throw Error.error(ErrorCode.X_42535);
             }
 
-            return compileAlterColumnSequenceOptions(
-                table,
-                column,
-                columnIndex);
+            return compileAlterColumnSequenceOptions(table, column,
+                    columnIndex);
         } else {
             return compileAlterColumnDataTypeIdentity(table, column);
         }
-    }
-
-    Statement compileModifyColumn(
-            Table table,
-            ColumnSchema column,
-            int columnIndex) {
-
-        HsqlName[] writeLockNames =
-            database.schemaManager.getCatalogAndBaseTableNames(
-                table.getName());
-        int       position         = getPosition();
-        Statement statementNull    = null;
-        Statement statementDropGen = null;
-        Statement statementDef     = null;
-        Statement statementGen     = null;
-        Statement statementType    = null;
-
-        try {
-            statementType          = compileAlterColumnDataType(table, column);
-            statementType.isLogged = false;
-        } catch (HsqlException e) {
-            rewind(position);
-        }
-
-        switch (token.tokenType) {
-
-            case Tokens.DROP : {
-                read();
-
-                if (token.tokenType == Tokens.GENERATED
-                        || token.tokenType == Tokens.IDENTITY) {
-                    read();
-
-                    String sql = getLastPart();
-                    Object[] args = new Object[]{
-                        StatementTypes.ALTER_COLUMN_DROP_GENERATED,
-                        table, column,
-                        Integer.valueOf(
-                            columnIndex) };
-
-                    statementDropGen = new StatementSchema(
-                        sql,
-                        StatementTypes.ALTER_TABLE,
-                        args,
-                        null,
-                        writeLockNames);
-                    statementDropGen.isLogged = false;
-                } else {
-                    throw unexpectedToken();
-                }
-
-                break;
-            }
-
-            case Tokens.DEFAULT : {
-                read();
-
-                statementDef = compileAlterColumnDefault(
-                    table,
-                    column,
-                    columnIndex);
-                statementDef.isLogged = false;
-                break;
-            }
-
-            case Tokens.GENERATED : {
-                statementGen = compileAlterColumnAddSequence(
-                    table,
-                    column,
-                    columnIndex);
-                statementGen.isLogged = false;
-                break;
-            }
-
-            default :
-                break;
-        }
-
-        switch (token.tokenType) {
-
-            case Tokens.NOT : {
-
-                //ALTER TABLE .. ALTER COLUMN .. SET NOT NULL
-                read();
-                readThis(Tokens.NULL);
-
-                statementNull = compileAlterColumnSetNullability(
-                    table,
-                    column,
-                    false);
-                statementNull.isLogged = false;
-                break;
-            }
-
-            case Tokens.NULL : {
-                read();
-
-                statementNull = compileAlterColumnSetNullability(
-                    table,
-                    column,
-                    true);
-                statementNull.isLogged = false;
-                break;
-            }
-
-            default :
-        }
-
-        Statement[] statements = new Statement[]{ statementType,
-                statementDropGen, statementGen, statementDef, statementNull };
-        String sql = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ALTER_COLUMN_PROPERTIES,
-                                      table, column,
-                                      Integer.valueOf(
-                                          columnIndex), statements };
-
-        statementDef = new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
-
-        return statementDef;
     }
 
     /**
@@ -2615,8 +2229,7 @@ public class ParserDDL extends ParserRoutine {
      * IDENTITY is removed if it does not appear in new column definition
      * Constraint definitions are not allowed
      */
-    private Statement compileAlterColumnDataTypeIdentity(
-            Table table,
+    private Statement compileAlterColumnDataTypeIdentity(Table table,
             ColumnSchema column) {
 
         if (column.isGenerated()) {
@@ -2654,34 +2267,30 @@ public class ParserDDL extends ParserRoutine {
 
                     break;
                 }
-
                 case Tokens.GENERATED : {
                     sequence = readSequence(table, column, true);
+
                     break;
                 }
-
                 default :
                     sequence = null;
             }
         }
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ALTER_COLUMN_TYPE_IDENTITY,
-                                      table, column, type, sequence };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            StatementTypes.ALTER_COLUMN_TYPE_IDENTITY, table, column, type,
+            sequence
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
-    private Statement compileAlterColumnDataType(
-            Table table,
+    private Statement compileAlterColumnDataType(Table table,
             ColumnSchema column) {
 
         if (column.isGenerated()) {
@@ -2696,70 +2305,51 @@ public class ParserDDL extends ParserRoutine {
             }
         }
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ALTER_COLUMN_TYPE, table,
-                                      column, type };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            StatementTypes.ALTER_COLUMN_TYPE, table, column, type
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
-    private Statement compileAlterColumnSetNullability(
-            Table table,
-            ColumnSchema column,
-            boolean nullable) {
+    private Statement compileAlterColumnSetNullability(Table table,
+            ColumnSchema column, boolean nullable) {
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ALTER_COLUMN_NULL, table,
-                                      column, Boolean.valueOf(nullable) };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            StatementTypes.ALTER_COLUMN_NULL, table, column,
+            Boolean.valueOf(nullable)
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
-    private Statement compileAlterColumnDefault(
-            Table table,
-            ColumnSchema column,
-            int columnIndex) {
+    private Statement compileAlterColumnDefault(Table table,
+            ColumnSchema column, int columnIndex) {
 
         //ALTER TABLE .. ALTER COLUMN .. SET DEFAULT
-        Type       type          = column.getDataType();
-        Expression expr          = readDefaultClause(type);
-        String     sql           = getLastPart();
-        int        statementType = StatementTypes.ALTER_COLUMN_DEFAULT;
-        Object     argObject     = expr;
-
-        if (expr.opType == OpTypes.SEQUENCE) {
-            statementType = StatementTypes.ALTER_COLUMN_SEQUENCE;
-            argObject     = ((ExpressionColumn) expr).sequence;
-        }
-
-        Object[] args = new Object[]{ statementType, table, column,
-                                      Integer.valueOf(columnIndex), argObject };
+        Type       type = column.getDataType();
+        Expression expr = readDefaultClause(type);
+        String     sql  = getLastPart();
+        Object[]   args = new Object[] {
+            StatementTypes.ALTER_COLUMN_DEFAULT, table, column,
+            Integer.valueOf(columnIndex), expr
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
     Statement compileAlterSequence() {
@@ -2767,10 +2357,9 @@ public class ParserDDL extends ParserRoutine {
         read();
 
         HsqlName schema = session.getSchemaHsqlName(token.namePrefix);
-        NumberSequence sequence = database.schemaManager.getSequence(
-            token.tokenString,
-            schema.name,
-            true);
+        NumberSequence sequence =
+            database.schemaManager.getSequence(token.tokenString, schema.name,
+                                               true);
 
         read();
 
@@ -2778,10 +2367,8 @@ public class ParserDDL extends ParserRoutine {
             read();
             readThis(Tokens.TO);
 
-            return compileRenameObject(
-                sequence.getName(),
-                SchemaObject.SEQUENCE,
-                false);
+            return compileRenameObject(sequence.getName(),
+                                       SchemaObject.SEQUENCE, false);
         }
 
         checkSchemaUpdateAuthorisation(session, sequence.getName().schema);
@@ -2790,23 +2377,19 @@ public class ParserDDL extends ParserRoutine {
 
         readSequenceOptions(copy, false, true, false);
 
-        String     sql            = getLastPart();
-        Object[]   args           = new Object[]{ sequence, copy };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            sequence, copy
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogNameArray();
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_SEQUENCE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_SEQUENCE, args,
+                                   null, writeLockNames);
     }
 
-    StatementSchema compileAlterColumnAddSequence(
-            Table table,
-            ColumnSchema column,
-            int colIndex) {
+    StatementSchema compileAlterColumnAddSequence(Table table,
+            ColumnSchema column, int colIndex) {
 
         if (!column.getDataType().isIntegralType()) {
             throw Error.error(ErrorCode.X_42525);
@@ -2818,25 +2401,20 @@ public class ParserDDL extends ParserRoutine {
 
         NumberSequence sequence = readSequence(table, column, false);
         String         sql      = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ALTER_COLUMN_SEQUENCE,
-                                      table, column, Integer.valueOf(
-                                          colIndex), sequence };
+        Object[]       args     = new Object[] {
+            StatementTypes.ALTER_COLUMN_SEQUENCE, table, column,
+            Integer.valueOf(colIndex), sequence
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogAndBaseTableNames(
                 table.getName());
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
-    NumberSequence readSequence(
-            Table table,
-            ColumnSchema column,
-            boolean withType) {
+    NumberSequence readSequence(Table table, ColumnSchema column,
+                                boolean withType) {
 
         readThis(Tokens.GENERATED);
 
@@ -2870,10 +2448,8 @@ public class ParserDDL extends ParserRoutine {
                 }
             }
 
-            sequence = database.schemaManager.getSequence(
-                token.tokenString,
-                table.getSchemaName().name,
-                true);
+            sequence = database.schemaManager.getSequence(token.tokenString,
+                    table.getSchemaName().name, true);
 
             read();
         } else {
@@ -2892,10 +2468,8 @@ public class ParserDDL extends ParserRoutine {
         return sequence;
     }
 
-    StatementSchema compileAlterColumnSequenceOptions(
-            Table table,
-            ColumnSchema column,
-            int columnIndex) {
+    StatementSchema compileAlterColumnSequenceOptions(Table table,
+            ColumnSchema column, int columnIndex) {
 
         OrderedIntHashSet set      = new OrderedIntHashSet();
         NumberSequence    sequence = column.getIdentitySequence().duplicate();
@@ -2922,7 +2496,6 @@ public class ParserDDL extends ParserRoutine {
 
                     break;
                 }
-
                 case Tokens.SET :
                     read();
 
@@ -2939,9 +2512,9 @@ public class ParserDDL extends ParserRoutine {
                             long value = readBigint();
 
                             sequence.setIncrement(value);
+
                             break;
                         }
-
                         case Tokens.NO :
                             read();
 
@@ -2972,9 +2545,9 @@ public class ParserDDL extends ParserRoutine {
                             long value = readBigint();
 
                             sequence.setMaxValueNoCheck(value);
+
                             break;
                         }
-
                         case Tokens.MINVALUE : {
                             if (!set.add(token.tokenType)) {
                                 throw unexpectedToken();
@@ -2985,9 +2558,9 @@ public class ParserDDL extends ParserRoutine {
                             long value = readBigint();
 
                             sequence.setMinValueNoCheck(value);
+
                             break;
                         }
-
                         case Tokens.CYCLE :
                             if (!set.add(token.tokenType)) {
                                 throw unexpectedToken();
@@ -3000,7 +2573,6 @@ public class ParserDDL extends ParserRoutine {
                         default :
                             throw unexpectedToken();
                     }
-
                     break;
 
                 default :
@@ -3015,26 +2587,23 @@ public class ParserDDL extends ParserRoutine {
 
         sequence.checkValues();
 
-        String sql = getLastPart();
-        Object[] args = new Object[]{ StatementTypes.ALTER_COLUMN_SEQUENCE,
-                                      table, column,
-                                      Integer.valueOf(columnIndex), sequence };
-        HsqlName[] writeLockNames = new HsqlName[]{ database.getCatalogName(),
-                table.getName() };
+        String   sql  = getLastPart();
+        Object[] args = new Object[] {
+            StatementTypes.ALTER_COLUMN_SEQUENCE, table, column,
+            Integer.valueOf(columnIndex), sequence
+        };
+        HsqlName[] writeLockNames = new HsqlName[] {
+            database.getCatalogName(), table.getName()
+        };
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.ALTER_TABLE,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.ALTER_TABLE, args,
+                                   null, writeLockNames);
     }
 
     /**
      * Responsible for handling tail of ALTER COLUMN ... RENAME ...
      */
-    private Statement compileAlterColumnRename(
-            Table table,
+    private Statement compileAlterColumnRename(Table table,
             ColumnSchema column) {
 
         checkIsSimpleName();
@@ -3045,21 +2614,19 @@ public class ParserDDL extends ParserRoutine {
             throw Error.error(ErrorCode.X_42504, name.name);
         }
 
-        database.schemaManager.checkColumnIsReferenced(
-            table.getName(),
-            column.getName());
+        database.schemaManager.checkColumnIsReferenced(table.getName(),
+                column.getName());
 
-        String   sql = getLastPart();
-        Object[] args = new Object[]{ column.getName(), name, Boolean.FALSE };
-        HsqlName[] writeLockNames = new HsqlName[]{ database.getCatalogName(),
-                table.getName() };
+        String     sql            = getLastPart();
+        Object[]   args           = new Object[] {
+            column.getName(), name, Boolean.FALSE
+        };
+        HsqlName[] writeLockNames = new HsqlName[] {
+            database.getCatalogName(), table.getName()
+        };
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.RENAME_OBJECT,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.RENAME_OBJECT, args,
+                                   null, writeLockNames);
     }
 
     Statement compileRenameSchema(HsqlName name, int type) {
@@ -3069,17 +2636,14 @@ public class ParserDDL extends ParserRoutine {
 
         checkSchemaUpdateAuthorisation(session, name);
 
-        Object[]   args           = new Object[]{ name, newName,
-            Boolean.FALSE };
+        Object[] args = new Object[] {
+            name, newName, Boolean.FALSE
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogNameArray();
 
-        return new StatementSchema(
-            sql,
-            StatementTypes.RENAME_SCHEMA,
-            args,
-            null,
-            writeLockNames);
+        return new StatementSchema(sql, StatementTypes.RENAME_SCHEMA, args,
+                                   null, writeLockNames);
     }
 
     Statement compileAlterUser() {
@@ -3108,13 +2672,13 @@ public class ParserDDL extends ParserRoutine {
                 read();
 
                 Boolean  mode = processTrueOrFalseObject();
-                Object[] args = new Object[]{ userObject, mode };
+                Object[] args = new Object[] {
+                    userObject, mode
+                };
 
-                return new StatementCommand(
-                    StatementTypes.SET_USER_LOCAL,
-                    args);
+                return new StatementCommand(StatementTypes.SET_USER_LOCAL,
+                                            args);
             }
-
             case Tokens.PASSWORD : {
                 read();
 
@@ -3126,20 +2690,19 @@ public class ParserDDL extends ParserRoutine {
 
                 password = readPassword();
 
-                Object[] args = new Object[]{ userObject, password,
-                                              Boolean.valueOf(isDigest) };
-                Statement cs = new StatementCommand(
-                    StatementTypes.SET_USER_PASSWORD,
-                    args);
-                String sql = userObject.getSetUserPasswordDigestSQL(
-                    password,
+                Object[] args = new Object[] {
+                    userObject, password, Boolean.valueOf(isDigest)
+                };
+                Statement cs =
+                    new StatementCommand(StatementTypes.SET_USER_PASSWORD,
+                                         args);
+                String sql = userObject.getSetUserPasswordDigestSQL(password,
                     isDigest);
 
                 cs.setSQL(sql);
 
                 return cs;
             }
-
             case Tokens.INITIAL : {
                 read();
                 readThis(Tokens.SCHEMA);
@@ -3155,13 +2718,13 @@ public class ParserDDL extends ParserRoutine {
 
                 read();
 
-                Object[] args = new Object[]{ userObject, schemaName };
+                Object[] args = new Object[] {
+                    userObject, schemaName
+                };
 
                 return new StatementCommand(
-                    StatementTypes.SET_USER_INITIAL_SCHEMA,
-                    args);
+                    StatementTypes.SET_USER_INITIAL_SCHEMA, args);
             }
-
             default : {
                 throw unexpectedToken();
             }
@@ -3176,10 +2739,8 @@ public class ParserDDL extends ParserRoutine {
 
         checkSchemaUpdateAuthorisation(schema);
 
-        Type domain = database.schemaManager.getDomain(
-            token.tokenString,
-            schema.name,
-            true);
+        Type domain = database.schemaManager.getDomain(token.tokenString,
+            schema.name, true);
 
         read();
 
@@ -3189,89 +2750,73 @@ public class ParserDDL extends ParserRoutine {
                 read();
                 readThis(Tokens.TO);
 
-                return compileRenameObject(
-                    domain.getName(),
-                    SchemaObject.DOMAIN,
-                    false);
+                return compileRenameObject(domain.getName(),
+                                           SchemaObject.DOMAIN, false);
             }
-
             case Tokens.DROP : {
                 read();
 
                 if (token.tokenType == Tokens.DEFAULT) {
                     read();
 
-                    String sql = getLastPart();
-                    Object[] args = new Object[]{ StatementTypes.DROP_DEFAULT,
-                                                  domain };
+                    String   sql  = getLastPart();
+                    Object[] args = new Object[] {
+                        StatementTypes.DROP_DEFAULT, domain
+                    };
                     HsqlName[] writeLockNames =
                         database.schemaManager.getCatalogAndBaseTableNames(
                             domain.getName());
 
-                    return new StatementSchema(
-                        sql,
-                        StatementTypes.ALTER_DOMAIN,
-                        args,
-                        null,
-                        writeLockNames);
+                    return new StatementSchema(sql,
+                                               StatementTypes.ALTER_DOMAIN,
+                                               args, null, writeLockNames);
                 } else if (token.tokenType == Tokens.CONSTRAINT) {
                     read();
                     checkIsSchemaObjectName();
 
                     HsqlName name = database.schemaManager.getSchemaObjectName(
-                        domain.getSchemaName(),
-                        token.tokenString,
-                        SchemaObject.CONSTRAINT,
-                        true);
+                        domain.getSchemaName(), token.tokenString,
+                        SchemaObject.CONSTRAINT, true);
 
                     read();
 
-                    String sql = getLastPart();
-                    Object[] args = new Object[]{
-                        StatementTypes.DROP_CONSTRAINT,
-                        domain, name };
+                    String   sql  = getLastPart();
+                    Object[] args = new Object[] {
+                        StatementTypes.DROP_CONSTRAINT, domain, name
+                    };
                     HsqlName[] writeLockNames =
                         database.schemaManager.getCatalogAndBaseTableNames(
                             domain.getName());
 
-                    return new StatementSchema(
-                        sql,
-                        StatementTypes.ALTER_DOMAIN,
-                        args,
-                        null,
-                        writeLockNames);
+                    return new StatementSchema(sql,
+                                               StatementTypes.ALTER_DOMAIN,
+                                               args, null, writeLockNames);
                 } else {
                     throw unexpectedToken();
                 }
             }
-
             case Tokens.SET : {
                 read();
                 readThis(Tokens.DEFAULT);
 
-                Expression e   = readDefaultClause(domain);
-                String     sql = getLastPart();
-                Object[] args = new Object[]{ StatementTypes.ADD_DEFAULT,
-                                              domain, e };
+                Expression e    = readDefaultClause(domain);
+                String     sql  = getLastPart();
+                Object[]   args = new Object[] {
+                    StatementTypes.ADD_DEFAULT, domain, e
+                };
                 HsqlName[] writeLockNames =
                     database.schemaManager.getCatalogAndBaseTableNames(
                         domain.getName());
 
-                return new StatementSchema(
-                    sql,
-                    StatementTypes.ALTER_DOMAIN,
-                    args,
-                    null,
-                    writeLockNames);
+                return new StatementSchema(sql, StatementTypes.ALTER_DOMAIN,
+                                           args, null, writeLockNames);
             }
-
             case Tokens.ADD : {
                 read();
 
                 if (token.tokenType == Tokens.CONSTRAINT
                         || token.tokenType == Tokens.CHECK) {
-                    HsqlArrayList<Constraint> tempConstraints =
-                        new HsqlArrayList<>();
+                    HsqlArrayList tempConstraints = new HsqlArrayList();
 
                     compileContext.currentDomain = domain;
 
@@ -3279,23 +2824,21 @@ public class ParserDDL extends ParserRoutine {
 
                     compileContext.currentDomain = null;
 
-                    Constraint c = tempConstraints.get(0);
+                    Constraint c = (Constraint) tempConstraints.get(0);
 
                     c.prepareDomainCheckConstraint(session);
 
-                    String sql = getLastPart();
-                    Object[] args = new Object[]{ StatementTypes.ADD_CONSTRAINT,
-                                                  domain, c };
+                    String   sql  = getLastPart();
+                    Object[] args = new Object[] {
+                        StatementTypes.ADD_CONSTRAINT, domain, c
+                    };
                     HsqlName[] writeLockNames =
                         database.schemaManager.getCatalogAndBaseTableNames(
                             domain.getName());
 
-                    return new StatementSchema(
-                        sql,
-                        StatementTypes.ALTER_DOMAIN,
-                        args,
-                        null,
-                        writeLockNames);
+                    return new StatementSchema(sql,
+                                               StatementTypes.ALTER_DOMAIN,
+                                               args, null, writeLockNames);
                 }
             }
         }
@@ -3324,12 +2867,9 @@ public class ParserDDL extends ParserRoutine {
                 read();
                 readThis(Tokens.TO);
 
-                return compileRenameObject(
-                    t.getName(),
-                    SchemaObject.VIEW,
-                    false);
+                return compileRenameObject(t.getName(), SchemaObject.VIEW,
+                                           false);
             }
-
             case Tokens.AS : {
                 rewind(position);
 
@@ -3377,17 +2917,17 @@ public class ParserDDL extends ParserRoutine {
 
     private StatementSchema compileRightGrantOrRevoke(boolean grant) {
 
-        OrderedHashSet<String> granteeList   = new OrderedHashSet<>();
-        Grantee                grantor       = null;
-        Right                  right         = null;
-        HsqlName               objectName    = null;
-        boolean                isTable       = false;
-        boolean                isUsage       = false;
-        boolean                isExec        = false;
-        boolean                isAll         = false;
-        boolean                isGrantOption = false;
-        boolean                isFilter      = false;
-        boolean                cascade       = false;
+        OrderedHashSet granteeList   = new OrderedHashSet();
+        Grantee        grantor       = null;
+        Right          right         = null;
+        HsqlName       objectName    = null;
+        boolean        isTable       = false;
+        boolean        isUsage       = false;
+        boolean        isExec        = false;
+        boolean        isAll         = false;
+        boolean        isGrantOption = false;
+        boolean        isFilter      = false;
+        boolean        cascade       = false;
 
         if (!grant) {
             if (token.tokenType == Tokens.GRANT) {
@@ -3398,7 +2938,6 @@ public class ParserDDL extends ParserRoutine {
                 isGrantOption = true;
             } else if (token.tokenType == Tokens.HIERARCHY) {
                 throw unsupportedFeature();
-
 /*
                 read();
                 readThis(Token.OPTION);
@@ -3425,10 +2964,10 @@ public class ParserDDL extends ParserRoutine {
             while (loop) {
                 checkIsUndelimitedIdentifier();
 
-                int rightType = GranteeManager.getCheckSingleRight(
-                    token.tokenString);
-                int                    tokenType     = token.tokenType;
-                OrderedHashSet<String> columnNameSet = null;
+                int rightType =
+                    GranteeManager.getCheckSingleRight(token.tokenString);
+                int            tokenType = token.tokenType;
+                OrderedHashSet columnSet = null;
 
                 read();
 
@@ -3439,34 +2978,39 @@ public class ParserDDL extends ParserRoutine {
                     case Tokens.INSERT :
                     case Tokens.UPDATE :
                         if (token.tokenType == Tokens.OPENBRACKET) {
-                            columnNameSet = readColumnNames(false);
+                            columnSet = readColumnNames(false);
                         }
 
                     // fall through
                     case Tokens.DELETE :
-                        right.set(rightType, columnNameSet);
+                        if (right == null) {
+                            right = new Right();
+                        }
+
+                        right.set(rightType, columnSet);
 
                         isTable = true;
 
                         if (grant && tokenType != Tokens.REFERENCES) {
                             Recorder   recorder = startRecording();
-                            Expression filter   = XreadFilterExpressionOrNull();
+                            Expression filter = XreadFilterExpressionOrNull();
 
                             if (filter != null) {
                                 String sql = recorder.getSQL();
 
-                                right.setFilterExpression(
-                                    rightType,
-                                    filter,
-                                    sql);
+                                right.setFilterExpression(rightType, filter,
+                                                          sql);
 
                                 isFilter = true;
                             }
                         }
-
                         break;
 
                     case Tokens.TRIGGER :
+                        if (right == null) {
+                            right = new Right();
+                        }
+
                         right.set(rightType, null);
 
                         isTable = true;
@@ -3480,6 +3024,7 @@ public class ParserDDL extends ParserRoutine {
                         right   = Right.fullRights;
                         isUsage = true;
                         loop    = false;
+
                         continue;
                     case Tokens.EXECUTE :
                         if (isTable) {
@@ -3489,11 +3034,13 @@ public class ParserDDL extends ParserRoutine {
                         right  = Right.fullRights;
                         isExec = true;
                         loop   = false;
+
                         continue;
                 }
 
                 if (token.tokenType == Tokens.COMMA) {
                     read();
+
                     continue;
                 }
 
@@ -3541,9 +3088,9 @@ public class ParserDDL extends ParserRoutine {
                 }
 
                 objectType = SchemaObject.SPECIFIC_ROUTINE;
+
                 break;
             }
-
             case Tokens.FUNCTION :
                 if (!isExec && !isAll) {
                     throw unexpectedToken();
@@ -3613,39 +3160,6 @@ public class ParserDDL extends ParserRoutine {
                 readThis(Tokens.SET);
 
                 objectType = SchemaObject.CHARSET;
-                break;
-
-            case Tokens.ALL :
-                read();
-
-                if (readIfThis("SEQUENCES")) {
-                    if (!isUsage && !isAll) {
-                        throw unexpectedToken("SEQUENCES");
-                    }
-
-                    right = new Right();
-
-                    right.set(GrantConstants.USAGE, null);
-                } else if (readIfThis("ROUTINES")) {
-                    if (!isExec && !isAll) {
-                        throw unexpectedToken("ROUTINES");
-                    }
-
-                    right = new Right();
-
-                    right.set(GrantConstants.EXECUTE, null);
-                } else {
-                    if (!isTable && !isAll) {
-                        throw unexpectedToken();
-                    }
-
-                    readThis("TABLES");
-                }
-
-                readThis(Tokens.IN);
-                readThis(Tokens.SCHEMA);
-
-                objectType = SchemaObject.SCHEMA;
                 break;
 
             case Tokens.TABLE :
@@ -3728,21 +3242,16 @@ public class ParserDDL extends ParserRoutine {
             }
         }
 
-        String   sql              = getLastPart();
-        int      type             = grant
-                                    ? StatementTypes.GRANT
-                                    : StatementTypes.REVOKE;
-        Object[] args             = new Object[] {
-            granteeList, objectName, right, grantor, Boolean.valueOf(
-                cascade), Boolean.valueOf(isGrantOption)
+        String   sql  = getLastPart();
+        int      type = grant ? StatementTypes.GRANT
+                              : StatementTypes.REVOKE;
+        Object[] args = new Object[] {
+            granteeList, objectName, right, grantor, Boolean.valueOf(cascade),
+            Boolean.valueOf(isGrantOption)
         };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogNameArray();
-        StatementSchema cs = new StatementSchema(
-            sql,
-            type,
-            args,
-            null,
+        StatementSchema cs = new StatementSchema(sql, type, args, null,
             writeLockNames);
 
         return cs;
@@ -3750,14 +3259,13 @@ public class ParserDDL extends ParserRoutine {
 
     private StatementSchema compileRoleGrantOrRevoke(boolean grant) {
 
-        Grantee                grantor     = session.getGrantee();
-        OrderedHashSet<String> roleList    = new OrderedHashSet<>();
-        OrderedHashSet<String> granteeList = new OrderedHashSet<>();
-        boolean                cascade     = false;
+        Grantee        grantor     = session.getGrantee();
+        OrderedHashSet roleList    = new OrderedHashSet();
+        OrderedHashSet granteeList = new OrderedHashSet();
+        boolean        cascade     = false;
 
         if (!grant && token.tokenType == Tokens.ADMIN) {
             throw unsupportedFeature();
-
 /*
             read();
             readThis(Token.OPTION);
@@ -3772,6 +3280,7 @@ public class ParserDDL extends ParserRoutine {
 
             if (token.tokenType == Tokens.COMMA) {
                 read();
+
                 continue;
             }
 
@@ -3799,7 +3308,6 @@ public class ParserDDL extends ParserRoutine {
         if (grant) {
             if (token.tokenType == Tokens.WITH) {
                 throw unsupportedFeature();
-
 /*
                 read();
                 readThis(Token.ADMIN);
@@ -3837,19 +3345,15 @@ public class ParserDDL extends ParserRoutine {
             }
         }
 
-        String sql                = getLastPart();
-        int    type               = grant
-                                    ? StatementTypes.GRANT_ROLE
-                                    : StatementTypes.REVOKE_ROLE;
-        Object[] args = new Object[]{ granteeList, roleList, grantor,
-                                      Boolean.valueOf(cascade) };
+        String   sql  = getLastPart();
+        int      type = grant ? StatementTypes.GRANT_ROLE
+                              : StatementTypes.REVOKE_ROLE;
+        Object[] args = new Object[] {
+            granteeList, roleList, grantor, Boolean.valueOf(cascade)
+        };
         HsqlName[] writeLockNames =
             database.schemaManager.getCatalogNameArray();
-        StatementSchema cs = new StatementSchema(
-            sql,
-            type,
-            args,
-            null,
+        StatementSchema cs = new StatementSchema(sql, type, args, null,
             writeLockNames);
 
         return cs;
@@ -3910,13 +3414,9 @@ public class ParserDDL extends ParserRoutine {
 
             case Tokens.COLUMN : {
                 type = SchemaObject.COLUMN;
+
                 break;
             }
-
-            case Tokens.VIEW :
-                type = SchemaObject.VIEW;
-                break;
-
             default :
                 throw unexpectedToken();
         }
@@ -3924,37 +3424,32 @@ public class ParserDDL extends ParserRoutine {
         read();
         checkIsSchemaObjectName();
 
-        name = database.nameManager.newHsqlName(
-            token.tokenString,
-            token.isDelimitedIdentifier,
-            type);
+        name = database.nameManager.newHsqlName(token.tokenString,
+                token.isDelimitedIdentifier, type);
 
         if (type == SchemaObject.COLUMN) {
             if (token.namePrefix == null) {
                 throw Error.error(ErrorCode.X_42501);
             }
 
-            name.parent = database.nameManager.newHsqlName(
-                token.namePrefix,
-                token.isDelimitedPrefix,
-                SchemaObject.TABLE);
+            name.parent = database.nameManager.newHsqlName(token.namePrefix,
+                    token.isDelimitedPrefix, SchemaObject.TABLE);
 
             if (token.namePrePrefix == null) {
                 name.parent.schema = session.getCurrentSchemaHsqlName();
             } else {
                 name.parent.schema = database.nameManager.newHsqlName(
-                    token.namePrePrefix,
-                    token.isDelimitedPrePrefix,
+                    token.namePrePrefix, token.isDelimitedPrePrefix,
                     SchemaObject.SCHEMA);
             }
         } else {
             if (token.namePrefix == null) {
                 name.schema = session.getCurrentSchemaHsqlName();
             } else {
-                name.schema = database.nameManager.newHsqlName(
-                    token.namePrefix,
-                    token.isDelimitedPrefix,
-                    SchemaObject.SCHEMA);
+                name.schema =
+                    database.nameManager.newHsqlName(token.namePrefix,
+                                                     token.isDelimitedPrefix,
+                                                     SchemaObject.SCHEMA);
             }
         }
 
@@ -3962,14 +3457,12 @@ public class ParserDDL extends ParserRoutine {
         readThis(Tokens.IS);
 
         String   comment   = readQuotedString();
-        Object[] arguments = new Object[]{ name, comment };
+        Object[] arguments = new Object[] {
+            name, comment
+        };
 
-        return new StatementSchema(
-            null,
-            StatementTypes.COMMENT,
-            arguments,
-            null,
-            null);
+        return new StatementSchema(null, StatementTypes.COMMENT, arguments,
+                                   null, null);
     }
 
     Statement compileAlterSession() {
@@ -3999,13 +3492,14 @@ public class ParserDDL extends ParserRoutine {
                     break;
 
                 default :
-                    throw unexpectedTokenRequire(
-                        Tokens.T_ALL + ',' + Tokens.T_RESULT + ','
-                        + Tokens.T_TABLE);
+                    throw unexpectedTokenRequire(Tokens.T_ALL + ','
+                                                 + Tokens.T_RESULT + ','
+                                                 + Tokens.T_TABLE);
             }
 
-            Object[] args = new Object[]{ Long.valueOf(
-                session.getId()), Integer.valueOf(action) };
+            Object[] args = new Object[] {
+                Long.valueOf(session.getId()), Integer.valueOf(action)
+            };
 
             return new StatementCommand(StatementTypes.ALTER_SESSION, args);
         }
@@ -4038,8 +3532,9 @@ public class ParserDDL extends ParserRoutine {
                 throw unexpectedToken();
         }
 
-        Object[] args = new Object[]{ Long.valueOf(
-            sessionID), Integer.valueOf(action) };
+        Object[] args = new Object[] {
+            Long.valueOf(sessionID), Integer.valueOf(action)
+        };
 
         return new StatementCommand(StatementTypes.ALTER_SESSION, args);
     }
@@ -4048,7 +3543,7 @@ public class ParserDDL extends ParserRoutine {
      * Retrieves boolean value corresponding to the next token.
      *
      * @return   true if next token is "TRUE"; false if next token is "FALSE"
-     * @throws  HsqlException if the next token is neither "TRUE" nor "FALSE"
+     * @throws  HsqlException if the next token is neither "TRUE" or "FALSE"
      */
     boolean processTrueOrFalse() {
 

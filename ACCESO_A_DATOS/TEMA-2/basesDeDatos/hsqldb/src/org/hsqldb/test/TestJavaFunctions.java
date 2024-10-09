@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,10 +49,12 @@ import org.hsqldb.result.ResultMetaData;
 import org.hsqldb.types.BinaryData;
 import org.hsqldb.types.Type;
 
+//#ifdef JAVA8
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneOffset;
+//#endif JAVA8
 
 public class TestJavaFunctions extends TestBase {
 
@@ -144,6 +146,7 @@ public class TestJavaFunctions extends TestBase {
         c.close();
     }
 
+//#ifdef JAVA8
     public void testTwo() throws SQLException {
 
         Connection c         = newConnection();
@@ -288,6 +291,7 @@ public class TestJavaFunctions extends TestBase {
         return "[ts, tsz] : " + t.toString() + ", " + tz.toString();
     }
 
+//#endif JAVA8
     public static ResultSet getQueryResult(Connection connection,
                                            int i) throws SQLException {
 
@@ -308,7 +312,7 @@ public class TestJavaFunctions extends TestBase {
 
     public static byte[] getSortedByteArray(byte[] bytes) throws SQLException {
 
-        bytes = java.util.Arrays.copyOf(bytes, bytes.length);
+        bytes = (byte[]) java.util.Arrays.copyOf(bytes, bytes.length);
 
         java.util.Arrays.sort(bytes);
 
@@ -318,7 +322,7 @@ public class TestJavaFunctions extends TestBase {
     public static byte[][] getSortedArrayByteArray(byte[][] bytes)
     throws SQLException {
 
-        bytes = java.util.Arrays.copyOf(bytes, bytes.length);
+        bytes = (byte[][]) java.util.Arrays.copyOf(bytes, bytes.length);
 
         java.util.Arrays.sort(bytes);
 

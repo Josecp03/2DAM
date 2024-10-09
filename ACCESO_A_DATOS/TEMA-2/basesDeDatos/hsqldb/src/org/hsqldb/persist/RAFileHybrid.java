@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,11 +58,8 @@ public final class RAFileHybrid implements RandomAccessInterface {
     long                  initialMaxLength = RAFileNIO.largeBufferSize / 2;
     RandomAccessInterface store;
 
-    public RAFileHybrid(
-            Database database,
-            String name,
-            boolean readOnly)
-            throws IOException {
+    public RAFileHybrid(Database database, String name,
+                        boolean readOnly) throws IOException {
 
         this.database   = database;
         this.fileName   = name;
@@ -172,12 +169,9 @@ public final class RAFileHybrid implements RandomAccessInterface {
 
         if (preNio && initialMaxLength <= requiredPosition) {
             try {
-                store = new RAFileNIO(
-                    database.logger,
-                    fileName,
-                    isReadOnly,
-                    requiredPosition,
-                    database.logger.propNioMaxSize);
+                store = new RAFileNIO(database.logger, fileName, isReadOnly,
+                                      requiredPosition,
+                                      database.logger.propNioMaxSize);
 
                 store.seek(currentPosition);
 

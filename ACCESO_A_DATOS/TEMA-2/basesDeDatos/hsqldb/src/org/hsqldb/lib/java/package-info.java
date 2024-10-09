@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 
 /**
- *  Contains a single static class which handles invariants, runtime and
+ *  * Contains a single static class which handles invariants, runtime and
  *  methods in different JDK versions
  */
 package org.hsqldb.lib.java;

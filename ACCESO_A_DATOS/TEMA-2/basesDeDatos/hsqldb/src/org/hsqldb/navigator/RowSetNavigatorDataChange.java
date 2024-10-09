@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,20 +57,16 @@ public interface RowSetNavigatorDataChange extends RangeIterator {
 
     int[] getCurrentChangedColumns();
 
-    void write(RowOutputInterface out, ResultMetaData meta);
+    void write(RowOutputInterface out, ResultMetaData meta) throws IOException;
 
-    void read(RowInputInterface in, ResultMetaData meta);
+    void read(RowInputInterface in, ResultMetaData meta) throws IOException;
 
     void endMainDataSet();
 
     boolean addRow(Row row);
 
-    Object[] addRow(
-            Session session,
-            Row row,
-            Object[] data,
-            Type[] types,
-            int[] columnMap);
+    Object[] addRow(Session session, Row row, Object[] data, Type[] types,
+                    int[] columnMap);
 
     boolean addUpdate(Row row, Object[] data, int[] columnMap);
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import org.hsqldb.lib.HsqlArrayList;
  */
 public class SetFunctionValueArray implements SetFunction {
 
-    private final HsqlArrayList<Object> list = new HsqlArrayList<>();
+    private final HsqlArrayList list = new HsqlArrayList();
 
     public void add(Object itemLeft, Object itemRight) {}
 
@@ -50,9 +50,8 @@ public class SetFunctionValueArray implements SetFunction {
         list.add(item);
     }
 
-    public void addGroup(SetFunction item) {
-        HsqlArrayList<Object> otherList = ((SetFunctionValueArray) item).list;
-
+    public void addGroup(SetFunction item){
+        HsqlArrayList otherList = ((SetFunctionValueArray) item).list;
         list.addAll(otherList);
     }
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ import org.hsqldb.map.BaseHashMap;
  * to DataFileCache.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.6.0
  * @since 1.8.0
  */
 public class Cache extends BaseHashMap {
@@ -76,11 +76,8 @@ public class Cache extends BaseHashMap {
 
     Cache(DataFileCache dfc) {
 
-        super(
-            dfc.capacity(),
-            BaseHashMap.objectKeyOrValue,
-            BaseHashMap.noKeyOrValue,
-            true);
+        super(dfc.capacity(), BaseHashMap.objectKeyOrValue,
+              BaseHashMap.noKeyOrValue, true);
 
         maxCapacity      = dfc.capacity();
         dataFileCache    = dfc;
@@ -93,9 +90,8 @@ public class Cache extends BaseHashMap {
         updateAccess     = dfc instanceof TextCache;
         comparator       = rowComparator;
         reserveCount = dfc instanceof TextCache
-                       || dfc instanceof DataFileCacheSession
-                       ? 0
-                       : 8;
+                       || dfc instanceof DataFileCacheSession ? 0
+                                                              : 8;
     }
 
     long getTotalCachedBlockSize() {
@@ -130,13 +126,12 @@ public class Cache extends BaseHashMap {
         if (preparePut(storageSize)) {
             putNoCheck(row);
         } else {
-            long value = size() + reserveCount >= capacity
-                         ? capacity
-                         : bytesCapacity / 1024L;
+            long value = size() + reserveCount >= capacity ? capacity
+                                                           : bytesCapacity
+                                                             / 1024L;
 
-            throw Error.error(
-                ErrorCode.DATA_CACHE_IS_FULL,
-                String.valueOf(value));
+            throw Error.error(ErrorCode.DATA_CACHE_IS_FULL,
+                              String.valueOf(value));
         }
     }
 
@@ -150,9 +145,8 @@ public class Cache extends BaseHashMap {
         preparePut(storageSize);
 
         if (size() >= capacity) {
-            throw Error.error(
-                ErrorCode.DATA_CACHE_IS_FULL,
-                String.valueOf(capacity));
+            throw Error.error(ErrorCode.DATA_CACHE_IS_FULL,
+                              String.valueOf(capacity));
         }
 
         putNoCheck(row);
@@ -210,10 +204,9 @@ public class Cache extends BaseHashMap {
         Object existing = addOrRemoveObject(row.getPos(), row, false);
 
         if (existing != null) {
-            dataFileCache.logSevereEvent(
-                "existing object in Cache.put() " + row.getPos() + " "
-                + row.getStorageSize(),
-                null);
+            dataFileCache.logSevereEvent("existing object in Cache.put() "
+                                         + row.getPos() + " "
+                                         + row.getStorageSize(), null);
         }
 
         row.setInMemory(true);
@@ -334,15 +327,13 @@ public class Cache extends BaseHashMap {
 
         int savecount    = 0;
         int removeCount  = size() / 2;
-        int accessTarget = all
-                           ? accessCount.get() + 1
-                           : getAccessCountCeiling(
-                               removeCount,
-                               removeCount / 8);
+        int accessTarget = all ? accessCount.get() + 1
+                               : getAccessCountCeiling(removeCount,
+                                   removeCount / 8);
 
         objectIterator.reset();
 
-        while (objectIterator.hasNext()) {
+        for (; objectIterator.hasNext(); ) {
             CachedObject row = (CachedObject) objectIterator.next();
 
             synchronized (row) {
@@ -385,7 +376,7 @@ public class Cache extends BaseHashMap {
 
         objectIterator.reset();
 
-        while (objectIterator.hasNext()) {
+        for (; objectIterator.hasNext(); ) {
             CachedObject row = (CachedObject) objectIterator.next();
 
             synchronized (row) {
@@ -421,7 +412,7 @@ public class Cache extends BaseHashMap {
 
         objectIterator.reset();
 
-        while (objectIterator.hasNext()) {
+        for (; objectIterator.hasNext(); ) {
             if (savecount == rowTable.length) {
                 saveRows(savecount);
 
@@ -443,22 +434,20 @@ public class Cache extends BaseHashMap {
     void logSaveRowsEvent(int saveCount, long storageSize, long startTime) {
 
         long          time = saveAllTimer.elapsedTime();
-        StringBuilder sb   = new StringBuilder(128);
+        StringBuilder sb   = new StringBuilder();
 
-        sb.append("cache save rows total [count,time] ")
-          .append(saveRowCount + saveCount)
-          .append(',')
-          .append(time)
-          .append(' ')
-          .append("operation [count,time,size]")
-          .append(saveCount)
-          .append(',')
-          .append(time - startTime)
-          .append(',')
-          .append(storageSize)
-          .append(' ')
-          .append("tx-ts ")
-          .append(dataFileCache.database.txManager.getSystemChangeNumber());
+        sb.append("cache save rows total [count,time] ");
+        sb.append(saveRowCount + saveCount);
+        sb.append(',').append(time).append(' ');
+        sb.append("operation [count,time,size]").append(saveCount).append(',');
+        sb.append(time - startTime).append(',');
+        sb.append(storageSize).append(' ');
+
+//
+        sb.append("tx-ts ");
+        sb.append(dataFileCache.database.txManager.getGlobalChangeTimestamp());
+
+//
         dataFileCache.logDetailEvent(sb.toString());
     }
 
@@ -466,12 +455,14 @@ public class Cache extends BaseHashMap {
      * clears out the memory cache
      */
     public void clear() {
+
         super.clear();
 
         cacheBytesLength = 0;
     }
 
-    public Iterator<CachedObject> getIterator() {
+    public Iterator getIterator() {
+
         objectIterator.reset();
 
         return objectIterator;
@@ -482,8 +473,7 @@ public class Cache extends BaseHashMap {
     }
 
     static final class CachedObjectComparator
-            implements Comparator<CachedObject>,
-                       ObjectComparator<CachedObject> {
+    implements Comparator<CachedObject>, ObjectComparator<CachedObject> {
 
         static final int COMPARE_LAST_ACCESS = 0;
         static final int COMPARE_POSITION    = 1;
@@ -518,11 +508,9 @@ public class Cache extends BaseHashMap {
                     return 0;
             }
 
-            return diff == 0
-                   ? 0
-                   : diff > 0
-                     ? 1
-                     : -1;
+            return diff == 0 ? 0
+                             : diff > 0 ? 1
+                                        : -1;
         }
 
         public boolean equals(CachedObject a, CachedObject b) {

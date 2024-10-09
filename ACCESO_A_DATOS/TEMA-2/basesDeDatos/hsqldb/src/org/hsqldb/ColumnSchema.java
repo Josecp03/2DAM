@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.hsqldb.types.Types;
  * Implementation of SQL table column metadata.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.9.0
  */
 public class ColumnSchema extends ColumnBase implements SchemaObject {
@@ -53,16 +53,16 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
     public static final ColumnSchema[] emptyArray = new ColumnSchema[]{};
 
     //
-    private HsqlName                 columnName;
-    private boolean                  isPrimaryKey;
-    private Expression               defaultExpression;
-    private Expression               generatingExpression;
-    private Expression               updateExpression;
-    private NumberSequence           sequence;
-    private OrderedHashSet<HsqlName> references;
-    private OrderedHashSet<HsqlName> generatedColumnReferences;
-    private Expression               accessor;
-    private int                      systemPeriodType;
+    private HsqlName       columnName;
+    private boolean        isPrimaryKey;
+    private Expression     defaultExpression;
+    private Expression     generatingExpression;
+    private Expression     updateExpression;
+    private NumberSequence sequence;
+    private OrderedHashSet references;
+    private OrderedHashSet generatedColumnReferences;
+    private Expression     accessor;
+    private int            systemPeriodType;
 
     ColumnSchema(HsqlName name, Type type) {
         this.columnName = name;
@@ -72,16 +72,11 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
     /**
      * Creates a column defined in DDL statement.
      */
-    public ColumnSchema(
-            HsqlName name,
-            Type type,
-            boolean isNullable,
-            boolean isPrimaryKey,
-            Expression defaultExpression) {
+    public ColumnSchema(HsqlName name, Type type, boolean isNullable,
+                        boolean isPrimaryKey, Expression defaultExpression) {
 
         columnName             = name;
-        nullability            = isNullable
-                                 ? SchemaObject.Nullability.NULLABLE
+        nullability = isNullable ? SchemaObject.Nullability.NULLABLE
                                  : SchemaObject.Nullability.NO_NULLS;
         this.dataType          = type;
         this.isPrimaryKey      = isPrimaryKey;
@@ -103,9 +98,8 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
     }
 
     public String getTableNameString() {
-        return columnName.parent == null
-               ? null
-               : columnName.parent.name;
+        return columnName.parent == null ? null
+                                         : columnName.parent.name;
     }
 
     public HsqlName getSchemaName() {
@@ -113,34 +107,34 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
     }
 
     public String getSchemaNameString() {
-        return columnName.schema == null
-               ? null
-               : columnName.schema.name;
+        return columnName.schema == null ? null
+                                         : columnName.schema.name;
     }
 
     public HsqlName getCatalogName() {
-        return columnName.schema == null
-               ? null
-               : columnName.schema.schema;
+        return columnName.schema == null ? null
+                                         : columnName.schema.schema;
     }
 
     public String getCatalogNameString() {
 
-        return columnName.schema == null
-               ? null
-               : columnName.schema.schema == null
-                 ? null
-                 : columnName.schema.schema.name;
+        return columnName.schema == null ? null
+                                         : columnName.schema.schema == null
+                                           ? null
+                                           : columnName.schema.schema.name;
     }
 
     public Grantee getOwner() {
-        return columnName.schema == null
-               ? null
-               : columnName.schema.owner;
+        return columnName.schema == null ? null
+                                         : columnName.schema.owner;
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
         return references;
+    }
+
+    public OrderedHashSet getComponents() {
+        return null;
     }
 
     public void compile(Session session, SchemaObject table) {
@@ -184,7 +178,8 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
         }
 
         if (columnName != null) {
-            sb.append(columnName.statementName).append(' ');
+            sb.append(columnName.statementName);
+            sb.append(' ');
         }
 
         sb.append(dataType.getTypeDefinition());
@@ -197,6 +192,7 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
     }
 
     public void setType(Type type) {
+
         this.dataType = type;
 
         setReferences();
@@ -239,9 +235,8 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
     }
 
     public byte getNullability() {
-        return isPrimaryKey
-               ? SchemaObject.Nullability.NO_NULLS
-               : super.getNullability();
+        return isPrimaryKey ? SchemaObject.Nullability.NO_NULLS
+                            : super.getNullability();
     }
 
     public boolean isGenerated() {
@@ -302,18 +297,20 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
      *  Returns default value in the session context.
      */
     public Object getDefaultValue(Session session) {
-        return defaultExpression == null
-               ? null
-               : defaultExpression.getValue(session, dataType);
+
+        return defaultExpression == null ? null
+                                         : defaultExpression.getValue(session,
+                                         dataType);
     }
 
     /**
      *  Returns generated value in the session context.
      */
     public Object getGeneratedValue(Session session) {
-        return generatingExpression == null
-               ? null
-               : generatingExpression.getValue(session, dataType);
+
+        return generatingExpression == null ? null
+                                            : generatingExpression.getValue(
+                                            session, dataType);
     }
 
     /**
@@ -321,9 +318,10 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
      */
     public String getDefaultSQL() {
 
-        String ddl = defaultExpression == null
-                     ? null
-                     : defaultExpression.getSQL();
+        String ddl = null;
+
+        ddl = defaultExpression == null ? null
+                                        : defaultExpression.getSQL();
 
         return ddl;
     }
@@ -356,6 +354,7 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
     }
 
     void setGeneratingExpression(Expression expr) {
+
         generatingExpression = expr;
 
         setWriteable(generatingExpression == null);
@@ -385,12 +384,8 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
 
     public ColumnSchema duplicate() {
 
-        ColumnSchema copy = new ColumnSchema(
-            columnName,
-            dataType,
-            true,
-            isPrimaryKey,
-            defaultExpression);
+        ColumnSchema copy = new ColumnSchema(columnName, dataType, true,
+                                             isPrimaryKey, defaultExpression);
 
         copy.setNullability(this.nullability);
         copy.setGeneratingExpression(generatingExpression);
@@ -410,7 +405,7 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
         return accessor;
     }
 
-    public OrderedHashSet<HsqlName> getGeneratedColumnReferences() {
+    public OrderedHashSet getGeneratedColumnReferences() {
         return generatedColumnReferences;
     }
 
@@ -428,34 +423,34 @@ public class ColumnSchema extends ColumnBase implements SchemaObject {
             HsqlName name = dataType.getName();
 
             if (references == null) {
-                references = new OrderedHashSet<>();
+                references = new OrderedHashSet();
             }
 
             references.add(name);
         }
 
         if (generatingExpression != null) {
-            OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
+            OrderedHashSet set = new OrderedHashSet();
 
             generatingExpression.collectObjectNames(set);
 
-            Iterator<HsqlName> it = set.iterator();
+            Iterator it = set.iterator();
 
             while (it.hasNext()) {
-                HsqlName name = it.next();
+                HsqlName name = (HsqlName) it.next();
 
                 if (name.type == SchemaObject.COLUMN
                         || name.type == SchemaObject.TABLE) {
                     if (name.type == SchemaObject.COLUMN) {
                         if (generatedColumnReferences == null) {
-                            generatedColumnReferences = new OrderedHashSet<>();
+                            generatedColumnReferences = new OrderedHashSet();
                         }
 
                         generatedColumnReferences.add(name);
                     }
                 } else {
                     if (references == null) {
-                        references = new OrderedHashSet<>();
+                        references = new OrderedHashSet();
                     }
 
                     references.add(name);

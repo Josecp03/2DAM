@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,16 +40,15 @@ import org.hsqldb.lib.LongKeyHashMap;
 
 /**
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.9.0
  */
 public class PersistentStoreCollectionDatabase
-        implements PersistentStoreCollection {
+implements PersistentStoreCollection {
 
-    private Database database;
-    private AtomicLong persistentStoreIdSequence = new AtomicLong();
-    private final LongKeyHashMap<PersistentStore> rowStoreMap =
-        new LongKeyHashMap<>();
+    private Database             database;
+    private AtomicLong           persistentStoreIdSequence = new AtomicLong();
+    private final LongKeyHashMap rowStoreMap = new LongKeyHashMap();
 
     public PersistentStoreCollectionDatabase(Database db) {
         this.database = db;
@@ -57,8 +56,9 @@ public class PersistentStoreCollectionDatabase
 
     synchronized public PersistentStore getStore(TableBase table) {
 
-        long            persistenceId = table.getPersistenceId();
-        PersistentStore store         = rowStoreMap.get(persistenceId);
+        long persistenceId = table.getPersistenceId();
+        PersistentStore store =
+            (PersistentStore) rowStoreMap.get(persistenceId);
 
         if (store == null) {
             store = database.logger.newStore(null, this, table);
@@ -83,10 +83,10 @@ public class PersistentStoreCollectionDatabase
             return;
         }
 
-        Iterator<PersistentStore> it = rowStoreMap.values().iterator();
+        Iterator it = rowStoreMap.values().iterator();
 
         while (it.hasNext()) {
-            PersistentStore store = it.next();
+            PersistentStore store = (PersistentStore) it.next();
 
             store.release();
         }
@@ -96,7 +96,8 @@ public class PersistentStoreCollectionDatabase
 
     synchronized public void removeStore(TableBase table) {
 
-        PersistentStore store = rowStoreMap.get(table.getPersistenceId());
+        PersistentStore store =
+            (PersistentStore) rowStoreMap.get(table.getPersistenceId());
 
         if (store != null) {
             store.removeAll();
@@ -117,10 +118,10 @@ public class PersistentStoreCollectionDatabase
             return;
         }
 
-        Iterator<PersistentStore> it = rowStoreMap.values().iterator();
+        Iterator it = rowStoreMap.values().iterator();
 
         while (it.hasNext()) {
-            PersistentStore store = it.next();
+            PersistentStore store = (PersistentStore) it.next();
 
             if (store == null) {
                 continue;
@@ -130,8 +131,7 @@ public class PersistentStoreCollectionDatabase
 
             if (table.getTableType() == TableBase.CACHED_TABLE) {
                 TableSpaceManager tableSpace =
-                    dataCache.spaceManager.getTableSpace(
-                        table.getSpaceID());
+                    dataCache.spaceManager.getTableSpace(table.getSpaceID());
 
                 store.setSpaceManager(tableSpace);
             }

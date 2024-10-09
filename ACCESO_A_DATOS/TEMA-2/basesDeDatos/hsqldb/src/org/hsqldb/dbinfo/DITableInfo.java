@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.hsqldb.resources.ResourceBundleHandler;
  * Current version has been reduced in scope.<p>
  *
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
- * @version 2.7.2
+ * @version 2.2.7
  * @since 1.7.2
  */
 final class DITableInfo {
@@ -83,7 +83,7 @@ final class DITableInfo {
     }
 
     /**
-     * Sets the Locale for table and column remarks.
+     * Sets the Locale for table and column remarks. <p>
      */
     void setupBundles() {
 
@@ -94,12 +94,12 @@ final class DITableInfo {
 
             ResourceBundleHandler.setLocale(Locale.getDefault());
 
-            hnd_column_remarks = ResourceBundleHandler.getBundleHandle(
-                "info-column-remarks",
-                null);
-            hnd_table_remarks = ResourceBundleHandler.getBundleHandle(
-                "info-table-remarks",
-                null);
+            hnd_column_remarks =
+                ResourceBundleHandler.getBundleHandle("info-column-remarks",
+                    null);
+            hnd_table_remarks =
+                ResourceBundleHandler.getBundleHandle("info-table-remarks",
+                    null);
 
             ResourceBundleHandler.setLocale(oldLocale);
         }
@@ -129,9 +129,8 @@ final class DITableInfo {
      * @return the scope of the best row identifier
      */
     Integer getBRIScope() {
-        return (table.isWritable())
-               ? ValuePool.getInt(bestRowTransaction)
-               : ValuePool.getInt(bestRowSession);
+        return (table.isWritable()) ? ValuePool.getInt(bestRowTemporary)
+                                    : ValuePool.getInt(bestRowSession);
     }
 
     /**
@@ -206,6 +205,7 @@ final class DITableInfo {
      * @return the remarks recorded against the Table
      */
     String getRemark() {
+
         return (table.getTableType() == TableBase.INFO_SCHEMA_TABLE)
                ? ResourceBundleHandler.getString(hnd_table_remarks, getName())
                : table.getName().comment;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,12 +117,12 @@ public class TestLibSpeed {
 
         for (int i = 0; i < sNumeric.length; i++) {
             hashSet.add(sNumeric[i][0]);
-            intKeyIntValueHashLookup.put(randomgen.nextInt(sNumeric.length), i);
+            intKeyIntValueHashLookup.put(randomgen.nextInt(sNumeric.length),
+                                         i);
             intKeyHashLookup.put(i, Integer.valueOf(i));
             doubleIntLookup.add(randomgen.nextInt(sNumeric.length), i);
-            intValueHashLookup.put(
-                sNumeric[i][0],
-                randomgen.nextInt(sNumeric.length));
+            intValueHashLookup.put(sNumeric[i][0],
+                                   randomgen.nextInt(sNumeric.length));
         }
     }
 
@@ -162,8 +162,8 @@ public class TestLibSpeed {
                 }
             }
 
-            System.out.println(
-                "IntKeyIntValueHashMap Lookup with array " + sw.elapsedTime());
+            System.out.println("IntKeyIntValueHashMap Lookup with array "
+                               + sw.elapsedTime());
             sw.zero();
 
             for (int j = 0; j < count; j++) {
@@ -202,8 +202,8 @@ public class TestLibSpeed {
                 }
             }
 
-            System.out.println(
-                "IntKeyIntValueHashMap Lookup " + sw.elapsedTime());
+            System.out.println("IntKeyIntValueHashMap Lookup "
+                               + sw.elapsedTime());
             sw.zero();
 
             for (int j = 0; j < count; j++) {

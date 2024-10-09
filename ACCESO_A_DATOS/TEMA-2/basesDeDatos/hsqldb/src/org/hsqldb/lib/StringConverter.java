@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,7 @@ import org.hsqldb.map.BitMap;
  *
  * @author Thomas Mueller (Hypersonic SQL Group)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.7.2
  */
 public class StringConverter {
@@ -273,9 +273,8 @@ public class StringConverter {
         for (int j = 0; j < bitCount; j++) {
             byte b = bytes[j / 8];
 
-            s[j] = BitMap.isSet(b, j % 8)
-                   ? '1'
-                   : '0';
+            s[j] = BitMap.isSet(b, j % 8) ? '1'
+                                          : '0';
         }
 
         return new String(s);
@@ -301,9 +300,8 @@ public class StringConverter {
         for (int j = 0; j < bitCount; j++) {
             byte b = bytes[j / 8];
 
-            s[pos++] = BitMap.isSet(b, j % 8)
-                       ? '1'
-                       : '0';
+            s[pos++] = BitMap.isSet(b, j % 8) ? '1'
+                                              : '0';
         }
 
         s[pos] = '\'';
@@ -338,9 +336,8 @@ public class StringConverter {
     public static String byteArrayToString(byte[] b, String charset) {
 
         try {
-            return (charset == null)
-                   ? new String(b)
-                   : new String(b, charset);
+            return (charset == null) ? new String(b)
+                                     : new String(b, charset);
         } catch (Exception e) {}
 
         return null;
@@ -351,7 +348,7 @@ public class StringConverter {
      * need to be written to the log file (input) are Java Unicode strings.
      * input is converted into a 7bit escaped ASCII string (output)with the
      * following transformations. All characters outside the 0x20-7f range are
-     * converted to an escape sequence and added to output. If a backslash
+     * converted to a escape sequence and added to output. If a backslash
      * character is immediately followed by 'u', the backslash character is
      * converted to escape sequence and added to output. All the remaining
      * characters in input are added to output without conversion. The escape
@@ -364,10 +361,8 @@ public class StringConverter {
      * @param s Java string
      * @param doubleSingleQuotes boolean
      */
-    public static void stringToUnicodeBytes(
-            HsqlByteArrayOutputStream b,
-            String s,
-            boolean doubleSingleQuotes) {
+    public static void stringToUnicodeBytes(HsqlByteArrayOutputStream b,
+            String s, boolean doubleSingleQuotes) {
 
         if (s == null) {
             return;
@@ -477,22 +472,16 @@ public class StringConverter {
         return new String(b, 0, j);
     }
 
-    public static String readUTF(
-            byte[] bytearr,
-            int offset,
-            int length)
-            throws IOException {
+    public static String readUTF(byte[] bytearr, int offset,
+                                 int length) throws IOException {
+
         char[] buf = new char[length];
 
         return readUTF(bytearr, offset, length, buf);
     }
 
-    public static String readUTF(
-            byte[] bytearr,
-            int offset,
-            int length,
-            char[] buf)
-            throws IOException {
+    public static String readUTF(byte[] bytearr, int offset, int length,
+                                 char[] buf) throws IOException {
 
         int bcount = 0;
         int c, char2, char3;
@@ -511,6 +500,7 @@ public class StringConverter {
                 count++;
 
                 buf[bcount++] = (char) c;
+
                 continue;
             }
 
@@ -534,7 +524,8 @@ public class StringConverter {
                         throw new UTFDataFormatException();
                     }
 
-                    buf[bcount++] = (char) (((c & 0x1F) << 6) | (char2 & 0x3F));
+                    buf[bcount++] = (char) (((c & 0x1F) << 6)
+                                            | (char2 & 0x3F));
                     break;
 
                 case 14 :
@@ -577,9 +568,8 @@ public class StringConverter {
      * @param      out   destination to write to
      * @return     The number of bytes written out.
      */
-    public static int stringToUTFBytes(
-            String str,
-            HsqlByteArrayOutputStream out) {
+    public static int stringToUTFBytes(String str,
+                                       HsqlByteArrayOutputStream out) {
 
         int strlen = str.length();
         int c,
@@ -619,9 +609,8 @@ public class StringConverter {
 
     public static int getUTFSize(String s) {
 
-        int len = (s == null)
-                  ? 0
-                  : s.length();
+        int len = (s == null) ? 0
+                              : s.length();
         int l   = 0;
 
         for (int i = 0; i < len; i++) {
@@ -647,10 +636,8 @@ public class StringConverter {
      * @throws IOException on error
      * @return a Java string
      */
-    public static String inputStreamToString(
-            InputStream is,
-            String encoding)
-            throws IOException {
+    public static String inputStreamToString(InputStream is,
+            String encoding) throws IOException {
 
         HsqlByteArrayOutputStream baOS = new HsqlByteArrayOutputStream(1024);
 
@@ -675,25 +662,22 @@ public class StringConverter {
      * the string is doubled.<p>
      *
      * null string argument returns null. If the caller needs the literal
-     * "NULL" it should be created it itself<p>
+     * "NULL" it should created it itself<p>
      *
      * @param s Java string
      * @param quoteChar character used for quoting
      * @param extraQuote true if quoteChar itself should be repeated
      * @return String
      */
-    public static String toQuotedString(
-            String s,
-            char quoteChar,
-            boolean extraQuote) {
+    public static String toQuotedString(String s, char quoteChar,
+                                        boolean extraQuote) {
 
         if (s == null) {
             return null;
         }
 
-        int    count = extraQuote
-                       ? count(s, quoteChar)
-                       : 0;
+        int    count = extraQuote ? count(s, quoteChar)
+                                  : 0;
         int    len   = s.length();
         char[] b     = new char[2 + count + len];
         int    i     = 0;
@@ -745,9 +729,8 @@ public class StringConverter {
      * @param b the output byte array output stream
      * @param s the input string
      */
-    public static void stringToHtmlBytes(
-            HsqlByteArrayOutputStream b,
-            String s) {
+    public static void stringToHtmlBytes(HsqlByteArrayOutputStream b,
+                                         String s) {
 
         if (s == null) {
             return;
@@ -928,6 +911,7 @@ public class StringConverter {
 
             if (c != '\\') {
                 b.append(c);
+
                 continue;
             }
 
@@ -941,6 +925,7 @@ public class StringConverter {
 
             if (c == '\\') {
                 b.append(c);
+
                 continue;
             }
 
@@ -968,43 +953,5 @@ public class StringConverter {
         }
 
         return b.toString();
-    }
-
-    public static void toJSONString(String s, StringBuilder sb) {
-
-        int firstQuote;
-        int length = s.length();
-
-        sb.append('"');
-
-        firstQuote = s.indexOf('"');
-
-        if (firstQuote == -1) {
-            if (s.indexOf('\\') == -1) {
-                sb.append(s);
-                sb.append('"');
-
-                return;
-            }
-        }
-
-        sb.append(s, 0, firstQuote);
-
-        for (int i = firstQuote; i < length; i++) {
-            char c = s.charAt(i);
-
-            if (c < 32) {
-                sb.append('\\');
-                appendHex(sb, c);
-            } else {
-                if (c == '"' || c == '\\') {
-                    sb.append('\\');
-                }
-
-                sb.append(c);
-            }
-        }
-
-        sb.append('"');
     }
 }

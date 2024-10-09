@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,14 +38,13 @@ import java.io.RandomAccessFile;
 import org.hsqldb.Database;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
-import org.hsqldb.lib.EventLogInterface;
 
 /**
  * This class is a simple wrapper for a random access file such as used
  * for backup and lobs.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version  2.7.0
+ * @version  2.3.3
  * @since  1.9.0
  */
 final class RAFileSimple implements RandomAccessInterface {
@@ -54,11 +53,9 @@ final class RAFileSimple implements RandomAccessInterface {
     final boolean           readOnly;
     final EventLogInterface logger;
 
-    RAFileSimple(
-            EventLogInterface logger,
-            String name,
-            String openMode)
-            throws IOException {
+    RAFileSimple(EventLogInterface logger, String name,
+                 String openMode) throws FileNotFoundException, IOException {
+
         this.file   = new RandomAccessFile(name, openMode);
         this.logger = logger;
         readOnly    = openMode.equals("r");

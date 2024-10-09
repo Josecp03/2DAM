@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,11 +42,10 @@ import org.hsqldb.map.BaseHashMap;
  * Iterators of keys or values are not thread-safe.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
-public class IntKeyHashMapConcurrent<V> extends BaseHashMap
-        implements Map<Integer, V> {
+public class IntKeyHashMapConcurrent<V> extends BaseHashMap implements Map<Integer, V> {
 
     private Set<Integer>           keySet;
     private Collection<V>          values;
@@ -61,15 +60,9 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
         this(8);
     }
 
-    public IntKeyHashMapConcurrent(
-            int initialCapacity)
-            throws IllegalArgumentException {
-
-        super(
-            initialCapacity,
-            BaseHashMap.intKeyOrValue,
-            BaseHashMap.objectKeyOrValue,
-            false);
+    public IntKeyHashMapConcurrent(int initialCapacity) throws IllegalArgumentException {
+        super(initialCapacity, BaseHashMap.intKeyOrValue,
+              BaseHashMap.objectKeyOrValue, false);
     }
 
     public Lock getWriteLock() {
@@ -79,9 +72,10 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
     public boolean containsKey(Object key) {
 
         if (key instanceof Integer) {
+
             int intKey = ((Integer) key).intValue();
 
-            return super.containsIntKey(intKey);
+            return super.containsKey(intKey);
         }
 
         if (key == null) {
@@ -96,7 +90,7 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
         try {
             readLock.lock();
 
-            return super.containsIntKey(key);
+            return super.containsKey(key);
         } finally {
             readLock.unlock();
         }
@@ -113,10 +107,11 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
         }
     }
 
-    public V get(Integer key) {
+    public V get(Object key) {
 
         if (key instanceof Integer) {
-            int intKey = key.intValue();
+
+            int intKey = ((Integer) key).intValue();
 
             return get(intKey);
         }
@@ -147,10 +142,11 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
             throw new NullPointerException();
         }
 
-        int intKey = key.intValue();
+        int intKey = ((Integer) key).intValue();
 
         return put(intKey, value);
     }
+
 
     public V put(int key, V value) {
 
@@ -164,8 +160,8 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
     }
 
     public V remove(Object key) {
-
         if (key instanceof Integer) {
+
             int intKey = ((Integer) key).intValue();
 
             return remove(intKey);
@@ -185,17 +181,34 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
         }
     }
 
-    public void putAll(IntKeyHashMap<V> other) {
+    public void putAll(Map<? extends Integer, ? extends V> other) {
+        try {
+            writeLock.lock();
+
+            Iterator<? extends Integer> it = other.keySet().iterator();
+
+            while (it.hasNext()) {
+                Integer key = it.next();
+                int intKey = key.intValue();
+
+                put(intKey, (V) other.get(key));
+            }
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    public void putAll(IntKeyHashMap other) {
 
         try {
             writeLock.lock();
 
-            Iterator<Integer> it = other.keySet().iterator();
+            PrimitiveIterator it = (PrimitiveIterator) other.keySet().iterator();
 
             while (it.hasNext()) {
                 int intKey = it.nextInt();
 
-                put(intKey, other.get(intKey));
+                put(intKey, (V) other.get(intKey));
             }
         } finally {
             writeLock.unlock();
@@ -210,7 +223,7 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
             readLock.lock();
 
             for (; i < array.length; i++) {
-                if (!super.containsIntKey(array[i])) {
+                if (!super.containsKey(array[i])) {
                     break;
                 }
             }
@@ -222,7 +235,6 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
     }
 
     public int[] keysToArray(int[] array) {
-
         try {
             readLock.lock();
 
@@ -233,7 +245,6 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
     }
 
     public <T> T[] valuesToArray(T[] array) {
-
         try {
             readLock.lock();
 
@@ -244,7 +255,6 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
     }
 
     public Set<Integer> keySet() {
-
         if (keySet == null) {
             keySet = new KeySet();
         }
@@ -253,7 +263,6 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
     }
 
     public Collection<V> values() {
-
         if (values == null) {
             values = new Values();
         }
@@ -262,7 +271,6 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
     }
 
     public Set<Entry<Integer, V>> entrySet() {
-
         if (entries == null) {
             entries = new EntrySet();
         }
@@ -270,9 +278,7 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
         return entries;
     }
 
-    private class EntrySet
-            extends AbstractReadOnlyCollection<Map.Entry<Integer, V>>
-            implements Set<Map.Entry<Integer, V>> {
+    private class EntrySet extends AbstractReadOnlyCollection<Map.Entry<Integer, V>> implements Set<Map.Entry<Integer, V>> {
 
         public Iterator<Entry<Integer, V>> iterator() {
             return IntKeyHashMapConcurrent.this.new EntrySetIterator();
@@ -287,23 +293,21 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
         }
     }
 
-    private class EntrySetIterator extends BaseHashIterator {
+    private class EntrySetIterator extends BaseHashIterator{
 
         EntrySetIterator() {
             super(true);
         }
 
         public Entry<Integer, V> next() {
-
             Integer key   = super.nextInt();
-            V       value = (V) objectValueTable[lookup];
+            V value       = (V) objectValueTable[lookup];
 
-            return new MapEntry<>(key, value);
+            return new MapEntry(key, value);
         }
     }
 
-    private class KeySet extends AbstractReadOnlyCollection<Integer>
-            implements Set<Integer> {
+    private class KeySet<Integer> extends AbstractReadOnlyCollection<Integer> implements Set<Integer> {
 
         public PrimitiveIterator<Integer> iterator() {
             return IntKeyHashMapConcurrent.this.new BaseHashIterator(true);
@@ -318,7 +322,7 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
         }
     }
 
-    private class Values extends AbstractReadOnlyCollection<V> {
+    private class Values<V> extends AbstractReadOnlyCollection<V> {
 
         public Iterator<V> iterator() {
             return IntKeyHashMapConcurrent.this.new BaseHashIterator(false);
@@ -330,6 +334,15 @@ public class IntKeyHashMapConcurrent<V> extends BaseHashMap
 
         public boolean isEmpty() {
             return size() == 0;
+        }
+
+        public Object[] toArray() {
+            Object[] array = new Object[size()];
+            return IntKeyHashMapConcurrent.this.valuesToArray(array);
+        }
+
+        public <T> T[] toArray(T[] a) {
+            return IntKeyHashMapConcurrent.this.valuesToArray(a);
         }
     }
 }

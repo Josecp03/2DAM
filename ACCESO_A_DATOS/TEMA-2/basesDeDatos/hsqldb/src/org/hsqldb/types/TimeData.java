@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ package org.hsqldb.types;
  * Implementation of data item for TIME.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 3.5.5
  * @since 1.9.0
  */
 public class TimeData {
@@ -50,7 +50,7 @@ public class TimeData {
             seconds += 24 * 60 * 60;
         }
 
-        if (seconds >= 24 * 60 * 60) {
+        if (seconds > 24 * 60 * 60) {
             seconds %= 24 * 60 * 60;
         }
 
@@ -60,7 +60,7 @@ public class TimeData {
     }
 
     public TimeData(int seconds, int nanos) {
-        this(seconds, nanos, 0);
+        this (seconds, nanos, 0);
     }
 
     public int getSeconds() {
@@ -84,7 +84,7 @@ public class TimeData {
         if (other instanceof TimeData) {
             return seconds == ((TimeData) other).seconds
                    && nanos == ((TimeData) other).nanos
-                   && zone == ((TimeData) other).zone;
+                   && zone ==  ((TimeData) other).zone ;
         }
 
         return false;
@@ -106,8 +106,7 @@ public class TimeData {
             }
         }
 
-        return diff > 0
-               ? 1
-               : -1;
+        return diff > 0 ? 1
+                        : -1;
     }
 }

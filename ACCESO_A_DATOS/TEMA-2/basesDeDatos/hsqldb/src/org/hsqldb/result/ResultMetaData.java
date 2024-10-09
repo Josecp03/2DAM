@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 package org.hsqldb.result;
 
 import java.io.IOException;
-
 import java.util.Arrays;
 
 import org.hsqldb.ColumnBase;
@@ -69,11 +68,10 @@ public final class ResultMetaData {
     public Type[]   columnTypes;
     private int     columnCount;
     private int     extendedColumnCount;
-    public static final ResultMetaData emptyResultMetaData = newResultMetaData(
-        0);
+    public static final ResultMetaData emptyResultMetaData =
+        newResultMetaData(0);
     public static final ResultMetaData emptyParamMetaData =
-        newParameterMetaData(
-            0);
+        newParameterMetaData(0);
 
     // column indexes for mapping or for generated columns
     public int[] colIndexes;
@@ -90,8 +88,7 @@ public final class ResultMetaData {
         this.type = type;
     }
 
-    public static ResultMetaData newResultMetaData(
-            Type[] types,
+    public static ResultMetaData newResultMetaData(Type[] types,
             String[] labels) {
 
         ResultMetaData md = new ResultMetaData(RESULT_METADATA);
@@ -131,6 +128,7 @@ public final class ResultMetaData {
     }
 
     public static ResultMetaData newResultMetaData(int colCount) {
+
         Type[] types = new Type[colCount];
 
         return newResultMetaData(types, null, colCount, colCount);
@@ -148,15 +146,11 @@ public final class ResultMetaData {
         return md;
     }
 
-    public static ResultMetaData newMetaData(
-            String[] colNames,
+    public static ResultMetaData newMetaData(String[] colNames,
             Type[] colTypes) {
 
-        ResultMetaData md = newResultMetaData(
-            colTypes,
-            null,
-            colTypes.length,
-            colTypes.length);
+        ResultMetaData md = newResultMetaData(colTypes, null, colTypes.length,
+                                              colTypes.length);
 
         for (int i = 0; i < colNames.length; i++) {
             ColumnBase col = new ColumnBase(null, null, null, colNames[i]);
@@ -170,12 +164,8 @@ public final class ResultMetaData {
 
         return md;
     }
-
-    public static ResultMetaData newResultMetaData(
-            Type[] types,
-            int[] baseColumnIndexes,
-            int colCount,
-            int extColCount) {
+    public static ResultMetaData newResultMetaData(Type[] types,
+            int[] baseColumnIndexes, int colCount, int extColCount) {
 
         ResultMetaData md = new ResultMetaData(RESULT_METADATA);
 
@@ -204,8 +194,7 @@ public final class ResultMetaData {
     }
 
     public static ResultMetaData newGeneratedColumnsMetaData(
-            int[] columnIndexes,
-            String[] columnNames) {
+            int[] columnIndexes, String[] columnNames) {
 
         if (columnIndexes != null) {
             ResultMetaData md = new ResultMetaData(GENERATED_INDEX_METADATA);
@@ -273,9 +262,7 @@ public final class ResultMetaData {
         String colName   = columns[i].getNameString();
         String tableName = columns[i].getTableNameString();
 
-        return tableName != null
-               && tableName.length() > 0
-               && colName != null
+        return tableName != null && tableName.length() > 0 && colName != null
                && colName.length() > 0;
     }
 
@@ -320,7 +307,7 @@ public final class ResultMetaData {
         return out;
     }
 
-    ResultMetaData(RowInputInterface in) {
+    ResultMetaData(RowInputInterface in) throws IOException {
 
         type        = in.readInt();
         columnCount = in.readInt();
@@ -337,7 +324,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             case GENERATED_INDEX_METADATA : {
                 colIndexes = new int[columnCount];
 
@@ -347,7 +333,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             case GENERATED_NAME_METADATA : {
                 columnLabels = new String[columnCount];
 
@@ -357,7 +342,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             case PARAM_METADATA : {
                 columnTypes   = new Type[columnCount];
                 columnLabels  = new String[columnCount];
@@ -373,7 +357,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             case RESULT_METADATA : {
                 extendedColumnCount = in.readInt();
                 columnTypes         = new Type[extendedColumnCount];
@@ -397,11 +380,8 @@ public final class ResultMetaData {
                     String schema  = in.readString();
                     String table   = in.readString();
                     String name    = in.readString();
-                    ColumnBase column = new ColumnBase(
-                        catalog,
-                        schema,
-                        table,
-                        name);
+                    ColumnBase column = new ColumnBase(catalog, schema, table,
+                                                       name);
 
                     column.setType(columnTypes[i]);
                     decodeTableColumnAttrs(in.readByte(), column);
@@ -417,7 +397,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             default : {
                 throw Error.runtimeError(ErrorCode.U_S0500, "ResultMetaData");
             }
@@ -449,12 +428,8 @@ public final class ResultMetaData {
 
         long size  = in.readLong();
         int  scale = in.readInt();
-        Type type = Type.getType(
-            typeCode,
-            Type.SQL_VARCHAR.getCharacterSet(),
-            Type.SQL_VARCHAR.getCollation(),
-            size,
-            scale);
+        Type type = Type.getType(typeCode, Type.SQL_VARCHAR.getCharacterSet(),
+                                 Type.SQL_VARCHAR.getCollation(), size, scale);
 
         if (isArray) {
             type = new ArrayType(type, ArrayType.defaultArrayCardinality);
@@ -499,7 +474,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             case GENERATED_INDEX_METADATA : {
                 for (int i = 0; i < columnCount; i++) {
                     out.writeInt(colIndexes[i]);
@@ -507,7 +481,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             case GENERATED_NAME_METADATA : {
                 for (int i = 0; i < columnCount; i++) {
                     out.writeString(columnLabels[i]);
@@ -515,7 +488,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             case PARAM_METADATA :
                 for (int i = 0; i < columnCount; i++) {
                     writeDataType(out, columnTypes[i]);
@@ -557,7 +529,6 @@ public final class ResultMetaData {
 
                 return;
             }
-
             default : {
                 throw Error.runtimeError(ErrorCode.U_S0500, "ResultMetaData");
             }
@@ -575,8 +546,7 @@ public final class ResultMetaData {
         return newMeta;
     }
 
-    public static boolean areGeneratedReguestsCompatible(
-            ResultMetaData a,
+    public static boolean areGeneratedReguestsCompatible(ResultMetaData a,
             ResultMetaData b) {
 
         if (a == b) {
@@ -591,7 +561,11 @@ public final class ResultMetaData {
             return false;
         }
 
-        return Arrays.equals(a.colIndexes, b.colIndexes);
+        if (!Arrays.equals(a.colIndexes, b.colIndexes)) {
+            return false;
+        }
+
+        return true;
     }
 
     public boolean areTypesCompatible(ResultMetaData newMeta) {

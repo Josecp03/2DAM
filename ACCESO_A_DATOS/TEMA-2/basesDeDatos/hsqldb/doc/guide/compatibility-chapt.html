@@ -48,8 +48,8 @@
 </div>
 <div>
 <div class="legalnotice">
-<a name="N160AB"></a>
-<p>Copyright 2010-2024 Fred Toussi. Permission is granted to
+<a name="N15CFE"></a>
+<p>Copyright 2010-2021 Fred Toussi. Permission is granted to
       distribute this document without any alteration under the terms of the
       HSQLDB license. Additional permission is granted to the HSQL Development
       Group to distribute this document with or without alterations under the
@@ -57,7 +57,7 @@
 </div>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -114,7 +114,7 @@
 <p>HyperSQL 2.x has been written to the SQL Standard and avoids the
     traps caused by superficial imitation of the Standard by some other RDBMS.
     The SQL Standard has existed since 1989 and has been expanded over the
-    years in several revisions. HyperSQL follows SQL:2023, which still stays
+    years in several revisions. HyperSQL follows SQL:2016, which still stays
     almost fully compatible with SQL-92. The X-Open specification has also
     defined a number of SQL functions which are implemented by most
     RDBMS.</p>
@@ -129,11 +129,11 @@
     scale of the data type of the result of integer division or average
     calculation (<code class="literal">SET DATABASE SQL AVG SCALE</code>).</p>
 <p>Each major RDBMS supports additional functions that are not covered
-    by the Standard. Some RDBMS use non-standard syntax for some operations
-    that are actually covered by the Standard. Although most popular RDBMS
-    products have introduced better compatibility with the Standard in their
-    recent versions, there are still some portability issues. HyperSQL
-    overcomes the potability issues using these strategies</p>
+    by the Standard. Some RDBMS use non-standard syntax for some operations.
+    Although most popular RDBMS products have introduced better compatibility
+    with the Standard in their recent versions, there are still some
+    portability issues. HyperSQL overcomes the potability issues using these
+    strategies</p>
 <div class="itemizedlist">
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
@@ -176,7 +176,7 @@
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 <p>Use <code class="literal">SET DATABASE SQL SYNTAX PGS TRUE</code> or the
-          equivalent URL property <span class="property">sql.syntax_pgs=true</span> to
+          equivalent URL property <code class="literal">sql.syntax_pgs=true</code> to
           enable the PostgreSQL's non-standard features. References to SERIAL,
           BIGSERIAL, TEXT and UUID data types, as well as sequence functions,
           are translated into HyperSQL equivalents.</p>
@@ -185,13 +185,13 @@
 <p>The case of unquoted identifiers is non-standard in
           PostgreSQL, which stores these identifiers in lowercase instead of
           uppercase. Use SET DATABASE SQL LOWER CASE IDENTIFIER or the URL
-          property <span class="property">sql.lowercase_ident=true</span> to change the
+          property <code class="literal">sql.lowercase_ident=true</code> to change the
           case of unquoted identifiers (table names and column names) to
-          lowercase in <code class="classname">ResultSetMetaData</code>.</p>
+          lowercase in ResultSetMetaData.</p>
 </li>
 <li class="listitem">
 <p>Use <code class="literal">SET DATABASE TRANSACTION CONTROL MVCC</code>
-          only if your application is multi-user.</p>
+          if your application is multi-user.</p>
 </li>
 <li class="listitem">
 <p>PostgreSQL functions are generally supported.</p>
@@ -257,7 +257,7 @@
 </div>
 </div>
 </div>
-<p>HyperSQL version 2.7 is highly compatible with MySQL and supports
+<p>HyperSQL version 2.6 is highly compatible with MySQL and supports
       most of its non-standard syntax. The latest versions of MySQL have
       introduced better Standard compatibility but some of these features have
       to be turned on via properties. You should therefore check the current
@@ -302,7 +302,7 @@
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 <p>Use <code class="literal">SET DATABASE SQL SYNTAX MYS TRUE</code> or the
-          equivalent URL property <span class="property">sql.syntax_mys=true</span> to
+          equivalent URL property <code class="literal">sql.syntax_mys=true</code> to
           enable support for MySQL features.</p>
 </li>
 <li class="listitem">
@@ -310,9 +310,9 @@
           which stores these identifiers in the original case but compares
           them regardless of case. If you use lower-case unquoted identifiers
           in MySQL, use SET DATABASE SQL LOWER CASE IDENTIFIER or the URL
-          property <span class="property">sql.lowercase_ident=true</span> to change the
+          property <code class="literal">sql.lowercase_ident=true</code> to change the
           case of unquoted identifiers (table names and column names) to
-          lowercase in <code class="classname">ResultSetMetaData</code>.</p>
+          lowercase in ResultSetMetaData.</p>
 </li>
 <li class="listitem">
 <p>Use MVCC with <code class="literal">SET DATABASE TRANSACTION CONTROL
@@ -488,7 +488,7 @@
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 <p>Use <code class="literal">SET DATABASE SQL SYNTAX ORA TRUE</code> or the
-          equivalent URL property <span class="property">sql.syntax_ora=true</span> to
+          equivalent URL property <code class="literal">sql.syntax_ora=true</code> to
           enable support for some non-standard syntax of Oracle.</p>
 </li>
 <li class="listitem">
@@ -499,7 +499,7 @@
 <p>Fine control over MVCC deadlock avoidance is provided by the
           <code class="literal">SET DATABASE TRANSACTION ROLLBACK ON CONFLICT
           FALSE</code> and the corresponding
-          <span class="property">hsqldb.tx_conflict_rollback</span> connection
+          <code class="literal">hsqldb.tx_conflict_rollback</code> connection
           property.</p>
 </li>
 <li class="listitem">
@@ -509,7 +509,7 @@
 </li>
 <li class="listitem">
 <p>If your application relies on Oracle behaviour for ordering of
-          nulls in SELECT statements with ORDER BY, without NULLS FIRST or
+          nulls in SELECT statements with ORDER BY, but without NULLS FIRST or
           NULLS LAST, use both <code class="literal">SET DATABASE SQL NULLS FIRST
           FALSE</code> and <code class="literal">SET DATABASE SQL NULLS ORDER
           FALSE</code> to change the defaults.</p>
@@ -587,7 +587,7 @@
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 <p>Use <code class="literal">SET DATABASE SQL SYNTAX DB2 TRUE</code> or the
-          equivalent URL property <span class="property">sql.syntax_db2=true</span> to
+          equivalent URL property <code class="literal">sql.syntax_db2=true</code> to
           enable support for some non-standard syntax of DB2.</p>
 </li>
 <li class="listitem">
@@ -640,7 +640,7 @@
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 <p>Use <code class="literal">SET DATABASE SQL SYNTAX MSS TRUE</code> or the
-          equivalent URL property <span class="property">sql.syntax_mss=true</span> to
+          equivalent URL property <code class="literal">sql.syntax_mss=true</code> to
           enable support for the <code class="literal">CONVERT(&lt;type definition&gt;,
           &lt;expression)</code> function with switched order of
           arguments</p>
@@ -669,7 +669,7 @@
           their SQL Standard equivalents.</p>
 </li>
 <li class="listitem">
-<p>HyperSQL 2.7 supports several datetime functions in MSS
+<p>HyperSQL 2.6 supports several datetime functions in MSS
           compatibility mode. These include DATEPART, DATENAME, EOMONTH and
           compatible DATEADD and DATEDIFF behaviour.</p>
 </li>
@@ -689,7 +689,7 @@
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

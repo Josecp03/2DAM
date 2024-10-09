@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,8 @@ import java.sql.SQLException;
 
 import org.hsqldb.HsqlException;
 
+// @(#)$Id: JDBCXAResource.java 6266 2021-01-25 16:08:06Z fredt $
+
 /**
  * Used by a global transaction service to control HSQLDB transactions.
  * Not for use by end-users.
@@ -71,7 +73,7 @@ import org.hsqldb.HsqlException;
  * methods are XAResource-specific or XADataSource-specific.
  *
  * @version 2.3.3
- * @since HSQLDB 2.0.0
+ * @since 2.0.0
  * @author Blaine Simpson (blaine dot simpson at admc dot com)
  * @see javax.transaction.xa.XAResource
  */
@@ -107,7 +109,7 @@ public class JDBCXAResource implements XAResource {
 
     /**
      *
-     * @throws XAException if the given Xid is not the Xid of the current
+     * @throws XAException if the given Xid is the not the Xid of the current
      *   transaction for this XAResource object.
      * @param xid Xid
      */
@@ -136,9 +138,8 @@ public class JDBCXAResource implements XAResource {
      *   do real (non-wrapped) commits, rollbacks, etc. This is not for the end
      *   user. We need the real thing.
      */
-    public JDBCXAResource(
-            JDBCXADataSource xaDataSource,
-            JDBCConnection connection) {
+    public JDBCXAResource(JDBCXADataSource xaDataSource,
+                          JDBCConnection connection) {
         this.connection   = connection;
         this.xaDataSource = xaDataSource;
     }
@@ -159,7 +160,6 @@ public class JDBCXAResource implements XAResource {
     public void commit(Xid xid, boolean onePhase) throws XAException {
 
         // Comment out following debug statement before public release:
-
 /*
         System.err.println("Performing a " + (onePhase ? "1-phase"
                                                        : "2-phase") + " commit on "
@@ -189,9 +189,8 @@ public class JDBCXAResource implements XAResource {
         }
 
         if ((!onePhase) && state != XA_STATE_PREPARED) {
-            throw new XAException(
-                "Attempt to do a 2-phase commit when "
-                + "transaction is not prepared");
+            throw new XAException("Attempt to do a 2-phase commit when "
+                                  + "transaction is not prepared");
         }
 
         //if (!onePhase) {
@@ -390,7 +389,6 @@ public class JDBCXAResource implements XAResource {
      * @throws javax.transaction.xa.XAException generically, since the more
      * specific exceptions require a JTA API to compile.
      */
-
     /* @throws javax.transaction.HeuristicCommitException
      *         if work was committed.
      * @throws javax.transaction.HeuristicMixedException
@@ -429,12 +427,10 @@ public class JDBCXAResource implements XAResource {
     public void start(Xid xid, int flags) throws XAException {
 
         // Comment out following debug statement before public release:
-
 /*
         System.err.println("STARTING NEW Xid: " + xid);
 */
-        if (state != XA_STATE_INITIAL
-                && state != XA_STATE_DISPOSED
+        if (state != XA_STATE_INITIAL && state != XA_STATE_DISPOSED
                 && state != XA_STATE_ENDED) {
             throw new XAException("Invalid XAResource state");
         }

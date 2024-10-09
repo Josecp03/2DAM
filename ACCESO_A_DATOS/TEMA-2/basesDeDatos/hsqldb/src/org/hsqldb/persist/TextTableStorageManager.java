@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 package org.hsqldb.persist;
 
 import org.hsqldb.HsqlException;
-import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.Table;
 import org.hsqldb.lib.HashMap;
 import org.hsqldb.lib.Iterator;
@@ -43,24 +42,21 @@ import org.hsqldb.lib.Iterator;
  *
  * @author Bob Preston (sqlbob@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.3.3
  * @since 1.7.0
  */
 public class TextTableStorageManager {
 
     //
-    private HashMap<HsqlName, TextCache> textCacheList = new HashMap<>();
+    private HashMap textCacheList = new HashMap();
 
     TextTableStorageManager() {}
 
     /**
      *  Opens the TextCache object.
      */
-    public DataFileCache openTextFilePersistence(
-            Table table,
-            String source,
-            boolean readOnlyData,
-            boolean reversed) {
+    public DataFileCache openTextFilePersistence(Table table, String source,
+            boolean readOnlyData, boolean reversed) {
 
         closeTextCache(table);
 
@@ -77,7 +73,7 @@ public class TextTableStorageManager {
      */
     public void closeTextCache(Table table) {
 
-        TextCache c = textCacheList.remove(table.getName());
+        TextCache c = (TextCache) textCacheList.remove(table.getName());
 
         if (c != null) {
             try {
@@ -88,10 +84,10 @@ public class TextTableStorageManager {
 
     public void closeAllTextCaches(boolean delete) {
 
-        Iterator<TextCache> it = textCacheList.values().iterator();
+        Iterator it = textCacheList.values().iterator();
 
         while (it.hasNext()) {
-            TextCache textCache = it.next();
+            TextCache textCache = ((TextCache) it.next());
 
             // use textCache.table to cover both cache and table readonly
             if (delete && !textCache.table.isDataReadOnly()) {
@@ -104,10 +100,10 @@ public class TextTableStorageManager {
 
     public boolean isAnyTextCacheModified() {
 
-        Iterator<TextCache> it = textCacheList.values().iterator();
+        Iterator it = textCacheList.values().iterator();
 
         while (it.hasNext()) {
-            if (it.next().isModified()) {
+            if (((TextCache) it.next()).isModified()) {
                 return true;
             }
         }

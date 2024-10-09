@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import java.net.HttpURLConnection;
 import java.net.Socket;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -82,7 +80,7 @@ import org.hsqldb.rowio.RowOutputBinary;
  *  (fredt@users)
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.5.1
  * @since 1.6.2
  */
 class WebServerConnection implements Runnable {
@@ -91,19 +89,19 @@ class WebServerConnection implements Runnable {
     private CharsetDecoder       iso_8859_1_decoder = ENCODING.newDecoder();
     private Socket               socket;
     private WebServer            server;
-    private static final int     REQUEST_TYPE_BAD   = 0;
-    private static final int     REQUEST_TYPE_GET   = 1;
-    private static final int     REQUEST_TYPE_HEAD  = 2;
-    private static final int     REQUEST_TYPE_POST  = 3;
-    private static final String  HEADER_OK          = "HTTP/1.0 200 OK";
-    private static final String  HEADER_BAD_REQUEST =
+    private static final int     REQUEST_TYPE_BAD  = 0;
+    private static final int     REQUEST_TYPE_GET  = 1;
+    private static final int     REQUEST_TYPE_HEAD = 2;
+    private static final int     REQUEST_TYPE_POST = 3;
+    private static final String  HEADER_OK         = "HTTP/1.0 200 OK";
+    private static final String HEADER_BAD_REQUEST =
         "HTTP/1.0 400 Bad Request";
-    private static final String  HEADER_NOT_FOUND   = "HTTP/1.0 404 Not Found";
-    private static final String  HEADER_FORBIDDEN   = "HTTP/1.0 403 Forbidden";
-    static final int             BUFFER_SIZE        = 256;
-    final byte[]                 mainBuffer         = new byte[BUFFER_SIZE];
-    private RowOutputBinary      rowOut = new RowOutputBinary(mainBuffer);
-    private RowInputBinary       rowIn  = new RowInputBinary(rowOut);
+    private static final String HEADER_NOT_FOUND = "HTTP/1.0 404 Not Found";
+    private static final String HEADER_FORBIDDEN = "HTTP/1.0 403 Forbidden";
+    static final int            BUFFER_SIZE      = 256;
+    final byte[]                mainBuffer       = new byte[BUFFER_SIZE];
+    private RowOutputBinary     rowOut = new RowOutputBinary(mainBuffer);
+    private RowInputBinary      rowIn            = new RowInputBinary(rowOut);
 
     //
     static byte[]       BYTES_GET        = "GET".getBytes(ENCODING);
@@ -161,14 +159,12 @@ class WebServerConnection implements Runnable {
 
         // if not found, search default mapping
         if (mimeType == null && key.length() > 1) {
-            mimeType = ResourceBundleHandler.getString(
-                hnd_content_types,
-                key.substring(1));
+            mimeType = ResourceBundleHandler.getString(hnd_content_types,
+                    key.substring(1));
         }
 
-        return mimeType == null
-               ? ServerConstants.SC_DEFAULT_WEB_MIME
-               : mimeType;
+        return mimeType == null ? ServerConstants.SC_DEFAULT_WEB_MIME
+                                : mimeType;
     }
 
     /**
@@ -214,21 +210,17 @@ class WebServerConnection implements Runnable {
                 method = REQUEST_TYPE_BAD;
             }
 
-            count = ArrayUtil.countStartElementsAt(
-                byteArray,
-                offset,
-                BYTES_WHITESPACE);
+            count = ArrayUtil.countStartElementsAt(byteArray, offset,
+                                                   BYTES_WHITESPACE);
 
             if (count == 0) {
                 method = REQUEST_TYPE_BAD;
             }
 
             offset += count;
-            count = ArrayUtil.countNonStartElementsAt(
-                byteArray,
-                offset,
-                BYTES_WHITESPACE);
-            name   = new String(byteArray, offset, count, ENCODING);
+            count = ArrayUtil.countNonStartElementsAt(byteArray, offset,
+                    BYTES_WHITESPACE);
+            name = new String(byteArray, offset, count, ENCODING);
 
             switch (method) {
 
@@ -288,11 +280,10 @@ class WebServerConnection implements Runnable {
             // into a java String, so that we can easily do some error checking on it and
             //  inspect it during debugging
             String requestHeader = iso_8859_1_decoder.decode(
-                ByteBuffer.wrap(rowOut.toByteArray()))
-                    .toString();
+                ByteBuffer.wrap(rowOut.toByteArray())).toString();
 
 // System.out.println(requestHeader); //For debugging
-            // Throw an error if the Content-Type is something other than what
+            // Throw an error if the Content-Type is something other than an what
             // ClientConnectionHTTP is supposed to send
             if (!requestHeader.contains(
                     "Content-Type: application/octet-stream")) {
@@ -325,7 +316,8 @@ class WebServerConnection implements Runnable {
             int             databaseID = dataIn.readInt();
             long            sessionID  = dataIn.readLong();
             int             mode       = dataIn.readByte();
-            Session session = DatabaseManager.getSession(databaseID, sessionID);
+            Session session = DatabaseManager.getSession(databaseID,
+                sessionID);
             Result resultIn = Result.newResult(session, mode, dataIn, rowIn);
 
             resultIn.setDatabaseId(databaseID);
@@ -343,13 +335,14 @@ class WebServerConnection implements Runnable {
                     int    dbIndex      = server.getDBIndex(databaseName);
                     int    dbID         = server.dbID[dbIndex];
 
-                    session = DatabaseManager.newSession(
-                        dbID,
-                        resultIn.getMainString(),
-                        resultIn.getSubString(),
-                        resultIn.getZoneString());
-                    resultOut = Result.newConnectionAcknowledgeResponse(
-                        session);
+                    session =
+                        DatabaseManager.newSession(dbID,
+                                                   resultIn.getMainString(),
+                                                   resultIn.getSubString(),
+                                                   resultIn.getZoneString(),
+                                                   resultIn.getUpdateCount());
+                    resultOut =
+                        Result.newConnectionAcknowledgeResponse(session);
                 } catch (HsqlException e) {
                     resultOut = Result.newErrorResult(e);
                 } catch (Throwable e) {
@@ -374,15 +367,12 @@ class WebServerConnection implements Runnable {
 // patched 2.2.9 by Aart 2012-05-15: Make sure 'Content-length' is correctly set
             if (type == ResultConstants.DISCONNECT
                     || type == ResultConstants.RESETSESSION) {
-                DataOutputStream dataOut = new DataOutputStream(
-                    socket.getOutputStream());
+                DataOutputStream dataOut =
+                    new DataOutputStream(socket.getOutputStream());
 
-                // Upon DISCONNECT 6 bytes are read by the ClientConnectionHTTP: mode (1 byte), a length (int), and an 'additional results (1 byte)
-                String header = getHead(
-                    HEADER_OK,
-                    false,
-                    "application/octet-stream",
-                    6);
+                // Upon DISCONNECT 6 bytes are read by the ClientConnectionHTTP": mode (1 byte), a length (int), and an 'additional results (1 byte)
+                String header = getHead(HEADER_OK, false,
+                                        "application/octet-stream", 6);
 
                 dataOut.write(header.getBytes(ENCODING));
                 dataOut.writeByte(ResultConstants.DISCONNECT);    // Mode
@@ -400,15 +390,13 @@ class WebServerConnection implements Runnable {
 
             resultOut.write(session, tempOutput, rowOut);
 
-            DataOutputStream dataOut = new DataOutputStream(
-                socket.getOutputStream());
+            DataOutputStream dataOut =
+                new DataOutputStream(socket.getOutputStream());
 
             // Write HTTP response header
-            String header = getHead(
-                HEADER_OK,
-                false,
-                "application/octet-stream",
-                memStream.size());
+            String header = getHead(HEADER_OK, false,
+                                    "application/octet-stream",
+                                    memStream.size());
 
             dataOut.write(header.getBytes(ENCODING));
 
@@ -461,11 +449,8 @@ class WebServerConnection implements Runnable {
                 File file = new File(name);
 
                 is = new DataInputStream(new FileInputStream(file));
-                hdr = getHead(
-                    HEADER_OK,
-                    true,
-                    getMimeTypeString(name),
-                    (int) file.length());
+                hdr = getHead(HEADER_OK, true, getMimeTypeString(name),
+                              (int) file.length());
             } catch (IOException e) {
                 processError(HttpURLConnection.HTTP_NOT_FOUND);
 
@@ -504,11 +489,8 @@ class WebServerConnection implements Runnable {
      * @param length the Content-Length field value
      * @return an HTTP protocol header
      */
-    String getHead(
-            String responseCodeString,
-            boolean addInfo,
-            String mimeType,
-            int length) {
+    String getHead(String responseCodeString, boolean addInfo,
+                   String mimeType, int length) {
 
         StringBuilder sb = new StringBuilder(128);
 
@@ -516,9 +498,8 @@ class WebServerConnection implements Runnable {
 
         if (addInfo) {
             sb.append("Allow: GET, HEAD, POST\nMIME-Version: 1.0\r\n");
-            sb.append("Server: ")
-              .append(HsqlDatabaseProperties.PRODUCT_NAME)
-              .append("\r\n");
+            sb.append("Server: ").append(
+                HsqlDatabaseProperties.PRODUCT_NAME).append("\r\n");
         }
 
         if (mimeType != null) {
@@ -550,29 +531,26 @@ class WebServerConnection implements Runnable {
             case HttpURLConnection.HTTP_BAD_REQUEST :
                 msg = getHead(HEADER_BAD_REQUEST, false, null, 0);
                 msg += ResourceBundleHandler.getString(
-                    WebServer.webBundleHandle,
-                    "BAD_REQUEST");
+                    WebServer.webBundleHandle, "BAD_REQUEST");
                 break;
 
             case HttpURLConnection.HTTP_FORBIDDEN :
                 msg = getHead(HEADER_FORBIDDEN, false, null, 0);
                 msg += ResourceBundleHandler.getString(
-                    WebServer.webBundleHandle,
-                    "FORBIDDEN");
+                    WebServer.webBundleHandle, "FORBIDDEN");
                 break;
 
             case HttpURLConnection.HTTP_NOT_FOUND :
             default :
                 msg = getHead(HEADER_NOT_FOUND, false, null, 0);
                 msg += ResourceBundleHandler.getString(
-                    WebServer.webBundleHandle,
-                    "NOT_FOUND");
+                    WebServer.webBundleHandle, "NOT_FOUND");
                 break;
         }
 
         try {
-            OutputStream os = new BufferedOutputStream(
-                socket.getOutputStream());
+            OutputStream os =
+                new BufferedOutputStream(socket.getOutputStream());
 
             os.write(msg.getBytes(ENCODING));
             os.flush();

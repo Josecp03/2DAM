@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.hsqldb.lib.OrderedHashSet;
  *
  * @author leptipre@users
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.4.1
  * @since 1.7.0
  */
 public class View extends TableDerived {
@@ -55,10 +55,14 @@ public class View extends TableDerived {
     //
     private HsqlName[] columnNames;
 
-    /** Names of SCHEMA objects referenced in VIEW */
-    private OrderedHashSet<HsqlName> schemaObjectNames;
+    /**
+     * Names of SCHEMA objects referenced in VIEW
+     */
+    private OrderedHashSet schemaObjectNames;
 
-    /** check option */
+    /**
+     * check option
+     */
     private int checkOption;
 
     //
@@ -81,8 +85,12 @@ public class View extends TableDerived {
         return SchemaObject.VIEW;
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
         return schemaObjectNames;
+    }
+
+    public OrderedHashSet getComponents() {
+        return null;
     }
 
     /**
@@ -90,10 +98,8 @@ public class View extends TableDerived {
      */
     public void compile(Session session, SchemaObject parentObject) {
 
-        ParserDQL p = new ParserDQL(
-            session,
-            new Scanner(session, statement),
-            null);
+        ParserDQL p = new ParserDQL(session, new Scanner(session, statement),
+                                    null);
 
         p.isViewDefinition = true;
 
@@ -115,9 +121,7 @@ public class View extends TableDerived {
             }
 
             TableUtil.setColumnsInSchemaTable(
-                this,
-                columnNames,
-                queryExpression.getColumnTypes());
+                this, columnNames, queryExpression.getColumnTypes());
         }
 
         //
@@ -145,13 +149,10 @@ public class View extends TableDerived {
 
         StringBuilder sb = new StringBuilder(128);
 
-        sb.append(Tokens.T_CREATE)
-          .append(' ')
-          .append(Tokens.T_VIEW)
-          .append(' ')
-          .append(getName().getSchemaQualifiedStatementName())
-          .append(' ')
-          .append('(');
+        sb.append(Tokens.T_CREATE).append(' ').append(Tokens.T_VIEW);
+        sb.append(' ');
+        sb.append(getName().getSchemaQualifiedStatementName()).append(' ');
+        sb.append('(');
 
         int count = getColumnCount();
 
@@ -163,11 +164,8 @@ public class View extends TableDerived {
             }
         }
 
-        sb.append(')')
-          .append(' ')
-          .append(Tokens.T_AS)
-          .append(' ')
-          .append(getStatement());
+        sb.append(')').append(' ').append(Tokens.T_AS).append(' ');
+        sb.append(getStatement());
 
         return sb.toString();
     }
@@ -189,11 +187,13 @@ public class View extends TableDerived {
     }
 
     public boolean isInsertable() {
-        return !isTriggerInsertable && super.isInsertable();
+        return isTriggerInsertable ? false
+                                   : super.isInsertable();
     }
 
     public boolean isUpdatable() {
-        return !isTriggerUpdatable && super.isUpdatable();
+        return isTriggerUpdatable ? false
+                                  : super.isUpdatable();
     }
 
     void addTrigger(TriggerDef td, HsqlName otherName) {
@@ -276,9 +276,8 @@ public class View extends TableDerived {
         statement = sql;
     }
 
-    public TableDerived newDerivedTable(
-            Session session,
-            CompileContext baseContext) {
+    public TableDerived newDerivedTable(Session session,
+                                        CompileContext baseContext) {
 
         TableDerived td;
         ParserDQL    p = new ParserDQL(session, new Scanner(), baseContext);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,8 @@ package org.hsqldb.jdbc;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
-
 import java.sql.SQLException;
-
 import java.util.Properties;
-
 import java.sql.SQLFeatureNotSupportedException;
 
 import javax.sql.CommonDataSource;
@@ -61,14 +58,14 @@ import javax.sql.CommonDataSource;
  * call made to setProperties() before or after calling setXXX().
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.3.3
  * @since JDK 1.2, HSQLDB 2.0
  */
 public abstract class JDBCCommonDataSource
-        implements CommonDataSource, Serializable {
+implements CommonDataSource, Serializable {
 
     /**
-     * <p>Retrieves the log writer for this {@code DataSource}
+     * <p>Retrieves the log writer for this <code>DataSource</code>
      * object.
      *
      * <p>The log writer is a character output stream to which all logging
@@ -77,14 +74,14 @@ public abstract class JDBCCommonDataSource
      * object, messages printed by methods of other objects manufactured
      * by this object, and so on.  Messages printed to a data source
      * specific log writer are not printed to the log writer associated
-     * with the {@code java.sql.DriverManager} class.  When a
-     * {@code DataSource} object is
+     * with the <code>java.sql.DriverManager</code> class.  When a
+     * <code>DataSource</code> object is
      * created, the log writer is initially null; in other words, the
      * default is for logging to be disabled.
      *
      * @return the log writer for this data source or null if
      *        logging is disabled
-     * @throws java.sql.SQLException if a database access error occurs
+     * @exception java.sql.SQLException if a database access error occurs
      * @see #setLogWriter
      * @since 1.4
      */
@@ -93,8 +90,8 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * <p>Sets the log writer for this {@code DataSource}
-     * object to the given {@code java.io.PrintWriter} object.
+     * <p>Sets the log writer for this <code>DataSource</code>
+     * object to the given <code>java.io.PrintWriter</code> object.
      *
      * <p>The log writer is a character output stream to which all logging
      * and tracing messages for this data source will be
@@ -102,13 +99,13 @@ public abstract class JDBCCommonDataSource
      * object, messages printed by methods of other objects manufactured
      * by this object, and so on.  Messages printed to a data source-
      * specific log writer are not printed to the log writer associated
-     * with the {@code java.sql.DriverManager} class. When a
-     * {@code DataSource} object is created the log writer is
+     * with the <code>java.sql.DriverManager</code> class. When a
+     * <code>DataSource</code> object is created the log writer is
      * initially null; in other words, the default is for logging to be
      * disabled.
      *
      * @param out the new log writer; to disable logging, set to null
-     * @throws SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs
      * @see #getLogWriter
      * @since 1.4
      */
@@ -121,11 +118,11 @@ public abstract class JDBCCommonDataSource
      * while attempting to connect to a database.  A value of zero
      * specifies that the timeout is the default system timeout
      * if there is one; otherwise, it specifies that there is no timeout.
-     * When a {@code DataSource} object is created, the login timeout is
+     * When a <code>DataSource</code> object is created, the login timeout is
      * initially zero.
      *
      * @param seconds the data source login time limit
-     * @throws SQLException if a database access error occurs.
+     * @exception SQLException if a database access error occurs.
      * @see #getLoginTimeout
      * @since 1.4
      */
@@ -133,9 +130,8 @@ public abstract class JDBCCommonDataSource
 
         loginTimeout = seconds;
 
-        connectionProps.setProperty(
-            "loginTimeout",
-            Integer.toString(loginTimeout));
+        connectionProps.setProperty("loginTimeout",
+                                    Integer.toString(loginTimeout));
     }
 
     /**
@@ -143,11 +139,11 @@ public abstract class JDBCCommonDataSource
      * while attempting to connect to a database.  A value of zero
      * means that the timeout is the default system timeout
      * if there is one; otherwise, it means that there is no timeout.
-     * When a {@code DataSource} object is created, the login timeout is
+     * When a <code>DataSource</code> object is created, the login timeout is
      * initially zero.
      *
      * @return the data source login time limit
-     * @throws SQLException if a database access error occurs.
+     * @exception SQLException if a database access error occurs.
      * @see #setLoginTimeout
      * @since 1.4
      */
@@ -158,7 +154,7 @@ public abstract class JDBCCommonDataSource
     // ------------------------ custom public methods ------------------------
 
     /**
-     * Retrieves the description of the data source.
+     * Retrieves the description of the data source. <p>
      *
      * @return the description
      */
@@ -167,7 +163,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Retrieves the name of the data source.
+     * Retrieves the name of the data source. <p>
      *
      * @return the description
      */
@@ -176,7 +172,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Retrieves the network protocol of the data source.
+     * Retrieves the network protocol of the data source. <p>
      *
      * @return the network protocol
      */
@@ -185,7 +181,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Retrieves the server name attribute.
+     * Retrieves the server name attribute. <p>
      *
      * @return the server name attribute
      */
@@ -212,7 +208,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Retrieves the jdbc database connection url attribute.
+     * Retrieves the jdbc database connection url attribute. <p>
      *
      * @return the jdbc database connection url attribute
      */
@@ -221,7 +217,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Retrieves the jdbc database connection url attribute.
+     * Retrieves the jdbc database connection url attribute. <p>
      *
      * @return the jdbc database connection url attribute
      */
@@ -230,7 +226,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Retrieves the user name for the connection.
+     * Retrieves the user name for the connection. <p>
      *
      * @return the username for the connection
      */
@@ -239,7 +235,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Synonym for setUrl(String).
+     * Synonym for setUrl(String). <p>
      *
      * @param databaseName the new value for the attribute
      */
@@ -248,7 +244,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Synonym for setUrl(String).
+     * Synonym for setUrl(String). <p>
      *
      * @param database the new value for the attribute
      */
@@ -257,7 +253,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Sets the jdbc database URL.
+     * Sets the jdbc database URL. <p>
      *
      * @param url the new value of this object's jdbc database connection
      *      url attribute
@@ -267,7 +263,7 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Sets the jdbc database URL.
+     * Sets the jdbc database URL. <p>
      *
      * @param url the new value of this object's jdbc database connection
      *      url attribute
@@ -277,11 +273,12 @@ public abstract class JDBCCommonDataSource
     }
 
     /**
-     * Sets the password for the username.
+     * Sets the password for the user name.
      *
      * @param password the password
      */
     public void setPassword(String password) {
+
         this.password = password;
 
         connectionProps.setProperty("password", password);
@@ -293,6 +290,7 @@ public abstract class JDBCCommonDataSource
      * @param user the user id
      */
     public void setUser(String user) {
+
         this.user = user;
 
         connectionProps.setProperty("user", user);
@@ -308,9 +306,8 @@ public abstract class JDBCCommonDataSource
      */
     public void setProperties(Properties props) {
 
-        connectionProps = (props == null)
-                          ? new Properties()
-                          : (Properties) props.clone();
+        connectionProps = (props == null) ? new Properties()
+                                          : (Properties) props.clone();
 
         if (user != null) {
             connectionProps.setProperty("user", user);
@@ -321,9 +318,8 @@ public abstract class JDBCCommonDataSource
         }
 
         if (loginTimeout != 0) {
-            connectionProps.setProperty(
-                "loginTimeout",
-                Integer.toString(loginTimeout));
+            connectionProps.setProperty("loginTimeout",
+                                        Integer.toString(loginTimeout));
         }
     }
 
@@ -337,12 +333,13 @@ public abstract class JDBCCommonDataSource
      * In the worst case, this may be the root Logger.
      *
      * @return the parent Logger for this data source
-     * @throws SQLFeatureNotSupportedException if the data source does not use {@code java.util.logging}.
-     * @since JDK 1.7, HSQLDB 2.0.1
+     * @throws SQLFeatureNotSupportedException if the data source does not use <code>java.util.logging</code>.
+     * @since JDK 1.7 M11 2010/09/10 (b123), HSQLDB 2.0.1
      */
     public java.util.logging.Logger getParentLogger()
-            throws java.sql.SQLFeatureNotSupportedException {
-        throw(java.sql.SQLFeatureNotSupportedException) JDBCUtil.notSupported();
+    throws java.sql.SQLFeatureNotSupportedException {
+        throw (java.sql
+            .SQLFeatureNotSupportedException) JDBCUtil.notSupported();
     }
 
     // ------------------------ internal implementation ------------------------

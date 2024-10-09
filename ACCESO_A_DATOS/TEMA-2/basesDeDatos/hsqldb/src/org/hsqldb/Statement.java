@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import org.hsqldb.result.ResultProperties;
  * Base class for compiled statement objects.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.4.0
  * @since 1.9.0
  */
 public abstract class Statement {
@@ -90,13 +90,13 @@ public abstract class Statement {
     HsqlName[] writeTableNames = HsqlName.emptyArray;
 
     //
-    OrderedHashSet<HsqlName> references;
+    OrderedHashSet references;
 
     //
     int cursorPropertiesRequest;
 
     /**
-     * Parse-order array of Expression objects, all of type PARAMETER,
+     * Parse-order array of Expression objects, all of type PARAMETER ,
      * involved in some way in any INSERT_XXX, UPDATE, DELETE, SELECT or
      * CALL CompiledStatement
      */
@@ -150,7 +150,7 @@ public abstract class Statement {
         return sql;
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
         return references;
     }
 
@@ -293,6 +293,7 @@ public abstract class Statement {
     public void clearStructures(Session session) {}
 
     void setDatabaseObjects(Session session, CompileContext compileContext) {
+
         parameters = compileContext.getParameters();
 
         setParameterMetaData();
@@ -319,8 +320,8 @@ public abstract class Statement {
 //            outlen++;
 //            offset = 1;
 //        }
-        parameterMetaData = ResultMetaData.newParameterMetaData(
-            parameters.length);
+        parameterMetaData =
+            ResultMetaData.newParameterMetaData(parameters.length);
 
 // NO: Not yet
 //        if (hasReturnValue) {
@@ -340,7 +341,7 @@ public abstract class Statement {
             // always i + 1.  We currently use the convention of @p0 to name the
             // return value OUT parameter
             parameterMetaData.columnLabels[idx] = StatementDMQL.PCOL_PREFIX
-                    + (i + 1);
+                                                  + (i + 1);
             parameterMetaData.columnTypes[idx] = parameters[i].dataType;
 
             if (parameters[i].dataType == null) {
@@ -355,10 +356,11 @@ public abstract class Statement {
                 parameterMode = parameters[i].column.getParameterMode();
             }
 
-            parameterMetaData.paramModes[idx]    = parameterMode;
-            parameterMetaData.paramNullable[idx] = parameters[i].column == null
-                    ? SchemaObject.Nullability.NULLABLE
-                    : parameters[i].column.getNullability();
+            parameterMetaData.paramModes[idx] = parameterMode;
+            parameterMetaData.paramNullable[idx] =
+                parameters[i].column == null
+                ? SchemaObject.Nullability.NULLABLE
+                : parameters[i].column.getNullability();
         }
     }
 }

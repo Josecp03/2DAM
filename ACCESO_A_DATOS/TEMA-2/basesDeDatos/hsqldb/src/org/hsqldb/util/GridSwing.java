@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,7 @@ package org.hsqldb.util;
 import java.util.ArrayList;
 
 import java.awt.Component;
-
 import java.util.Arrays;
-
 import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
@@ -67,8 +65,8 @@ class GridSwing extends AbstractTableModel {
 
         super();
 
-        headers = new Object[0];        // initially empty
-        rows    = new ArrayList<>();    // initially empty
+        headers = new Object[0];              // initially empty
+        rows    = new ArrayList<Object[]>();  // initially empty
     }
 
     /**
@@ -85,17 +83,15 @@ class GridSwing extends AbstractTableModel {
 
             if (o != null) {
                 if ((o instanceof java.sql.Timestamp)
-                        || (o instanceof java.sql.Time)) {
-
+                    || (o instanceof java.sql.Time)) {
                     // This is a workaround for JTable's lack of a default
                     // renderer that displays times.
                     // Without this workaround, Timestamps (and similar
                     // classes) will be displayed as dates without times,
                     // since JTable will match these classes to their
                     // java.util.Date superclass.
-                    return Object.class;    // renderer will draw .toString().
+                    return Object.class;  // renderer will draw .toString().
                 }
-
                 return o.getClass();
             }
         }
@@ -126,7 +122,7 @@ class GridSwing extends AbstractTableModel {
 
     /**
      * Get the current table data.
-     *  Each row is represented as a {@code String[]}
+     *  Each row is represented as a <code>String[]</code>
      *  with a single non-null value in the 0-relative
      *  column position.
      *  <p>The first row is at offset 0, the nth row at offset n etc.
@@ -168,7 +164,10 @@ class GridSwing extends AbstractTableModel {
         Object[] row = new Object[r.length];
 
         // System.arraycopy(r, 0, row, 0, r.length);
-        System.arraycopy(r, 0, row, 0, r.length);
+        for (int i = 0; i < r.length; i++) {
+            row[i] = r[i];
+        }
+
         rows.add(row);
     }
 
@@ -191,37 +190,28 @@ class GridSwing extends AbstractTableModel {
 
     public static void autoSizeTableColumns(JTable table) {
 
-        TableModel  model = table.getModel();
+        TableModel  model        = table.getModel();
         TableColumn column;
         Component   comp;
         int         headerWidth;
         int         maxCellWidth;
         int         cellWidth;
-        TableCellRenderer headerRenderer = table.getTableHeader()
-                .getDefaultRenderer();
+        TableCellRenderer headerRenderer =
+            table.getTableHeader().getDefaultRenderer();
 
         for (int i = 0; i < table.getColumnCount(); i++) {
-            column       = table.getColumnModel().getColumn(i);
-            comp = headerRenderer.getTableCellRendererComponent(
-                table,
-                column.getHeaderValue(),
-                false,
-                false,
-                0,
-                0);
+            column = table.getColumnModel().getColumn(i);
+            comp = headerRenderer.getTableCellRendererComponent(table,
+                    column.getHeaderValue(), false, false, 0, 0);
             headerWidth  = comp.getPreferredSize().width + 10;
             maxCellWidth = Integer.MIN_VALUE;
 
             for (int j = 0; j < Math.min(model.getRowCount(), 30); j++) {
                 TableCellRenderer r = table.getCellRenderer(j, i);
 
-                comp = r.getTableCellRendererComponent(
-                    table,
-                    model.getValueAt(j, i),
-                    false,
-                    false,
-                    j,
-                    i);
+                comp = r.getTableCellRendererComponent(table,
+                                                       model.getValueAt(j, i),
+                                                       false, false, j, i);
                 cellWidth = comp.getPreferredSize().width;
 
                 if (cellWidth >= maxCellWidth) {
@@ -229,7 +219,8 @@ class GridSwing extends AbstractTableModel {
                 }
             }
 
-            column.setPreferredWidth(Math.max(headerWidth, maxCellWidth) + 10);
+            column.setPreferredWidth(Math.max(headerWidth, maxCellWidth)
+                                     + 10);
         }
     }
 }

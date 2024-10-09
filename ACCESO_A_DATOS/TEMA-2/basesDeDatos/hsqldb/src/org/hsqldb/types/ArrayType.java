@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,12 @@ import org.hsqldb.lib.ArraySort;
  * Class for ARRAY type objects.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.6.0
  * @since 2.0.0
  */
 public class ArrayType extends Type {
 
-    public static final int defaultArrayCardinality      = 1024 * 1024;
+    public static final int defaultArrayCardinality      = 1024*1024;
     public static final int defaultLargeArrayCardinality = Integer.MAX_VALUE;
     final Type              dataType;
     final int               maxCardinality;
@@ -102,7 +102,8 @@ public class ArrayType extends Type {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(dataType.getNameString()).append(' ').append(Tokens.T_ARRAY);
+        sb.append(dataType.getNameString()).append(' ');
+        sb.append(Tokens.T_ARRAY);
 
         if (maxCardinality != defaultArrayCardinality) {
             sb.append('[').append(maxCardinality).append(']');
@@ -115,9 +116,8 @@ public class ArrayType extends Type {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(dataType.getFullNameString())
-          .append(' ')
-          .append(Tokens.T_ARRAY);
+        sb.append(dataType.getFullNameString()).append(' ');
+        sb.append(Tokens.T_ARRAY);
 
         if (maxCardinality != defaultArrayCardinality) {
             sb.append('[').append(maxCardinality).append(']');
@@ -130,7 +130,8 @@ public class ArrayType extends Type {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(dataType.getDefinition()).append(' ').append(Tokens.T_ARRAY);
+        sb.append(dataType.getDefinition()).append(' ');
+        sb.append(Tokens.T_ARRAY);
 
         if (maxCardinality != defaultArrayCardinality) {
             sb.append('[').append(maxCardinality).append(']');
@@ -199,10 +200,8 @@ public class ArrayType extends Type {
         return arrb;
     }
 
-    public Object convertToType(
-            SessionInterface session,
-            Object a,
-            Type otherType) {
+    public Object convertToType(SessionInterface session, Object a,
+                                Type otherType) {
 
         if (a == null) {
             return null;
@@ -285,19 +284,15 @@ public class ArrayType extends Type {
         if (a instanceof Object[]) {
             Object[] data = (Object[]) a;
 
-            return new JDBCArray(
-                data,
-                this.collectionBaseType(),
-                this,
-                session);
+            return new JDBCArray(data, this.collectionBaseType(), this,
+                                 session);
         }
 
         throw Error.error(ErrorCode.X_42561);
     }
 
-    public Object convertToDefaultType(
-            SessionInterface sessionInterface,
-            Object o) {
+    public Object convertToDefaultType(SessionInterface sessionInterface,
+                                       Object o) {
         return o;
     }
 
@@ -319,7 +314,8 @@ public class ArrayType extends Type {
         Object[]      arra = (Object[]) a;
         StringBuilder sb   = new StringBuilder();
 
-        sb.append(Tokens.T_ARRAY).append('[');
+        sb.append(Tokens.T_ARRAY);
+        sb.append('[');
 
         for (int i = 0; i < arra.length; i++) {
             if (i > 0) {
@@ -332,54 +328,6 @@ public class ArrayType extends Type {
         sb.append(']');
 
         return sb.toString();
-    }
-
-    public void convertToJSON(Object a, StringBuilder sb) {
-
-        Object[] arra = (Object[]) a;
-
-        if (a == null) {
-            sb.append("null");
-
-            return;
-        }
-
-        sb.append('[');
-
-        for (int i = 0; i < arra.length; i++) {
-            if (i > 0) {
-                sb.append(',');
-            }
-
-            dataType.convertToJSON(arra[i], sb);
-        }
-
-        sb.append(']');
-    }
-
-    public void convertToJSONsimple(Object a, StringBuilder sb) {
-
-        Object[] arra = (Object[]) a;
-
-        if (a == null) {
-            sb.append("null");
-
-            return;
-        }
-
-        sb.append('[');
-
-        for (int i = 0; i < arra.length; i++) {
-            if (i > 0) {
-                sb.append(',');
-            }
-
-            Object value = dataType.convertToString(arra[i]);
-
-            sb.append(value);
-        }
-
-        sb.append(']');
     }
 
     public boolean canConvertFrom(Type otherType) {
@@ -400,15 +348,15 @@ public class ArrayType extends Type {
     public int canMoveFrom(Type otherType) {
 
         if (!otherType.isArrayType()) {
-            return Type.ReType.change;
+            return -1;
         }
 
         if (maxCardinality >= ((ArrayType) otherType).maxCardinality) {
             return dataType.canMoveFrom(otherType);
-        } else if (dataType.canMoveFrom(otherType) == ReType.keep) {
-            return Type.ReType.check;
+        } else if (dataType.canMoveFrom(otherType) == 0) {
+            return 1;
         } else {
-            return Type.ReType.change;
+            return -1;
         }
     }
 
@@ -457,15 +405,14 @@ public class ArrayType extends Type {
         Type otherComponent = other.collectionBaseType();
 
         if (dataType.equals(otherComponent)) {
-            return ((ArrayType) other).maxCardinality > maxCardinality
-                   ? other
-                   : this;
+            return ((ArrayType) other).maxCardinality > maxCardinality ? other
+                                                                       : this;
         }
 
         Type newComponent = dataType.getAggregateType(otherComponent);
-        int  cardinality  = ((ArrayType) other).maxCardinality > maxCardinality
-                            ? ((ArrayType) other).maxCardinality
-                            : maxCardinality;
+        int cardinality = ((ArrayType) other).maxCardinality > maxCardinality
+                          ? ((ArrayType) other).maxCardinality
+                          : maxCardinality;
 
         return new ArrayType(newComponent, cardinality);
     }
@@ -514,12 +461,8 @@ public class ArrayType extends Type {
         Object[] array = new Object[size];
 
         System.arraycopy(a, 0, array, 0, ((Object[]) a).length);
-        System.arraycopy(
-            b,
-            0,
-            array,
-            ((Object[]) a).length,
-            ((Object[]) b).length);
+        System.arraycopy(b, 0, array, ((Object[]) a).length,
+                         ((Object[]) b).length);
 
         return array;
     }

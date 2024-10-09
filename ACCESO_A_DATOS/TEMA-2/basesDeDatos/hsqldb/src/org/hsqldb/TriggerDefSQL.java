@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
 
 package org.hsqldb;
 
-import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.lib.OrderedHashSet;
 import org.hsqldb.result.Result;
 
@@ -39,45 +38,36 @@ import org.hsqldb.result.Result;
  * Implementation of SQL TRIGGER objects.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.3.2
  * @since 1.9.0
  */
 public class TriggerDefSQL extends TriggerDef {
 
-    public TriggerDefSQL(
-            HsqlNameManager.HsqlName name,
-            int when,
-            int operation,
-            boolean forEachRow,
-            Table table,
-            Table[] transitions,
-            RangeVariable[] rangeVars,
-            Expression condition,
-            String conditionSQL,
-            int[] updateColumns,
-            Routine routine) {
+    OrderedHashSet references;
 
-        super(
-            name,
-            when,
-            operation,
-            forEachRow,
-            table,
-            transitions,
-            rangeVars,
-            condition,
-            conditionSQL,
-            updateColumns);
+    public TriggerDefSQL(HsqlNameManager.HsqlName name, int when,
+                         int operation, boolean forEachRow, Table table,
+                         Table[] transitions, RangeVariable[] rangeVars,
+                         Expression condition, String conditionSQL,
+                         int[] updateColumns, Routine routine) {
 
-        this.routine = routine;
+        super(name, when, operation, forEachRow, table, transitions,
+              rangeVars, condition, conditionSQL, updateColumns);
+
+        this.routine    = routine;
+        this.references = routine.getReferences();
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
         return routine.getReferences();
     }
 
+    public OrderedHashSet getComponents() {
+        return null;
+    }
+
     public void compile(Session session, SchemaObject parentObject) {
-        routine.compile(session, this);
+        routine.compile(session, null);
     }
 
     public String getClassName() {
@@ -92,10 +82,8 @@ public class TriggerDefSQL extends TriggerDef {
         return transitions[NEW_TABLE] != null;
     }
 
-    synchronized void pushPair(
-            Session session,
-            Object[] oldData,
-            Object[] newData) {
+    synchronized void pushPair(Session session, Object[] oldData,
+                               Object[] newData) {
 
         Result result = Result.updateZeroResult;
 
@@ -110,7 +98,8 @@ public class TriggerDefSQL extends TriggerDef {
         if (condition.testCondition(session)) {
             int variableCount = routine.getVariableCount();
 
-            session.sessionContext.routineVariables = new Object[variableCount];
+            session.sessionContext.routineVariables =
+                new Object[variableCount];
             result = routine.statement.execute(session);
         }
 

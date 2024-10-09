@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import java.util.Arrays;
  * Maintains an ordered  integer index. Equal keys are allowed.
  *
  * findXXX() methods return the array index into the list
- * containing a matching key, or -1 if not found.
+ * containing a matching key, or  or -1 if not found.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  * @version 2.5.0
@@ -55,6 +55,7 @@ public class IntIndex {
     private int targetSearchValue;
 
     public IntIndex(int capacity, boolean fixedSize) {
+
         this.capacity  = capacity;
         this.keys      = new int[capacity];
         this.fixedSize = fixedSize;
@@ -264,9 +265,8 @@ public class IntIndex {
 
         int index = findFirstGreaterEqualSlotIndex(value);
 
-        return index == count
-               ? -1
-               : index;
+        return index == count ? -1
+                              : index;
     }
 
     /**
@@ -388,13 +388,12 @@ public class IntIndex {
             }
         }
 
-        return found == count
-               ? -1
-               : found;
+        return found == count ? -1
+                              : found;
     }
 
     /**
-     * Returns the index of the lowest element {@code >=} the given search target,
+     * Returns the index of the lowest element >= the given search target,
      * or count
      *     @return the index
      */
@@ -420,7 +419,7 @@ public class IntIndex {
     }
 
     /**
-     * Returns the index of the lowest element {@code >} the given search target
+     * Returns the index of the lowest element > the given search target
      * or count or -1 if target is found
      * @return the index
      */
@@ -468,10 +467,8 @@ public class IntIndex {
             indices.pop();
 
             if (end - start >= threshold) {
-                int pivot = partition(
-                    start,
-                    end,
-                    start + ((end - start) >>> 1));
+                int pivot = partition(start, end,
+                                      start + ((end - start) >>> 1));
 
                 indices.push(start, pivot - 1);
                 indices.push(pivot + 1, end);
@@ -633,17 +630,14 @@ public class IntIndex {
 
     public synchronized void removeRange(int start, int limit) {
 
-        ArrayUtil.adjustArray(
-            ArrayUtil.CLASS_CODE_INT,
-            keys,
-            count,
-            start,
-            start - limit);
+        ArrayUtil.adjustArray(ArrayUtil.CLASS_CODE_INT, keys, count, start,
+                              start - limit);
 
         count -= (limit - start);
     }
 
     public synchronized void removeAll() {
+
         Arrays.fill(keys, 0);
 
         count = 0;

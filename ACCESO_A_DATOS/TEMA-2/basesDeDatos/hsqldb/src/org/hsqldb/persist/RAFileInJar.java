@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,14 +56,14 @@ final class RAFileInJar implements RandomAccessInterface {
     long                     fileLength;
     boolean                  bufferDirty = true;
     byte[]                   buffer      = new byte[4096];
-    HsqlByteArrayInputStream ba          = new HsqlByteArrayInputStream(buffer);
+    HsqlByteArrayInputStream ba = new HsqlByteArrayInputStream(buffer);
     long                     bufferOffset;
 
     //
     long seekPosition;
     long realPosition;
 
-    RAFileInJar(String name) throws IOException {
+    RAFileInJar(String name) throws FileNotFoundException, IOException {
 
         fileName   = name;
         fileLength = getLength();
@@ -118,8 +118,7 @@ final class RAFileInJar implements RandomAccessInterface {
             return -1;
         }
 
-        if (bufferDirty
-                || seekPosition < bufferOffset
+        if (bufferDirty || seekPosition < bufferOffset
                 || seekPosition >= bufferOffset + buffer.length) {
             readIntoBuffer();
         }
@@ -144,8 +143,7 @@ final class RAFileInJar implements RandomAccessInterface {
 
     public int readInt() throws IOException {
 
-        if (bufferDirty
-                || seekPosition < bufferOffset
+        if (bufferDirty || seekPosition < bufferOffset
                 || seekPosition >= bufferOffset + buffer.length) {
             readIntoBuffer();
         }
@@ -162,8 +160,7 @@ final class RAFileInJar implements RandomAccessInterface {
 
     public void read(byte[] b, int offset, int length) throws IOException {
 
-        if (bufferDirty
-                || seekPosition < bufferOffset
+        if (bufferDirty || seekPosition < bufferOffset
                 || seekPosition >= bufferOffset + buffer.length) {
             readIntoBuffer();
         }
@@ -230,7 +227,8 @@ final class RAFileInJar implements RandomAccessInterface {
             fis = getClass().getResourceAsStream(fileName);
 
             if (fis == null) {
-                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                ClassLoader cl =
+                    Thread.currentThread().getContextClassLoader();
 
                 if (cl != null) {
                     fis = cl.getResourceAsStream(fileName);

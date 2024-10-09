@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,10 @@ package org.hsqldb.lib;
 import org.hsqldb.map.BaseHashMap;
 
 /**
- * A set of int primitives.
+ * A set of int primitives.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 2.3.0
  */
 public class IntHashSet extends BaseHashMap {
@@ -47,32 +47,22 @@ public class IntHashSet extends BaseHashMap {
     }
 
     public IntHashSet(int initialCapacity) throws IllegalArgumentException {
-
-        super(
-            initialCapacity,
-            BaseHashMap.intKeyOrValue,
-            BaseHashMap.noKeyOrValue,
-            false);
+        super(initialCapacity, BaseHashMap.intKeyOrValue,
+              BaseHashMap.noKeyOrValue, false);
     }
 
     public IntHashSet(int[] elements) {
 
-        super(
-            elements.length,
-            BaseHashMap.intKeyOrValue,
-            BaseHashMap.noKeyOrValue,
-            false);
+        super(elements.length, BaseHashMap.intKeyOrValue,
+              BaseHashMap.noKeyOrValue, false);
 
         addAll(elements);
     }
 
     public IntHashSet(int[] elementsA, int[] elementsB) {
 
-        super(
-            elementsA.length + elementsB.length,
-            BaseHashMap.intKeyOrValue,
-            BaseHashMap.noKeyOrValue,
-            false);
+        super(elementsA.length + elementsB.length, BaseHashMap.intKeyOrValue,
+              BaseHashMap.noKeyOrValue, false);
 
         addAll(elementsA);
         addAll(elementsB);
@@ -81,16 +71,21 @@ public class IntHashSet extends BaseHashMap {
     public boolean contains(Object o) {
 
         if (o instanceof Integer) {
+
             int intKey = ((Integer) o).intValue();
 
-            return containsIntKey(intKey);
+            return containsKey(intKey);
+        }
+
+        if (o == null) {
+            throw new NullPointerException();
         }
 
         return false;
     }
 
     public boolean contains(int key) {
-        return super.containsIntKey(key);
+        return super.containsKey(key);
     }
 
     public boolean add(Integer e) {
@@ -99,13 +94,29 @@ public class IntHashSet extends BaseHashMap {
             throw new NullPointerException();
         }
 
-        int intKey = e.intValue();
+        int intKey = ((Integer) e).intValue();
 
         return add(intKey);
     }
 
+
     public boolean add(int key) {
         return (Boolean) super.addOrUpdate(key, 0, null, null);
+    }
+
+    public boolean remove(Object o) {
+        if (o instanceof Integer) {
+
+            int intKey = ((Integer) o).intValue();
+
+            return remove(intKey);
+        }
+
+        if (o == null) {
+            throw new NullPointerException();
+        }
+
+        return false;
     }
 
     public boolean remove(int key) {
@@ -117,7 +128,7 @@ public class IntHashSet extends BaseHashMap {
         int i = 0;
 
         for (; i < array.length; i++) {
-            if (!super.containsIntKey(array[i])) {
+            if (!super.containsKey(array[i])) {
                 break;
             }
         }
@@ -125,10 +136,10 @@ public class IntHashSet extends BaseHashMap {
         return i;
     }
 
-    public boolean addAll(Collection<Integer> col) {
+    public boolean addAll(Collection<? extends Integer> col) {
 
-        int               oldSize = size();
-        Iterator<Integer> it      = col.iterator();
+        int      oldSize = size();
+        Iterator<? extends Integer> it = col.iterator();
 
         while (it.hasNext()) {
             add(it.next());
@@ -139,8 +150,9 @@ public class IntHashSet extends BaseHashMap {
 
     public boolean addAll(IntHashSet s) {
 
-        boolean           result = false;
-        Iterator<Integer> it     = s.iterator();
+        boolean result = false;
+
+        PrimitiveIterator it      = s.iterator();
 
         while (it.hasNext()) {
             result |= add(it.nextInt());
@@ -160,12 +172,12 @@ public class IntHashSet extends BaseHashMap {
         return oldSize != size();
     }
 
-    public boolean containsAll(IntHashSet c) {
 
-        Iterator<Integer> it = c.iterator();
+    public boolean containsAll(Collection<?> c) {
+        Iterator it = c.iterator();
 
         while (it.hasNext()) {
-            if (!contains(it.nextInt())) {
+            if (!contains(it.next())) {
                 return false;
             }
         }
@@ -173,12 +185,13 @@ public class IntHashSet extends BaseHashMap {
         return true;
     }
 
-    public boolean retainAll(IntHashSet c) {
+    public boolean retainAll(Collection<?> c) {
+        int      oldSize = size();
 
-        int               oldSize = size();
-        Iterator<Integer> it      = iterator();
+        PrimitiveIterator it = new BaseHashIterator(true);
 
         while (it.hasNext()) {
+
             if (!c.contains(it.nextInt())) {
                 it.remove();
             }
@@ -187,21 +200,23 @@ public class IntHashSet extends BaseHashMap {
         return oldSize != size();
     }
 
-    public boolean removeAll(IntHashSet c) {
-
-        int               oldSize = size();
-        Iterator<Integer> it      = c.iterator();
+    public boolean removeAll(Collection<?> c) {
+        int      oldSize = size();
+        Iterator it = c.iterator();
 
         while (it.hasNext()) {
-            int value = it.nextInt();
+            Object o = it.next();
 
-            remove(value);
+            if (o instanceof Integer) {
+                remove(o);
+            }
         }
 
         return oldSize != size();
     }
 
     public int[] toArray() {
+
         int[] array = new int[size()];
 
         return toIntArray(array, true);
@@ -211,7 +226,7 @@ public class IntHashSet extends BaseHashMap {
         return toIntArray(array, true);
     }
 
-    public Iterator<Integer> iterator() {
+    public PrimitiveIterator<Integer> iterator() {
         return new BaseHashIterator(true);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,8 +114,8 @@ class Grid extends Panel {
 
     // data
 // campbell-burnet@users changed access for databasemanager2
-    protected String[]            sColHead = new String[0];
-    protected ArrayList<String[]> vData    = new ArrayList<>();
+    protected String[] sColHead = new String[0];
+    protected ArrayList<String[]> vData = new ArrayList<String[]>();
 
 // --------------------------------------------------
     private int[] iColWidth;
@@ -126,8 +126,7 @@ class Grid extends Panel {
 
 // --------------------------------------------------
     // scrolling
-    private Scrollbar sbHoriz;
-    private Scrollbar sbVert;
+    private Scrollbar sbHoriz, sbVert;
     private int       iSbWidth, iSbHeight;
     private boolean   bDrag;
     private int       iXDrag, iColDrag;
@@ -197,7 +196,7 @@ class Grid extends Panel {
 
         iRowCount  = 0;
         iRowHeight = 0;
-        vData      = new ArrayList<>();
+        vData      = new ArrayList<String[]>();
     }
 
     public void addRow(String[] data) {
@@ -367,14 +366,12 @@ class Grid extends Panel {
                 gImage.setColor(b);
                 gImage.fillRect(x, y, w - 1, iRowHeight - 1);
                 gImage.setColor(t);
-                gImage.drawString(getDisplay(i, j), x + 2, y + iRowHeight - 5);
+                gImage.drawString(getDisplay(i, j), x + 2,
+                                  y + iRowHeight - 5);
                 gImage.setColor(Color.lightGray);
                 gImage.drawLine(x + w - 1, y, x + w - 1, y + iRowHeight - 1);
-                gImage.drawLine(
-                    x,
-                    y + iRowHeight - 1,
-                    x + w - 1,
-                    y + iRowHeight - 1);
+                gImage.drawLine(x, y + iRowHeight - 1, x + w - 1,
+                                y + iRowHeight - 1);
 
                 x += w;
             }

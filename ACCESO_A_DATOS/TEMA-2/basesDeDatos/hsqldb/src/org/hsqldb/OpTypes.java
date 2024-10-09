@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.hsqldb.lib.OrderedIntHashSet;
  * Enumerate expression operation types<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.1
  * @since 1.9.0
  */
 public interface OpTypes {
@@ -140,12 +140,7 @@ public interface OpTypes {
         USER_AGGREGATE             = 100,
         ARRAY_ACCESS               = 101,
         ARRAY_SUBQUERY             = 102,
-        JSON_FUNCTION              = 103,
-        JSON_SQL_FUNCTION          = 104,
-        GROUPING                   = 105,    // grouping function
-        STDDEV                     = 106,
-        VARIANCE                   = 107,
-        ANY_VALUE                  = 108;
+        GROUPING                   = 103;    // grouping function
     //J-
     int[] aggOpTypes = new int[] {
 
@@ -165,9 +160,6 @@ public interface OpTypes {
         OpTypes.GROUP_CONCAT,
         OpTypes.STRING_AGG,
         OpTypes.MEDIAN,
-        OpTypes.VARIANCE,
-        OpTypes.STDDEV,
-        OpTypes.ANY_VALUE,
     };
 
     int[] columnOpTypes = new int[]{ OpTypes.COLUMN };
@@ -186,18 +178,16 @@ public interface OpTypes {
         OpTypes.SEQUENCE
     };
     //J+
-
-    OrderedIntHashSet emptyExpressionSet = new OrderedIntHashSet();
+    OrderedIntHashSet emptyExpressionSet   = new OrderedIntHashSet();
     OrderedIntHashSet aggregateFunctionSet = new OrderedIntHashSet(aggOpTypes);
-    OrderedIntHashSet columnExpressionSet = new OrderedIntHashSet(
-        columnOpTypes);
-    OrderedIntHashSet subqueryExpressionSet = new OrderedIntHashSet(
-        subqueryOpTypes);
-    OrderedIntHashSet subqueryAggregateExpressionSet = new OrderedIntHashSet(
-        subqueryOpTypes,
-        aggOpTypes);
-    OrderedIntHashSet functionExpressionSet = new OrderedIntHashSet(
-        functionOpTypes);
-    OrderedIntHashSet sequenceExpressionSet = new OrderedIntHashSet(
-        sequenceOpTypes);
+    OrderedIntHashSet columnExpressionSet =
+        new OrderedIntHashSet(columnOpTypes);
+    OrderedIntHashSet subqueryExpressionSet =
+        new OrderedIntHashSet(subqueryOpTypes);
+    OrderedIntHashSet subqueryAggregateExpressionSet =
+        new OrderedIntHashSet(subqueryOpTypes, aggOpTypes);
+    OrderedIntHashSet functionExpressionSet =
+        new OrderedIntHashSet(functionOpTypes);
+    OrderedIntHashSet sequenceExpressionSet =
+        new OrderedIntHashSet(sequenceOpTypes);
 }

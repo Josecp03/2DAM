@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,7 @@ public class StopWatch {
      * @param start boolean
      */
     public StopWatch(boolean start) {
+
         if (start) {
             start();
         }
@@ -143,6 +144,7 @@ public class StopWatch {
 
     /** Zeros accumulated running time and restarts this object. */
     public void zero() {
+
         total = 0;
 
         start();
@@ -150,9 +152,9 @@ public class StopWatch {
 
     /**
      * Ensures that this object is in the running state.  If this object is not
-     * running, then the call has the effect of setting the {@code startTime}
+     * running, then the call has the effect of setting the <code>startTime</code>
      * attribute to the current value of System.nanoTime() and setting
-     * the {@code running} attribute to {@code true}.
+     * the <code>running</code> attribute to <code>true</code>.
      */
     public void start() {
         startTime = System.nanoTime();
@@ -162,8 +164,8 @@ public class StopWatch {
     /**
      * Ensures that this object is in the stopped state.  If this object is
      * in the running state, then this has the effect of adding to the
-     * {@code total} attribute the elapsed time since the last transition
-     * from stopped to running state and sets the {@code running} attribute
+     * <code>total</code> attribute the elapsed time since the last transition
+     * from stopped to running state and sets the <code>running</code> attribute
      * to false. If this object is not in the running state, this call has no
      * effect.
      */
@@ -207,14 +209,14 @@ public class StopWatch {
         return prefix + " in " + currentElapsedTime() + " ms.";
     }
 
-    /**
-     * Retrieves prefix + " in " + elapsedTime() + " ns."
-     * @param prefix The string to use as a prefix
-     * @return prefix + " in " + elapsedTime() + " ns."
-     */
-    public String currentElapsedNanosToMessage(String prefix) {
-        return prefix + " in " + currentElapsedNanos() + " ns.";
-    }
+   /**
+    * Retrieves prefix + " in " + elapsedTime() + " ns."
+    * @param prefix The string to use as a prefix
+    * @return prefix + " in " + elapsedTime() + " ns."
+    */
+   public String currentElapsedNanosToMessage(String prefix) {
+       return prefix + " in " + currentElapsedNanos() + " ns.";
+   }
 
     /**
      * Retrieves the internal state of this object, as a String.

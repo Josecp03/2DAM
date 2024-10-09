@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,7 @@
 
 package org.hsqldb.util;
 
+import java.applet.Applet;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -120,7 +121,7 @@ import java.awt.image.MemoryImageSource;
   * @since Hypersonic SQL
  */
 public class Transfer extends Panel
-        implements WindowListener, ActionListener, ItemListener, Traceable {
+implements WindowListener, ActionListener, ItemListener, Traceable {
 
     Frame            fMain;
     Image            imgEmpty;
@@ -133,7 +134,7 @@ public class Transfer extends Panel
     java.awt.List    lTable;
     String[]         sSourceSchemas;
     String           sSourceCatalog, sDestSchema, sDestCatalog;
-    TextField        tSourceTable, tDestTable, tDestDropIndex, tDestCreateIndex;
+    TextField tSourceTable, tDestTable, tDestDropIndex, tDestCreateIndex;
     TextField        tDestDrop, tDestCreate, tDestDelete, tDestAlter;
     TextField        tSourceSelect, tDestInsert;
     Checkbox         cTransfer, cDrop, cCreate, cDelete, cInsert, cAlter;
@@ -155,7 +156,7 @@ public class Transfer extends Panel
 
     public void trace(String s) {
 
-        if (s != null && !s.isEmpty()) {
+        if ((s != null) &&!s.equals("")) {
             tMessage.setText(s);
 
             if (TRACE) {
@@ -165,12 +166,14 @@ public class Transfer extends Panel
     }
 
     public void init() {
+
         Transfer m = new Transfer();
 
         m._main(null);
     }
 
     public static void work(String[] arg) {
+
         Transfer m = new Transfer();
 
         m._main(arg);
@@ -186,7 +189,7 @@ public class Transfer extends Panel
             work(arg);
         } catch (IllegalArgumentException iae) {
             throw new IllegalArgumentException(
-                "Try:  java " + Transfer.class.getName() + " --help");
+                    "Try:  java "+ Transfer.class.getName() + " --help");
         }
     }
 
@@ -217,7 +220,8 @@ public class Transfer extends Panel
                 bStart.invalidate();
                 bStart.setEnabled(true);
 
-                for (Enumeration e = result.elements(); e.hasMoreElements(); ) {
+                for (Enumeration e =
+                        result.elements(); e.hasMoreElements(); ) {
                     lTable.add(e.nextElement().toString());
                 }
 
@@ -296,7 +300,8 @@ public class Transfer extends Panel
                 bStart.invalidate();
                 bStart.setEnabled(true);
 
-                for (Enumeration e = result.elements(); e.hasMoreElements(); ) {
+                for (Enumeration e =
+                        result.elements(); e.hasMoreElements(); ) {
                     lTable.add(e.nextElement().toString());
                 }
 
@@ -337,8 +342,8 @@ public class Transfer extends Panel
         return (lTable.getItemCount() > 0);
     }
 
-    static private final String SYNTAX_MSG = "java " + Transfer.class.getName()
-        + " [--help|--dump|--restore]";
+    static private final String SYNTAX_MSG =
+        "java " + Transfer.class.getName() + " [--help|--dump|--restore]";
 
     /**
      * @throws IllegalArgumentException for the obvious reason
@@ -354,17 +359,14 @@ public class Transfer extends Panel
             if (arg.length != 1) {
                 throw new IllegalArgumentException();
             }
-
-            if ((arg[0].equalsIgnoreCase("-r"))
-                    || (arg[0].equalsIgnoreCase("--restore"))) {
-                iTransferMode = TRFM_RESTORE;
-            } else if ((arg[0].equalsIgnoreCase("-d"))
-                       || (arg[0].equalsIgnoreCase("--dump"))) {
+            if ((arg[0].toLowerCase().equals("-r"))
+                    || (arg[0].toLowerCase().equals("--restore"))) {
+                iTransferMode = TRFM_RESTORE; } else if ((arg[0].toLowerCase().equals("-d"))
+                       || (arg[0].toLowerCase().equals("--dump"))) {
                 iTransferMode = TRFM_DUMP;
-            } else if ((arg[0].equalsIgnoreCase("-h"))
-                       || (arg[0].equalsIgnoreCase("--help"))) {
+            } else if ((arg[0].toLowerCase().equals("-h"))
+                       || (arg[0].toLowerCase().equals("--help"))) {
                 System.out.println(Transfer.SYNTAX_MSG);
-
                 return;
             } else {
                 throw new IllegalArgumentException();
@@ -372,8 +374,8 @@ public class Transfer extends Panel
         }
 
         fMain = new Frame("HSQL Transfer Tool");
-        imgEmpty = createImage(
-            new MemoryImageSource(2, 2, new int[4 * 4], 2, 2));
+        imgEmpty = createImage(new MemoryImageSource(2, 2, new int[4 * 4], 2,
+                2));
 
         fMain.setIconImage(imgEmpty);
         fMain.addWindowListener(this);
@@ -385,7 +387,7 @@ public class Transfer extends Panel
             "Insert 10 rows only", "Insert 1000 rows only", "Insert all rows",
             "-", "Load Settings...", "Save Settings...", "-", "Exit"
         };
-        Menu     menu   = new Menu("Options");
+        Menu menu = new Menu("Options");
 
         addMenuItems(menu, extras);
         bar.add(menu);
@@ -397,9 +399,8 @@ public class Transfer extends Panel
 
         // (ulrivo): full size on screen with less than 640 width
         if (d.width >= 640) {
-            fMain.setLocation(
-                (d.width - size.width) / 2,
-                (d.height - size.height) / 2);
+            fMain.setLocation((d.width - size.width) / 2,
+                              (d.height - size.height) / 2);
         } else {
             fMain.setLocation(0, 0);
             fMain.setSize(d);
@@ -413,8 +414,8 @@ public class Transfer extends Panel
             if ((iTransferMode == TRFM_DUMP)
                     || (iTransferMode == TRFM_TRANSFER)) {
                 sourceDb = new TransferDb(
-                    ConnectionDialog.createConnection(fMain, "Source Database"),
-                    this);
+                    ConnectionDialog.createConnection(
+                        fMain, "Source Database"), this);
 
                 if (!sourceDb.isConnected()) {
                     exit();
@@ -422,17 +423,15 @@ public class Transfer extends Panel
                     return;
                 }
             } else {
-                FileDialog f = new FileDialog(
-                    fMain,
-                    "Restore FileName",
-                    FileDialog.LOAD);
+                FileDialog f = new FileDialog(fMain, "Restore FileName",
+                                              FileDialog.LOAD);
 
                 f.setVisible(true);
 
                 String sFileName = f.getFile();
                 String Path      = f.getDirectory();
 
-                if (sFileName == null || sFileName.isEmpty()) {
+                if ((sFileName == null) || (sFileName.equals(""))) {
                     exit();
 
                     return;
@@ -444,8 +443,8 @@ public class Transfer extends Panel
             if ((iTransferMode == TRFM_RESTORE)
                     || (iTransferMode == TRFM_TRANSFER)) {
                 targetDb = new TransferDb(
-                    ConnectionDialog.createConnection(fMain, "Target Database"),
-                    this);
+                    ConnectionDialog.createConnection(
+                        fMain, "Target Database"), this);
 
                 if (!targetDb.isConnected()) {
                     exit();
@@ -453,17 +452,15 @@ public class Transfer extends Panel
                     return;
                 }
             } else {
-                FileDialog f = new FileDialog(
-                    fMain,
-                    "Dump FileName",
-                    FileDialog.SAVE);
+                FileDialog f = new FileDialog(fMain, "Dump FileName",
+                                              FileDialog.SAVE);
 
                 f.setVisible(true);
 
                 String sFileName = f.getFile();
                 String Path      = f.getDirectory();
 
-                if (sFileName == null || sFileName.isEmpty()) {
+                if ((sFileName == null) || (sFileName.equals(""))) {
                     exit();
 
                     return;
@@ -478,7 +475,8 @@ public class Transfer extends Panel
             return;
         }
 
-        if ((iTransferMode == TRFM_DUMP) || (iTransferMode == TRFM_TRANSFER)) {
+        if ((iTransferMode == TRFM_DUMP)
+                || (iTransferMode == TRFM_TRANSFER)) {
             iSelectionStep = SELECT_SOURCE_CATALOG;
             sSourceCatalog = null;
         } else {
@@ -694,7 +692,6 @@ public class Transfer extends Panel
 
                     return;
                 }
-
                 break;
 
             case SELECT_DEST_SCHEMA :
@@ -704,7 +701,6 @@ public class Transfer extends Panel
 
                     return;
                 }
-
                 break;
 
             case SELECT_SOURCE_TABLES :
@@ -745,8 +741,8 @@ public class Transfer extends Panel
             }
         }
 
-        if (s == null) {}
-        else if (s.equals("Start Transfer") || s.equals("ReStart Transfer")) {
+        if (s == null) {
+        } else if (s.equals("Start Transfer") || s.equals("ReStart Transfer")) {
             bStart.setLabel("ReStart Transfer");
             bStart.invalidate();
 
@@ -786,7 +782,7 @@ public class Transfer extends Panel
         } else if (s.contains("Select Catalog")) {
             String selection = lTable.getSelectedItem();
 
-            if (selection == null || selection.isEmpty()) {
+            if ((selection == null) || (selection.equals(""))) {
                 return;
             }
 
@@ -817,10 +813,8 @@ public class Transfer extends Panel
         } else if (s.equals("Insert all rows")) {
             iMaxRows = 0;
         } else if (s.equals("Load Settings...")) {
-            FileDialog f = new FileDialog(
-                fMain,
-                "Load Settings",
-                FileDialog.LOAD);
+            FileDialog f = new FileDialog(fMain, "Load Settings",
+                                          FileDialog.LOAD);
 
             f.setVisible(true);
 
@@ -831,10 +825,8 @@ public class Transfer extends Panel
                 displayTable(tCurrent);
             }
         } else if (s.equals("Save Settings...")) {
-            FileDialog f = new FileDialog(
-                fMain,
-                "Save Settings",
-                FileDialog.SAVE);
+            FileDialog f = new FileDialog(fMain, "Save Settings",
+                                          FileDialog.SAVE);
 
             f.setVisible(true);
 
@@ -945,13 +937,13 @@ public class Transfer extends Panel
 
         cCreate.addItemListener(this);
 
-        cDropIndex = new Checkbox(
-            "Drop destination index (ignore error)",
-            true);
+        cDropIndex = new Checkbox("Drop destination index (ignore error)",
+                                  true);
 
         cDropIndex.addItemListener(this);
 
-        cIdxForced = new Checkbox("force Idx_ prefix for indexes names", false);
+        cIdxForced = new Checkbox("force Idx_ prefix for indexes names",
+                                  false);
 
         cIdxForced.addItemListener(this);
 
@@ -967,9 +959,8 @@ public class Transfer extends Panel
 
         cInsert.addItemListener(this);
 
-        cFKForced = new Checkbox(
-            "force FK_ prefix for foreign key names",
-            false);
+        cFKForced = new Checkbox("force FK_ prefix for foreign key names",
+                                 false);
 
         cFKForced.addItemListener(this);
 
@@ -1077,7 +1068,7 @@ public class Transfer extends Panel
             bContinue.setEnabled(false);
         }
 
-        tTable         = TransferCommon.loadPrefs(f, sourceDb, targetDb, this);
+        tTable = TransferCommon.loadPrefs(f, sourceDb, targetDb, this);
         iSelectionStep = SELECT_SOURCE_TABLES;
 
         lTable.removeAll();

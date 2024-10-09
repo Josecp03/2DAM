@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,7 @@ class CSVWriter {
      * @param header String[] with fieldnames
      */
     public void writeHeader(String[] header) throws IOException {
+
         int nbrCols = header.length;
 
         doWriteData(header);
@@ -127,6 +128,7 @@ class CSVWriter {
             sb.append(c);
 
             switch (c) {
+
                 case '"' :
                     sb.append('"');
                     break;

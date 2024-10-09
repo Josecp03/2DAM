@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +49,10 @@ class PostgresTransferHelper extends TransferHelper {
 
     private static final int PostgreSQL = 0;
     private static final int HSQLDB     = 1;
-    String[][]               Funcs      = {
-        { "now()", "'now'" }
+    String[][]        Funcs      = {
+        {
+            "now()", "\'now\'"
+        }
     };
 
     PostgresTransferHelper() {
@@ -72,13 +74,9 @@ class PostgresTransferHelper extends TransferHelper {
         return (type);
     }
 
-    String fixupColumnDefRead(
-            TransferTable t,
-            ResultSetMetaData meta,
-            String columnType,
-            ResultSet columnDesc,
-            int columnIndex)
-            throws SQLException {
+    String fixupColumnDefRead(TransferTable t, ResultSetMetaData meta,
+                              String columnType, ResultSet columnDesc,
+                              int columnIndex) throws SQLException {
 
         String SeqName   = "_" + columnDesc.getString(4) + "_seq";
         int    spaceleft = 31 - SeqName.length();
@@ -89,7 +87,7 @@ class PostgresTransferHelper extends TransferHelper {
             SeqName = t.Stmts.sDestTable + SeqName;
         }
 
-        String CompareString = "nextval('\"" + SeqName + "\"'";
+        String CompareString = "nextval(\'\"" + SeqName + "\"\'";
 
         if (columnType.contains(CompareString)) {
 
@@ -105,29 +103,27 @@ class PostgresTransferHelper extends TransferHelper {
                 String NewColumnType = columnType.substring(0, iStartPos);
 
                 NewColumnType += Funcs[Idx][HSQLDB];
-                NewColumnType += columnType.substring(
-                    iStartPos + PostgreSQL_func.length());
-                columnType    = NewColumnType;
+                NewColumnType +=
+                    columnType.substring(iStartPos
+                                         + PostgreSQL_func.length());
+                columnType = NewColumnType;
             }
         }
 
         return (columnType);
     }
 
-    String fixupColumnDefWrite(
-            TransferTable t,
-            ResultSetMetaData meta,
-            String columnType,
-            ResultSet columnDesc,
-            int columnIndex)
-            throws SQLException {
+    String fixupColumnDefWrite(TransferTable t, ResultSetMetaData meta,
+                               String columnType, ResultSet columnDesc,
+                               int columnIndex) throws SQLException {
 
         if (columnType.equals("SERIAL")) {
-            String SeqName   = "_" + columnDesc.getString(4) + "_seq";
-            int    spaceleft = 31 - SeqName.length();
+            String SeqName = "_" + columnDesc.getString(4) + "_seq";
+            int spaceleft  = 31 - SeqName.length();
 
             if (t.Stmts.sDestTable.length() > spaceleft) {
-                SeqName = t.Stmts.sDestTable.substring(0, spaceleft) + SeqName;
+                SeqName = t.Stmts.sDestTable.substring(0, spaceleft)
+                          + SeqName;
             } else {
                 SeqName = t.Stmts.sDestTable + SeqName;
             }
@@ -145,9 +141,9 @@ class PostgresTransferHelper extends TransferHelper {
                 String NewColumnType = columnType.substring(0, iStartPos);
 
                 NewColumnType += Funcs[Idx][PostgreSQL];
-                NewColumnType += columnType.substring(
-                    iStartPos + HSQLDB_func.length());
-                columnType    = NewColumnType;
+                NewColumnType += columnType.substring(iStartPos
+                                                      + HSQLDB_func.length());
+                columnType = NewColumnType;
             }
         }
 
@@ -155,6 +151,7 @@ class PostgresTransferHelper extends TransferHelper {
     }
 
     void beginDataTransfer() {
+
         try {
             db.setAutoCommit(false);
         } catch (Exception e) {}

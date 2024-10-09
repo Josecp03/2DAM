@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,9 +43,9 @@ import java.util.List;
  */
 public class AppendableException extends Exception {
 
-    static final long          serialVersionUID = -1002629580611098803L;
+    static final long    serialVersionUID = -1002629580611098803L;
     public static final String LS = System.getProperty("line.separator");
-    public List<String>        appendages       = null;
+    public List<String>  appendages       = null;
 
     public String getMessage() {
 
@@ -61,7 +61,7 @@ public class AppendableException extends Exception {
             sb.append(message);
         }
 
-        for (String appendage: appendages) {
+        for (String appendage : appendages) {
             if (sb.length() > 0) {
                 sb.append(LS);
             }
@@ -75,14 +75,13 @@ public class AppendableException extends Exception {
     public void appendMessage(String s) {
 
         if (appendages == null) {
-            appendages = new ArrayList<>();
+            appendages = new ArrayList<String>();
         }
 
         appendages.add(s);
     }
 
     public AppendableException() {
-
         // Intentionally empty
     }
 
@@ -95,6 +94,6 @@ public class AppendableException extends Exception {
     }
 
     public AppendableException(String string, Throwable cause) {
-        super(string, cause);
+         super(string, cause);
     }
 }

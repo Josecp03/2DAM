@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,10 @@
 package org.hsqldb.rowio;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
+import org.hsqldb.HsqlDateTime;
 import org.hsqldb.HsqlException;
 import org.hsqldb.Scanner;
 import org.hsqldb.Session;
@@ -47,6 +50,7 @@ import org.hsqldb.types.BlobData;
 import org.hsqldb.types.BlobDataID;
 import org.hsqldb.types.ClobData;
 import org.hsqldb.types.ClobDataID;
+import org.hsqldb.types.DateTimeType;
 import org.hsqldb.types.IntervalMonthData;
 import org.hsqldb.types.IntervalSecondData;
 import org.hsqldb.types.IntervalType;
@@ -59,22 +63,34 @@ import org.hsqldb.types.Type;
  * Class for reading the data for a database row from the script file.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.0
+ * @version 2.5.0
  * @since 1.7.3
  */
-public class RowInputTextLog extends RowInputBase implements RowInputInterface {
+public class RowInputTextLog extends RowInputBase
+implements RowInputInterface {
 
-    Scanner scanner;
-    String  tableName  = null;
-    String  schemaName = null;
-    int     statementType;
-    Object  value;
-    boolean noSeparators;
+    Scanner  scanner;
+    String   tableName  = null;
+    String   schemaName = null;
+    int      statementType;
+    Object   value;
+    boolean  version18;
+    boolean  noSeparators;
+    Calendar tempCalDefault = new GregorianCalendar();
 
     public RowInputTextLog() {
+
         super(new byte[0]);
 
         scanner = new Scanner();
+    }
+
+    public RowInputTextLog(boolean version18) {
+
+        super(new byte[0]);
+
+        scanner        = new Scanner();
+        this.version18 = version18;
     }
 
     public void setSource(Session session, String text) {
@@ -100,9 +116,9 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
                 tableName = scanner.getString();
 
                 scanner.scanNext();
+
                 break;
             }
-
             case Tokens.DELETE : {
                 statementType = StatementLineTypes.DELETE_STATEMENT;
 
@@ -112,14 +128,14 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
                 scanner.scanNext();
 
                 tableName = scanner.getString();
+
                 break;
             }
-
             case Tokens.COMMIT : {
                 statementType = StatementLineTypes.COMMIT_STATEMENT;
+
                 break;
             }
-
             case Tokens.SET : {
                 scanner.scanNext();
 
@@ -190,6 +206,7 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
     }
 
     public String readString() {
+
         readField();
 
         return (String) value;
@@ -226,12 +243,14 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
     }
 
     protected String readChar(Type type) {
+
         readField();
 
         return (String) value;
     }
 
     protected Integer readSmallint() {
+
         readNumberField(Type.SQL_SMALLINT);
 
         return (Integer) value;
@@ -318,6 +337,17 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
             return null;
         }
 
+        if (version18) {
+            java.sql.Time dateTime = java.sql.Time.valueOf((String) value);
+            long millis =
+                HsqlDateTime.convertMillisFromCalendar(tempCalDefault,
+                    dateTime.getTime());
+
+            millis = HsqlDateTime.getNormalisedTime(millis);
+
+            return new TimeData((int) millis / 1000, 0, 0);
+        }
+
         return scanner.newTime((String) value);
     }
 
@@ -327,6 +357,17 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
 
         if (value == null) {
             return null;
+        }
+
+        if (version18) {
+            java.sql.Date dateTime = java.sql.Date.valueOf((String) value);
+            long millis =
+                HsqlDateTime.convertMillisFromCalendar(tempCalDefault,
+                    dateTime.getTime());
+
+            millis = HsqlDateTime.getNormalisedDate(millis);
+
+            return new TimestampData(millis / 1000);
         }
 
         return scanner.newDate((String) value);
@@ -340,6 +381,19 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
             return null;
         }
 
+        if (version18) {
+            java.sql.Timestamp dateTime =
+                java.sql.Timestamp.valueOf((String) value);
+            long millis =
+                HsqlDateTime.convertMillisFromCalendar(tempCalDefault,
+                    dateTime.getTime());
+            int nanos = dateTime.getNanos();
+
+            nanos = DateTimeType.normaliseFraction(nanos, type.scale);
+
+            return new TimestampData(millis / 1000, nanos, 0);
+        }
+
         return scanner.newTimestamp((String) value);
     }
 
@@ -351,9 +405,8 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
             return null;
         }
 
-        return (IntervalMonthData) scanner.newInterval(
-            (String) value,
-            (IntervalType) type);
+        return (IntervalMonthData) scanner.newInterval((String) value,
+                (IntervalType) type);
     }
 
     protected IntervalSecondData readDaySecondInterval(Type type) {
@@ -364,9 +417,8 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
             return null;
         }
 
-        return (IntervalSecondData) scanner.newInterval(
-            (String) value,
-            (IntervalType) type);
+        return (IntervalSecondData) scanner.newInterval((String) value,
+                (IntervalType) type);
     }
 
     protected Boolean readBoole() {
@@ -514,7 +566,7 @@ public class RowInputTextLog extends RowInputBase implements RowInputInterface {
             throw Error.error(ErrorCode.X_42584);
         }
 
-        HsqlArrayList<Object> list = new HsqlArrayList<>();
+        HsqlArrayList list = new HsqlArrayList();
 
         noSeparators = true;
 

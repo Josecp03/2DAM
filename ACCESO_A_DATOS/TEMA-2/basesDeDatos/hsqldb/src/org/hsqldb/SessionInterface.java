@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,7 @@
 package org.hsqldb;
 
 import java.text.SimpleDateFormat;
-
 import java.util.Calendar;
-import java.util.TimeZone;
 
 import org.hsqldb.jdbc.JDBCConnection;
 import org.hsqldb.navigator.RowSetNavigatorClient;
@@ -43,6 +41,7 @@ import org.hsqldb.result.Result;
 import org.hsqldb.result.ResultLob;
 import org.hsqldb.types.BlobDataID;
 import org.hsqldb.types.ClobDataID;
+import org.hsqldb.types.TimestampData;
 
 /**
  * Interface to Session and its remote proxy objects. Used by the
@@ -50,28 +49,22 @@ import org.hsqldb.types.ClobDataID;
  * the session level.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.7.2
  */
 public interface SessionInterface {
 
-    public interface AttributePos {
+    int INFO_ID      = 0;                // used
+    int INFO_INTEGER = 1;                // used
+    int INFO_BOOLEAN = 2;                // used
+    int INFO_VARCHAR = 3;                // used
+    int INFO_LIMIT   = 4;
 
-        int INFO_ID      = 0;
-        int INFO_INTEGER = 1;
-        int INFO_BOOLEAN = 2;
-        int INFO_VARCHAR = 3;
-        int INFO_LIMIT   = 4;
-    }
-
-    public interface Attributes {
-
-        int INFO_ISOLATION           = 0;
-        int INFO_AUTOCOMMIT          = 1;
-        int INFO_CONNECTION_READONLY = 2;
-        int INFO_CATALOG             = 3;
-        int INFO_TIMEZONE            = 4;
-    }
+    //
+    int INFO_ISOLATION           = 0;    // used
+    int INFO_AUTOCOMMIT          = 1;    // used
+    int INFO_CONNECTION_READONLY = 2;    // used
+    int INFO_CATALOG             = 3;    // used
 
     //
     int TX_READ_UNCOMMITTED = 1;
@@ -126,8 +119,6 @@ public interface SessionInterface {
 
     void setAttribute(int id, Object value);
 
-    void setAttributeFromResult(Result result);
-
     long getId();
 
     int getRandomId();
@@ -150,7 +141,7 @@ public interface SessionInterface {
 
     SimpleDateFormat getSimpleDateFormatGMT();
 
-    TimeZone getTimeZone();
+    TimestampData getCurrentDate();
 
     int getZoneSeconds();
 

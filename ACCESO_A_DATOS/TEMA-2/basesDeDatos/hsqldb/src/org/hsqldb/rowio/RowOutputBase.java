@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,11 +57,11 @@ import org.hsqldb.types.Types;
  *
  * @author Bob Preston (sqlbob@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.4.1
  * @since 1.7.0
  */
 abstract class RowOutputBase extends HsqlByteArrayOutputStream
-        implements RowOutputInterface {
+implements RowOutputInterface {
 
     /**
      *  Constructor used for persistent storage of a Table row
@@ -110,12 +110,10 @@ abstract class RowOutputBase extends HsqlByteArrayOutputStream
 
     protected abstract void writeTimestamp(TimestampData o, Type type);
 
-    protected abstract void writeYearMonthInterval(
-            IntervalMonthData o,
+    protected abstract void writeYearMonthInterval(IntervalMonthData o,
             Type type);
 
-    protected abstract void writeDaySecondInterval(
-            IntervalSecondData o,
+    protected abstract void writeDaySecondInterval(IntervalSecondData o,
             Type type);
 
     protected abstract void writeOther(JavaObjectData o);
@@ -142,27 +140,21 @@ abstract class RowOutputBase extends HsqlByteArrayOutputStream
     /**
      *  This method is called directly to write data for a delete statement.
      */
-    public void writeData(
-            int l,
-            Type[] types,
-            Object[] data,
-            OrderedHashMap<String, ColumnSchema> cols,
-            int[] primaryKeys) {
+    public void writeData(int l, Type[] types, Object[] data,
+                          OrderedHashMap cols, int[] primaryKeys) {
 
         boolean hasPK = primaryKeys != null && primaryKeys.length != 0;
-        int     limit = hasPK
-                        ? primaryKeys.length
-                        : l;
+        int     limit = hasPK ? primaryKeys.length
+                              : l;
 
         for (int i = 0; i < limit; i++) {
-            int    j = hasPK
-                       ? primaryKeys[i]
-                       : i;
+            int    j = hasPK ? primaryKeys[i]
+                             : i;
             Object o = data[j];
             Type   t = types[j];
 
             if (cols != null) {
-                ColumnSchema col = cols.get(j);
+                ColumnSchema col = (ColumnSchema) cols.get(j);
 
                 writeFieldPrefix();
                 writeString(col.getName().statementName);
@@ -284,9 +276,9 @@ abstract class RowOutputBase extends HsqlByteArrayOutputStream
                 break;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "RowOutputBase - " + t.getNameString());
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "RowOutputBase - "
+                                         + t.getNameString());
         }
     }
 

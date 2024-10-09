@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ package org.hsqldb;
 
 import java.sql.Connection;
 
-import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.ParserDQL.CompileContext;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
@@ -47,7 +46,7 @@ import org.hsqldb.types.Type;
  * Implementation of Statement for callable procedures.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.4.0
  * @since 1.9.0
  */
 public class StatementProcedure extends StatementDMQL {
@@ -65,15 +64,11 @@ public class StatementProcedure extends StatementDMQL {
     /**
      * Constructor for CALL statements for expressions.
      */
-    StatementProcedure(
-            Session session,
-            Expression expression,
-            CompileContext compileContext) {
+    StatementProcedure(Session session, Expression expression,
+                       CompileContext compileContext) {
 
-        super(
-            StatementTypes.CALL,
-            StatementTypes.X_SQL_DATA,
-            session.getCurrentSchemaHsqlName());
+        super(StatementTypes.CALL, StatementTypes.X_SQL_DATA,
+              session.getCurrentSchemaHsqlName());
 
         statementReturnType = StatementTypes.RETURN_RESULT;
 
@@ -104,16 +99,11 @@ public class StatementProcedure extends StatementDMQL {
     /**
      * Constructor for CALL statements for procedures.
      */
-    StatementProcedure(
-            Session session,
-            Routine procedure,
-            Expression[] arguments,
-            CompileContext compileContext) {
+    StatementProcedure(Session session, Routine procedure,
+                       Expression[] arguments, CompileContext compileContext) {
 
-        super(
-            StatementTypes.CALL,
-            StatementTypes.X_SQL_DATA,
-            session.getCurrentSchemaHsqlName());
+        super(StatementTypes.CALL, StatementTypes.X_SQL_DATA,
+              session.getCurrentSchemaHsqlName());
 
         if (procedure.maxDynamicResults > 0) {
             statementReturnType = StatementTypes.RETURN_ANY;
@@ -134,9 +124,8 @@ public class StatementProcedure extends StatementDMQL {
 
     Result getResult(Session session) {
 
-        Result result = expression == null
-                        ? getProcedureResult(session)
-                        : getExpressionResult(session);
+        Result result = expression == null ? getProcedureResult(session)
+                                           : getExpressionResult(session);
 
         result.setStatementType(statementReturnType);
 
@@ -145,7 +134,26 @@ public class StatementProcedure extends StatementDMQL {
 
     Result getProcedureResult(Session session) {
 
-        Object[] data = getArgsArray();
+        Object[] data = ValuePool.emptyObjectArray;
+        int      argLength;
+
+        if (procedure.isPSM()) {
+            argLength = arguments.length;
+
+            if (procedure.getMaxDynamicResults() > 0) {
+                argLength++;
+            }
+        } else {
+            argLength = procedure.javaMethod.getParameterTypes().length;
+
+            if (procedure.javaMethodWithConnection) {
+                argLength--;
+            }
+        }
+
+        if (argLength > 0) {
+            data = new Object[argLength];
+        }
 
         for (int i = 0; i < arguments.length; i++) {
             Expression e = arguments[i];
@@ -154,10 +162,8 @@ public class StatementProcedure extends StatementDMQL {
                 Type   targetType = procedure.getParameter(i).getDataType();
                 Object value      = e.getValue(session);
 
-                data[i] = targetType.convertToType(
-                    session,
-                    value,
-                    e.getDataType());
+                data[i] = targetType.convertToType(session, value,
+                                                   e.getDataType());
             }
         }
 
@@ -213,10 +219,10 @@ public class StatementProcedure extends StatementDMQL {
 
         Result r = result;
 
-        result = Result.newCallResponse(
-            getParametersMetaData().getParameterTypes(),
-            id,
-            session.sessionContext.dynamicArguments);
+        result =
+            Result.newCallResponse(getParametersMetaData().getParameterTypes(),
+                                   id,
+                                   session.sessionContext.dynamicArguments);
 
         if (procedure.returnsTable()) {
             result.addChainedResult(r);
@@ -227,32 +233,6 @@ public class StatementProcedure extends StatementDMQL {
         }
 
         return result;
-    }
-
-    private Object[] getArgsArray() {
-
-        Object[] data = ValuePool.emptyObjectArray;
-        int      argLength;
-
-        if (procedure.isPSM()) {
-            argLength = arguments.length;
-
-            if (procedure.getMaxDynamicResults() > 0) {
-                argLength++;
-            }
-        } else {
-            argLength = procedure.javaMethod.getParameterTypes().length;
-
-            if (procedure.javaMethodWithConnection) {
-                argLength--;
-            }
-        }
-
-        if (argLength > 0) {
-            data = new Object[argLength];
-        }
-
-        return data;
     }
 
     Result executePSMProcedure(Session session) {
@@ -323,17 +303,17 @@ public class StatementProcedure extends StatementDMQL {
 
     TableDerived[] getSubqueries(Session session) {
 
-        OrderedHashSet<TableDerived> subQueries = null;
+        OrderedHashSet subQueries = null;
 
         if (expression != null) {
-            subQueries = expression.collectAllSubqueries(null);
+            subQueries = expression.collectAllSubqueries(subQueries);
         }
 
         for (int i = 0; i < arguments.length; i++) {
             subQueries = arguments[i].collectAllSubqueries(subQueries);
         }
 
-        if (subQueries == null || subQueries.isEmpty()) {
+        if (subQueries == null || subQueries.size() == 0) {
             return TableDerived.emptyArray;
         }
 
@@ -376,11 +356,9 @@ public class StatementProcedure extends StatementDMQL {
                 // return value has a void return type, a result set
                 // is described whose single column is of type NULL
                 ResultMetaData md = ResultMetaData.newResultMetaData(1);
-                ColumnBase column = new ColumnBase(
-                    null,
-                    null,
-                    null,
-                    StatementDMQL.RETURN_COLUMN_NAME);
+                ColumnBase column =
+                    new ColumnBase(null, null, null,
+                                   StatementDMQL.RETURN_COLUMN_NAME);
 
                 column.setType(expression.getDataType());
 
@@ -392,11 +370,9 @@ public class StatementProcedure extends StatementDMQL {
 
                 return md;
             }
-
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "StatementProcedure");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "StatementProcedure");
         }
     }
 
@@ -418,7 +394,7 @@ public class StatementProcedure extends StatementDMQL {
         return meta;
     }
 
-    void collectTableNamesForRead(OrderedHashSet<HsqlName> set) {
+    void collectTableNamesForRead(OrderedHashSet set) {
 
         if (expression == null) {
             set.addAll(procedure.getTableNamesForRead());
@@ -435,7 +411,8 @@ public class StatementProcedure extends StatementDMQL {
         }
     }
 
-    void collectTableNamesForWrite(OrderedHashSet<HsqlName> set) {
+    void collectTableNamesForWrite(OrderedHashSet set) {
+
         if (expression == null) {
             set.addAll(procedure.getTableNamesForWrite());
         }

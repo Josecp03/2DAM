@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.hsqldb.map.BaseHashMap;
 
 /**
- * A Map of long primitives to Object values.
+ * A Map of long primitives to Object values.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
@@ -59,12 +59,8 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
     }
 
     public LongKeyHashMap(int initialCapacity) throws IllegalArgumentException {
-
-        super(
-            initialCapacity,
-            BaseHashMap.longKeyOrValue,
-            BaseHashMap.objectKeyOrValue,
-            false);
+        super(initialCapacity, BaseHashMap.longKeyOrValue,
+              BaseHashMap.objectKeyOrValue, false);
     }
 
     public Lock getReadLock() {
@@ -78,9 +74,10 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
     public boolean containsKey(Object key) {
 
         if (key instanceof Long) {
+
             long longKey = ((Long) key).longValue();
 
-            return containsLongKey(longKey);
+            return containsKey(longKey);
         }
 
         if (key == null) {
@@ -95,7 +92,7 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
         readLock.lock();
 
         try {
-            return super.containsLongKey(key);
+            return super.containsKey(key);
         } finally {
             readLock.unlock();
         }
@@ -112,15 +109,20 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
         }
     }
 
-    public V get(Long key) {
+    public V get(Object key) {
+
+        if (key instanceof Long) {
+
+            long longKey = ((Long) key).longValue();
+
+            return get(longKey);
+        }
 
         if (key == null) {
             throw new NullPointerException();
         }
 
-        long longKey = key.longValue();
-
-        return get(longKey);
+        return null;
     }
 
     public V get(long key) {
@@ -146,7 +148,7 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
             throw new NullPointerException();
         }
 
-        long longKey = key.longValue();
+        long longKey = ((Long) key).longValue();
 
         return put(longKey, value);
     }
@@ -163,8 +165,8 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
     }
 
     public V remove(Object key) {
-
         if (key instanceof Long) {
+
             long longKey = ((Long) key).longValue();
 
             return remove(longKey);
@@ -221,17 +223,34 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
         }
     }
 
-    public void putAll(LongKeyHashMap<V> other) {
+    public void putAll(Map<? extends Long, ? extends V> other) {
+        Iterator<? extends Long> it = other.keySet().iterator();
 
         writeLock.lock();
 
         try {
-            Iterator<Long> it = other.keySet().iterator();
+            while (it.hasNext()) {
+                Long key = it.next();
+                long longKey = key.longValue();
+
+                put(longKey, (V) other.get(key));
+            }
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    public void putAll(LongKeyHashMap other) {
+
+        writeLock.lock();
+
+        try {
+            PrimitiveIterator it = (PrimitiveIterator) other.keySet().iterator();
 
             while (it.hasNext()) {
                 long key = it.nextLong();
 
-                put(key, other.get(key));
+                put(key, (V) other.get(key));
             }
         } finally {
             writeLock.unlock();
@@ -290,7 +309,6 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
     }
 
     public Set<Map.Entry<Long, V>> entrySet() {
-
         if (entries == null) {
             entries = new EntrySet();
         }
@@ -298,9 +316,7 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
         return entries;
     }
 
-    private class EntrySet
-            extends AbstractReadOnlyCollection<Map.Entry<Long, V>>
-            implements Set<Map.Entry<Long, V>> {
+    private class EntrySet extends AbstractReadOnlyCollection<Map.Entry<Long, V>> implements Set<Map.Entry<Long, V>> {
 
         public Iterator<Entry<Long, V>> iterator() {
             return LongKeyHashMap.this.new EntrySetIterator();
@@ -315,23 +331,21 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
         }
     }
 
-    private class EntrySetIterator extends BaseHashIterator {
+    private class EntrySetIterator extends BaseHashIterator{
 
         EntrySetIterator() {
             super(true);
         }
 
         public Entry<Long, V> next() {
-
             Long key   = super.nextLong();
             V    value = (V) objectValueTable[lookup];
 
-            return new MapEntry<Long, V>(key, value);
+            return new MapEntry(key, value);
         }
     }
 
-    private class KeySet extends AbstractReadOnlyCollection<Long>
-            implements Set<Long> {
+    private class KeySet<Long> extends AbstractReadOnlyCollection<Long> implements Set<Long> {
 
         public PrimitiveIterator<Long> iterator() {
             return LongKeyHashMap.this.new BaseHashIterator(true);
@@ -346,7 +360,7 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
         }
     }
 
-    private class Values extends AbstractReadOnlyCollection<V> {
+    private class Values<V> extends AbstractReadOnlyCollection<V> {
 
         public Iterator<V> iterator() {
             return LongKeyHashMap.this.new BaseHashIterator(false);
@@ -358,6 +372,14 @@ public class LongKeyHashMap<V> extends BaseHashMap implements Map<Long, V> {
 
         public boolean isEmpty() {
             return size() == 0;
+        }
+
+        public Object[] toArray() {
+            return LongKeyHashMap.this.toArray(false);
+        }
+
+        public <T> T[] toArray(T[] a) {
+            return LongKeyHashMap.this.toArray(a, false);
         }
     }
 }

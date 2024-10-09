@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.HsqlDeque;
+import org.hsqldb.lib.OrderedHashSet;
 import org.hsqldb.lib.StringConverter;
 import org.hsqldb.rights.Grantee;
 import org.hsqldb.trigger.Trigger;
@@ -56,7 +57,7 @@ import org.hsqldb.trigger.Trigger;
  *  Realisations Ltd
  *
  * @author Peter Hudson (peterhudson@users dot sourceforge.net)
- * @version  2.7.3
+ * @version  2.5.1
  * @since hsqldb 1.61
  */
 public class TriggerDef implements Runnable, SchemaObject {
@@ -71,8 +72,8 @@ public class TriggerDef implements Runnable, SchemaObject {
     static final int INSTEAD     = 6;
 
     //
-    static final int NUM_TRIGGER_OPS = 3;                // {ins,del,upd}
-    static final int NUM_TRIGS = NUM_TRIGGER_OPS * 3;    // {b}{fer}, {a},{fer, fes}
+    static final int NUM_TRIGGER_OPS = 3;                      // {ins,del,upd}
+    static final int NUM_TRIGS       = NUM_TRIGGER_OPS * 3;    // {b}{fer}, {a},{fer, fes}
 
     //
     static final TriggerDef[] emptyArray = new TriggerDef[]{};
@@ -92,8 +93,8 @@ public class TriggerDef implements Runnable, SchemaObject {
     int              operationType;
     boolean          isSystem;
     boolean          forEachRow;
-    boolean          nowait;           // block or overwrite if queue full
-    int              maxRowsQueued;    // max size of queue of pending triggers
+    boolean          nowait;                                   // block or overwrite if queue full
+    int              maxRowsQueued;                            // max size of queue of pending triggers
     Table            table;
     Trigger          trigger;
     String           triggerClassName;
@@ -101,10 +102,12 @@ public class TriggerDef implements Runnable, SchemaObject {
     Thread           thread;
 
     //protected boolean busy;               // firing trigger in progress
-    protected HsqlDeque<TriggerData> pendingQueue;        // row triggers pending
-    protected int                    rowsQueued;          // rows in pendingQueue
-    protected boolean                valid     = true;    // parsing valid
-    protected volatile boolean       keepGoing = true;
+    protected HsqlDeque        pendingQueue;                   // row triggers pending
+    protected int              rowsQueued;                     // rows in pendingQueue
+    protected boolean          valid     = true;               // parsing valid
+    protected volatile boolean keepGoing = true;
+
+    TriggerDef() {}
 
     /**
      *  Constructs a new TriggerDef object to represent an HSQLDB trigger
@@ -134,46 +137,26 @@ public class TriggerDef implements Runnable, SchemaObject {
      *      further additions are either blocked or overwrite the tail entry,
      *      as determined by noWait
      */
-    public TriggerDef(
-            HsqlName name,
-            int when,
-            int operation,
-            boolean forEach,
-            Table table,
-            Table[] transitions,
-            RangeVariable[] rangeVars,
-            Expression condition,
-            String conditionSQL,
-            int[] updateColumns,
-            String triggerClassName,
-            boolean noWait,
-            int queueSize) {
+    public TriggerDef(HsqlNameManager.HsqlName name, int when, int operation,
+                      boolean forEach, Table table, Table[] transitions,
+                      RangeVariable[] rangeVars, Expression condition,
+                      String conditionSQL, int[] updateColumns,
+                      String triggerClassName, boolean noWait, int queueSize) {
 
-        this(
-            name,
-            when,
-            operation,
-            forEach,
-            table,
-            transitions,
-            rangeVars,
-            condition,
-            conditionSQL,
-            updateColumns);
+        this(name, when, operation, forEach, table, transitions, rangeVars,
+             condition, conditionSQL, updateColumns);
 
         this.triggerClassName = triggerClassName;
         this.nowait           = noWait;
         this.maxRowsQueued    = queueSize;
         rowsQueued            = 0;
-        pendingQueue          = new HsqlDeque<>();
+        pendingQueue          = new HsqlDeque();
 
         Class<?> cl = null;
 
         try {
-            cl = Class.forName(
-                triggerClassName,
-                true,
-                Thread.currentThread().getContextClassLoader());
+            cl = Class.forName(triggerClassName, true,
+                               Thread.currentThread().getContextClassLoader());
         } catch (Throwable t1) {
             try {
                 cl = Class.forName(triggerClassName);
@@ -195,17 +178,10 @@ public class TriggerDef implements Runnable, SchemaObject {
         }
     }
 
-    public TriggerDef(
-            HsqlName name,
-            int when,
-            int operation,
-            boolean forEachRow,
-            Table table,
-            Table[] transitions,
-            RangeVariable[] rangeVars,
-            Expression condition,
-            String conditionSQL,
-            int[] updateColumns) {
+    public TriggerDef(HsqlNameManager.HsqlName name, int when, int operation,
+                      boolean forEachRow, Table table, Table[] transitions,
+                      RangeVariable[] rangeVars, Expression condition,
+                      String conditionSQL, int[] updateColumns) {
 
         this.name          = name;
         this.actionTiming  = when;
@@ -214,9 +190,8 @@ public class TriggerDef implements Runnable, SchemaObject {
         this.table         = table;
         this.transitions   = transitions;
         this.rangeVars     = rangeVars;
-        this.condition     = condition == null
-                             ? Expression.EXPR_TRUE
-                             : condition;
+        this.condition     = condition == null ? Expression.EXPR_TRUE
+                                               : condition;
         this.updateColumns = updateColumns;
         this.conditionSQL  = conditionSQL;
         hasTransitionRanges = rangeVars[OLD_ROW] != null
@@ -251,6 +226,16 @@ public class TriggerDef implements Runnable, SchemaObject {
         return name.schema.owner;
     }
 
+    public OrderedHashSet getReferences() {
+        return new OrderedHashSet();
+    }
+
+    public OrderedHashSet getComponents() {
+        return null;
+    }
+
+    public void compile(Session session, SchemaObject parentObject) {}
+
     /**
      *  Retrieves the SQL character sequence required to (re)create the
      *  trigger, as a String
@@ -263,19 +248,17 @@ public class TriggerDef implements Runnable, SchemaObject {
         StringBuilder sb = getSQLMain();
 
         if (maxRowsQueued != 0) {
-            sb.append(Tokens.T_QUEUE)
-              .append(' ')
-              .append(maxRowsQueued)
-              .append(' ');
+            sb.append(Tokens.T_QUEUE).append(' ');
+            sb.append(maxRowsQueued).append(' ');
 
             if (nowait) {
                 sb.append(Tokens.T_NOWAIT).append(' ');
             }
         }
 
-        sb.append(Tokens.T_CALL)
-          .append(' ')
-          .append(StringConverter.toQuotedString(triggerClassName, '"', false));
+        sb.append(Tokens.T_CALL).append(' ');
+        sb.append(StringConverter.toQuotedString(triggerClassName, '"',
+                false));
 
         return sb.toString();
     }
@@ -288,16 +271,11 @@ public class TriggerDef implements Runnable, SchemaObject {
 
         StringBuilder sb = new StringBuilder(256);
 
-        sb.append(Tokens.T_CREATE)
-          .append(' ')
-          .append(Tokens.T_TRIGGER)
-          .append(' ')
-          .append(name.getSchemaQualifiedStatementName())
-          .append(' ')
-          .append(getActionTimingString())
-          .append(' ')
-          .append(getEventTypeString())
-          .append(' ');
+        sb.append(Tokens.T_CREATE).append(' ');
+        sb.append(Tokens.T_TRIGGER).append(' ');
+        sb.append(name.getSchemaQualifiedStatementName()).append(' ');
+        sb.append(getActionTimingString()).append(' ');
+        sb.append(getEventTypeString()).append(' ');
 
         if (updateColumns != null) {
             sb.append(Tokens.T_OF).append(' ');
@@ -315,75 +293,54 @@ public class TriggerDef implements Runnable, SchemaObject {
             sb.append(' ');
         }
 
-        sb.append(Tokens.T_ON)
-          .append(' ')
-          .append(table.getName().getSchemaQualifiedStatementName())
-          .append(' ');
+        sb.append(Tokens.T_ON).append(' ');
+        sb.append(table.getName().getSchemaQualifiedStatementName());
+        sb.append(' ');
 
         if (hasTransitionRanges || hasTransitionTables) {
             sb.append(Tokens.T_REFERENCING).append(' ');
 
             if (rangeVars[OLD_ROW] != null) {
-                sb.append(Tokens.T_OLD)
-                  .append(' ')
-                  .append(Tokens.T_ROW)
-                  .append(' ')
-                  .append(Tokens.T_AS)
-                  .append(' ')
-                  .append(rangeVars[OLD_ROW].getTableAlias().getStatementName())
-                  .append(' ');
+                sb.append(Tokens.T_OLD).append(' ').append(Tokens.T_ROW);
+                sb.append(' ').append(Tokens.T_AS).append(' ');
+                sb.append(
+                    rangeVars[OLD_ROW].getTableAlias().getStatementName());
+                sb.append(' ');
             }
 
             if (rangeVars[NEW_ROW] != null) {
-                sb.append(Tokens.T_NEW)
-                  .append(' ')
-                  .append(Tokens.T_ROW)
-                  .append(' ')
-                  .append(Tokens.T_AS)
-                  .append(' ')
-                  .append(rangeVars[NEW_ROW].getTableAlias().getStatementName())
-                  .append(' ');
+                sb.append(Tokens.T_NEW).append(' ').append(Tokens.T_ROW);
+                sb.append(' ').append(Tokens.T_AS).append(' ');
+                sb.append(
+                    rangeVars[NEW_ROW].getTableAlias().getStatementName());
+                sb.append(' ');
             }
 
             if (transitions[OLD_TABLE] != null) {
-                sb.append(Tokens.T_OLD)
-                  .append(' ')
-                  .append(Tokens.T_TABLE)
-                  .append(' ')
-                  .append(Tokens.T_AS)
-                  .append(' ')
-                  .append(transitions[OLD_TABLE].getName().statementName)
-                  .append(' ');
+                sb.append(Tokens.T_OLD).append(' ').append(Tokens.T_TABLE);
+                sb.append(' ').append(Tokens.T_AS).append(' ');
+                sb.append(transitions[OLD_TABLE].getName().statementName);
+                sb.append(' ');
             }
 
             if (transitions[NEW_TABLE] != null) {
-                sb.append(Tokens.T_OLD)
-                  .append(' ')
-                  .append(Tokens.T_TABLE)
-                  .append(' ')
-                  .append(Tokens.T_AS)
-                  .append(' ')
-                  .append(transitions[NEW_TABLE].getName().statementName)
-                  .append(' ');
+                sb.append(Tokens.T_OLD).append(' ').append(Tokens.T_TABLE);
+                sb.append(' ').append(Tokens.T_AS).append(' ');
+                sb.append(transitions[NEW_TABLE].getName().statementName);
+                sb.append(' ');
             }
         }
 
         if (forEachRow) {
-            sb.append(Tokens.T_FOR)
-              .append(' ')
-              .append(Tokens.T_EACH)
-              .append(' ')
-              .append(Tokens.T_ROW)
-              .append(' ');
+            sb.append(Tokens.T_FOR).append(' ');
+            sb.append(Tokens.T_EACH).append(' ');
+            sb.append(Tokens.T_ROW).append(' ');
         }
 
         if (condition != Expression.EXPR_TRUE) {
-            sb.append(Tokens.T_WHEN)
-              .append(' ')
-              .append(Tokens.T_OPENBRACKET)
-              .append(conditionSQL)
-              .append(Tokens.T_CLOSEBRACKET)
-              .append(' ');
+            sb.append(Tokens.T_WHEN).append(' ');
+            sb.append(Tokens.T_OPENBRACKET).append(conditionSQL);
+            sb.append(Tokens.T_CLOSEBRACKET).append(' ');
         }
 
         return sb;
@@ -442,9 +399,8 @@ public class TriggerDef implements Runnable, SchemaObject {
     }
 
     public String getProcedureSQL() {
-        return routine == null
-               ? null
-               : routine.getSQLBodyDefinition();
+        return routine == null ? null
+                               : routine.getSQLBodyDefinition();
     }
 
     public int[] getUpdateColumnIndexes() {
@@ -468,27 +424,31 @@ public class TriggerDef implements Runnable, SchemaObject {
     }
 
     public String getOldTransitionRowName() {
-        return rangeVars[OLD_ROW] == null
-               ? null
-               : rangeVars[OLD_ROW].getTableAlias().name;
+
+        return rangeVars[OLD_ROW] == null ? null
+                                          : rangeVars[OLD_ROW].getTableAlias()
+                                              .name;
     }
 
     public String getNewTransitionRowName() {
-        return rangeVars[NEW_ROW] == null
-               ? null
-               : rangeVars[NEW_ROW].getTableAlias().name;
+
+        return rangeVars[NEW_ROW] == null ? null
+                                          : rangeVars[NEW_ROW].getTableAlias()
+                                              .name;
     }
 
     public String getOldTransitionTableName() {
-        return transitions[OLD_TABLE] == null
-               ? null
-               : transitions[OLD_TABLE].getName().name;
+
+        return transitions[OLD_TABLE] == null ? null
+                                              : transitions[OLD_TABLE]
+                                              .getName().name;
     }
 
     public String getNewTransitionTableName() {
-        return transitions[NEW_TABLE] == null
-               ? null
-               : transitions[NEW_TABLE].getName().name;
+
+        return transitions[NEW_TABLE] == null ? null
+                                              : transitions[NEW_TABLE]
+                                              .getName().name;
     }
 
     /**
@@ -584,13 +544,9 @@ public class TriggerDef implements Runnable, SchemaObject {
 
             if (triggerData != null) {
                 if (triggerData.username != null) {
-                    trigger.fire(
-                        this.triggerType,
-                        name.name,
-                        table.getName().name,
-                        table.getColumnLabels(),
-                        triggerData.oldRow,
-                        triggerData.newRow);
+                    trigger.fire(this.triggerType, name.name,
+                                 table.getName().name, triggerData.oldRow,
+                                 triggerData.newRow);
                 }
             }
         }
@@ -616,6 +572,7 @@ public class TriggerDef implements Runnable, SchemaObject {
      * signal the thread to stop
      */
     public synchronized void terminate() {
+
         keepGoing = false;
 
         notify();
@@ -646,10 +603,10 @@ public class TriggerDef implements Runnable, SchemaObject {
 
         notify();    // notify push's wait
 
-        if (pendingQueue.isEmpty()) {
+        if (pendingQueue.size() == 0) {
             return null;
         } else {
-            return pendingQueue.removeFirst();
+            return (TriggerData) pendingQueue.removeFirst();
         }
     }
 
@@ -663,33 +620,27 @@ public class TriggerDef implements Runnable, SchemaObject {
      * @param  oldData old row
      * @param  newData new row
      */
-    synchronized void pushPair(
-            Session session,
-            Object[] oldData,
-            Object[] newData) {
+    synchronized void pushPair(Session session, Object[] oldData,
+                               Object[] newData) {
 
         if (maxRowsQueued == 0) {
-            session.sessionContext.push();
+            if (condition != Expression.EXPR_TRUE) {
+                session.sessionContext.triggerArguments = new Object[][] {
+                    oldData, newData
+                };
 
-            session.sessionContext.triggerArguments = new Object[][] {
-                oldData, newData
-            };
+                if (!condition.testCondition(session)) {
+                    return;
+                }
+            }
 
             session.getInternalConnection();
 
             try {
-                if (condition.testCondition(session)) {
-                    trigger.fire(
-                        triggerType,
-                        name.name,
-                        table.getName().name,
-                        table.getColumnLabels(),
-                        oldData,
-                        newData);
-                }
+                trigger.fire(triggerType, name.name, table.getName().name,
+                             oldData, newData);
             } finally {
                 session.releaseInternalConnection();
-                session.sessionContext.pop();
             }
 
             return;
@@ -725,9 +676,8 @@ public class TriggerDef implements Runnable, SchemaObject {
     }
 
     public String getActionOrientationString() {
-        return forEachRow
-               ? Tokens.T_ROW
-               : Tokens.T_STATEMENT;
+        return forEachRow ? Tokens.T_ROW
+                          : Tokens.T_STATEMENT;
     }
 
     /**
@@ -742,6 +692,7 @@ public class TriggerDef implements Runnable, SchemaObject {
         public String   username;
 
         public TriggerData(Session session, Object[] oldRow, Object[] newRow) {
+
             this.oldRow   = oldRow;
             this.newRow   = newRow;
             this.username = session.getUsername();
@@ -750,12 +701,8 @@ public class TriggerDef implements Runnable, SchemaObject {
 
     static class DefaultTrigger implements Trigger {
 
-        public void fire(
-                int i,
-                String name,
-                String table,
-                Object[] row1,
-                Object[] row2) {
+        public void fire(int i, String name, String table, Object[] row1,
+                         Object[] row2) {
 
             // do nothing
         }

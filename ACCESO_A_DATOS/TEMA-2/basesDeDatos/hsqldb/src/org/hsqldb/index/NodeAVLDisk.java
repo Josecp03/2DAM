@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,8 @@
 
 package org.hsqldb.index;
 
+import java.io.IOException;
+
 import org.hsqldb.RowAVL;
 import org.hsqldb.RowAVLDisk;
 import org.hsqldb.Table;
@@ -89,7 +91,7 @@ import org.hsqldb.rowio.RowOutputInterface;
  *
  *  iId is a reference to the Index object that contains this node.<br>
  *  This fields can be eliminated in the future, by changing the
- *  method signatures to take an Index parameter from Index.java (fredt@users)
+ *  method signatures to take a Index parameter from Index.java (fredt@users)
  *
  *  New class derived from Hypersonic SQL code and enhanced in HSQLDB. <p>
  *
@@ -130,6 +132,7 @@ public class NodeAVLDisk extends NodeAVL {
     }
 
     public NodeAVLDisk(RowAVLDisk r, int id) {
+
         super(r);
 
         iId = id;
@@ -183,10 +186,8 @@ public class NodeAVLDisk extends NodeAVL {
                 tableName = ((Table) row.getTable()).getName().name;
             }
 
-            store.getCache()
-                 .logSevereEvent(
-                     tableName + " NodeAVLDisk " + row.getPos(),
-                     null);
+            store.getCache().logSevereEvent(tableName + " NodeAVLDisk "
+                                            + row.getPos(), null);
 
             return this;
         }
@@ -262,12 +263,14 @@ public class NodeAVLDisk extends NodeAVL {
     }
 
     public int getBalance(PersistentStore store) {
+
         NodeAVLDisk node = findNode(store);
 
         return node.iBalance;
     }
 
     boolean isRoot(PersistentStore store) {
+
         NodeAVLDisk node = findNode(store);
 
         return node.iParent == NO_POS;
@@ -287,9 +290,8 @@ public class NodeAVLDisk extends NodeAVL {
     }
 
     public NodeAVL child(PersistentStore store, boolean isleft) {
-        return isleft
-               ? getLeft(store)
-               : getRight(store);
+        return isleft ? getLeft(store)
+                      : getRight(store);
     }
 
     NodeAVL setParent(PersistentStore store, NodeAVL n) {
@@ -299,9 +301,8 @@ public class NodeAVLDisk extends NodeAVL {
 
         row.setNodesChanged();
 
-        node.iParent = n == null
-                       ? NO_POS
-                       : (int) n.getPos();
+        node.iParent = n == null ? NO_POS
+                                 : (int) n.getPos();
 
         row.keepInMemory(false);
 
@@ -327,9 +328,8 @@ public class NodeAVLDisk extends NodeAVL {
         RowAVLDisk  row  = (RowAVLDisk) store.get(this.row, true);
         NodeAVLDisk node = (NodeAVLDisk) row.getNode(iId);
 
-        node.iLeft = n == null
-                     ? NO_POS
-                     : (int) n.getPos();
+        node.iLeft = n == null ? NO_POS
+                               : (int) n.getPos();
 
         row.setNodesChanged();
         row.keepInMemory(false);
@@ -342,9 +342,8 @@ public class NodeAVLDisk extends NodeAVL {
         RowAVLDisk  row  = (RowAVLDisk) store.get(this.row, true);
         NodeAVLDisk node = (NodeAVLDisk) row.getNode(iId);
 
-        node.iRight = n == null
-                      ? NO_POS
-                      : (int) n.getPos();
+        node.iRight = n == null ? NO_POS
+                                : (int) n.getPos();
 
         row.setNodesChanged();
         row.keepInMemory(false);
@@ -404,15 +403,12 @@ public class NodeAVLDisk extends NodeAVL {
     public void write(RowOutputInterface out) {
 
         out.writeInt(iBalance);
-        out.writeInt((iLeft == NO_POS)
-                     ? 0
-                     : iLeft);
-        out.writeInt((iRight == NO_POS)
-                     ? 0
-                     : iRight);
-        out.writeInt((iParent == NO_POS)
-                     ? 0
-                     : iParent);
+        out.writeInt((iLeft == NO_POS) ? 0
+                                       : iLeft);
+        out.writeInt((iRight == NO_POS) ? 0
+                                        : iRight);
+        out.writeInt((iParent == NO_POS) ? 0
+                                         : iParent);
     }
 
     public void write(RowOutputInterface out, LongLookup lookup) {

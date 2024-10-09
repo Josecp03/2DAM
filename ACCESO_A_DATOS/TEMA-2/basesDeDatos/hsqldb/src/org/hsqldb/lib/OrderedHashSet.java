@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,9 @@
 
 package org.hsqldb.lib;
 
+import java.util.ListIterator;
+
+
 /**
  * A list which is also a Set which maintains the inserted order of elements and
  * allows access by index. Iterators return the elements in the index order.<p>
@@ -38,7 +41,7 @@ package org.hsqldb.lib;
  * This class does not store null elements.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
@@ -61,36 +64,32 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
         this.isList = true;
     }
 
-    public OrderedHashSet(E[] valueList) {
-
-        this(valueList.length);
-
-        for (int i = 0; i < valueList.length; i++) {
-            add(valueList[i]);
-        }
-    }
-
-    public boolean remove(E key) {
+    public boolean remove(Object key) {
 
         if (key == null) {
             throw new NullPointerException();
         }
 
-        return (boolean) super.remove(0, 0, key, null, false, true);
+        return (Boolean) super.remove(0, 0, key, null, false, true);
     }
 
     public E remove(int index) {
 
         checkRange(index);
 
-        E key = (E) objectKeyTable[index];
+        E key = (E)objectKeyTable[index];
 
         super.remove(0, 0, key, null, false, true);
 
         return key;
     }
 
-    public boolean insert(int index, E key) throws IndexOutOfBoundsException {
+    public void removeEntry(int index) throws IndexOutOfBoundsException {
+        remove(index);
+    }
+
+    public boolean insert(int index,
+                          E key) throws IndexOutOfBoundsException {
 
         if (index < 0 || index > size()) {
             throw new IndexOutOfBoundsException();
@@ -108,7 +107,6 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
     }
 
     public E set(int index, E key) {
-
         if (key == null) {
             throw new NullPointerException();
         }
@@ -122,13 +120,13 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
         E oldKey = (E) objectKeyTable[index];
 
         super.remove(0, 0, oldKey, null, false, false);
+
         add(key);
 
         return oldKey;
     }
 
     public void add(int index, E key) {
-
         boolean result = insert(index, key);
 
         if (!result) {
@@ -137,6 +135,7 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
     }
 
     public E get(int index) {
+
         checkRange(index);
 
         return (E) objectKeyTable[index];
@@ -144,7 +143,6 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
 
     public Object[] toArray() {
         Object[] array = new Object[size()];
-
         return toArray(array);
     }
 
@@ -203,7 +201,7 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
         int count = 0;
 
         for (int i = 0, size = size(); i < size; i++) {
-            if (other.contains(objectKeyTable[i])) {
+            if (other.contains((E) objectKeyTable[i])) {
                 count++;
             }
         }
@@ -211,21 +209,15 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
         return count;
     }
 
-    /**
-     * add all elements of second to first.
-     * if second is null return first (which can be null),
-     * else if first is null return a new set and add the elements of second
-     */
-    public static <E> OrderedHashSet<E> addAll(
-            OrderedHashSet<E> first,
-            OrderedHashSet<E> second) {
+    public static <E> OrderedHashSet<E> addAll(OrderedHashSet<E> first,
+                                        OrderedHashSet<E> second) {
 
         if (second == null) {
             return first;
         }
 
         if (first == null) {
-            first = new OrderedHashSet<>();
+            first = new OrderedHashSet<E>();
         }
 
         first.addAll(second);
@@ -233,11 +225,6 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
         return first;
     }
 
-    /**
-     * add value to first.
-     * if value is null return first (which can be null),
-     * else if first is null return a new set and add the value
-     */
     public static <E> OrderedHashSet<E> add(OrderedHashSet<E> first, E value) {
 
         if (value == null) {
@@ -245,7 +232,7 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
         }
 
         if (first == null) {
-            first = new OrderedHashSet<>();
+            first = new OrderedHashSet<E>();
         }
 
         first.add(value);
@@ -254,6 +241,7 @@ public class OrderedHashSet<E> extends HashSet<E> implements List<E>, Set<E> {
     }
 
     private void checkRange(int i) {
+
         if (i < 0 || i >= size()) {
             throw new IndexOutOfBoundsException();
         }

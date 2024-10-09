@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,12 @@ import org.hsqldb.types.Types;
 /**
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 1.9.0
  */
 public class ExpressionLogical extends Expression {
 
+    boolean noOptimisation;
     boolean isQuantified;
     boolean isTerminal;
 
@@ -59,6 +60,7 @@ public class ExpressionLogical extends Expression {
      * For LIKE
      */
     ExpressionLogical(int type) {
+
         super(type);
 
         dataType = Type.SQL_BOOLEAN;
@@ -72,28 +74,22 @@ public class ExpressionLogical extends Expression {
         super(OpTypes.VALUE);
 
         dataType  = Type.SQL_BOOLEAN;
-        valueData = b
-                    ? Boolean.TRUE
-                    : Boolean.FALSE;
+        valueData = b ? Boolean.TRUE
+                      : Boolean.FALSE;
     }
 
     /*
      * Create an equality expressions using existing columns and
      * range variables. The expression is fully resolved in constructor.
      */
-    ExpressionLogical(
-            RangeVariable leftRangeVar,
-            int colIndexLeft,
-            RangeVariable rightRangeVar,
-            int colIndexRight) {
+    ExpressionLogical(RangeVariable leftRangeVar, int colIndexLeft,
+                      RangeVariable rightRangeVar, int colIndexRight) {
 
         super(OpTypes.EQUAL);
 
-        ExpressionColumn leftExpression = new ExpressionColumn(
-            leftRangeVar,
+        ExpressionColumn leftExpression = new ExpressionColumn(leftRangeVar,
             colIndexLeft);
-        ExpressionColumn rightExpression = new ExpressionColumn(
-            rightRangeVar,
+        ExpressionColumn rightExpression = new ExpressionColumn(rightRangeVar,
             colIndexRight);
 
         nodes        = new Expression[BINARY];
@@ -165,9 +161,8 @@ public class ExpressionLogical extends Expression {
                 break;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
 
         dataType = Type.SQL_BOOLEAN;
@@ -176,11 +171,8 @@ public class ExpressionLogical extends Expression {
     /**
      * Creates a modified LIKE comparison
      */
-    ExpressionLogical(
-            int type,
-            Expression left,
-            Expression right,
-            Expression end) {
+    ExpressionLogical(int type, Expression left, Expression right,
+                      Expression end) {
 
         super(type);
 
@@ -211,12 +203,12 @@ public class ExpressionLogical extends Expression {
                 break;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
 
-        if (opType == OpTypes.IS_NULL && nodes[LEFT].opType == OpTypes.COLUMN) {
+        if (opType == OpTypes.IS_NULL
+                && nodes[LEFT].opType == OpTypes.COLUMN) {
             isSingleColumnNull = true;
         }
 
@@ -268,7 +260,6 @@ public class ExpressionLogical extends Expression {
                     if (opType == OpTypes.EQUAL) {
                         isSingleColumnEqual = true;
                     }
-
                     break;
 
                 default :
@@ -287,7 +278,6 @@ public class ExpressionLogical extends Expression {
                     if (opType == OpTypes.EQUAL) {
                         isSingleColumnEqual = true;
                     }
-
                     break;
 
                 default :
@@ -299,6 +289,7 @@ public class ExpressionLogical extends Expression {
      * Creates a NOT NULL condition
      */
     static ExpressionLogical newNotNullCondition(Expression e) {
+
         e = new ExpressionLogical(OpTypes.IS_NULL, e);
 
         return new ExpressionLogical(OpTypes.NOT, e);
@@ -344,9 +335,8 @@ public class ExpressionLogical extends Expression {
         return new ExpressionLogical(OpTypes.OR, e1, e2);
     }
 
-    public void addLeftColumnsForAllAny(
-            RangeVariable range,
-            OrderedIntHashSet set) {
+    public void addLeftColumnsForAllAny(RangeVariable range,
+                                        OrderedIntHashSet set) {
 
         if (nodes.length == 0) {
             return;
@@ -355,7 +345,8 @@ public class ExpressionLogical extends Expression {
         for (int j = 0; j < nodes[LEFT].nodes.length; j++) {
             int index = nodes[LEFT].nodes[j].getColumnIndex();
 
-            if (index < 0 || nodes[LEFT].nodes[j].getRangeVariable() != range) {
+            if (index < 0
+                    || nodes[LEFT].nodes[j].getRangeVariable() != range) {
                 set.clear();
 
                 return;
@@ -384,35 +375,26 @@ public class ExpressionLogical extends Expression {
         }
 
         String left  = getContextSQL(nodes[LEFT]);
-        String right = getContextSQL(nodes.length > 1
-                                     ? nodes[RIGHT]
-                                     : null);
+        String right = getContextSQL(nodes.length > 1 ? nodes[RIGHT]
+                                                      : null);
 
         switch (opType) {
 
             case OpTypes.NOT :
                 if (nodes[LEFT].opType == OpTypes.IS_NULL) {
-                    sb.append(getContextSQL(nodes[LEFT].nodes[LEFT]))
-                      .append(' ')
-                      .append(Tokens.T_IS)
-                      .append(' ')
-                      .append(Tokens.T_NOT)
-                      .append(' ')
-                      .append(Tokens.T_NULL);
+                    sb.append(getContextSQL(nodes[LEFT].nodes[LEFT])).append(
+                        ' ').append(Tokens.T_IS).append(' ').append(
+                        Tokens.T_NOT).append(' ').append(Tokens.T_NULL);
 
                     return sb.toString();
                 }
 
                 if (nodes[LEFT].opType == OpTypes.NOT_DISTINCT) {
-                    sb.append(getContextSQL(nodes[LEFT].nodes[LEFT]))
-                      .append(' ')
-                      .append(Tokens.T_IS)
-                      .append(' ')
-                      .append(Tokens.T_DISTINCT)
-                      .append(' ')
-                      .append(Tokens.T_FROM)
-                      .append(' ')
-                      .append(getContextSQL(nodes[LEFT].nodes[RIGHT]));
+                    sb.append(getContextSQL(nodes[LEFT].nodes[LEFT])).append(
+                        ' ').append(Tokens.T_IS).append(' ').append(
+                        Tokens.T_DISTINCT).append(' ').append(
+                        Tokens.T_FROM).append(' ').append(
+                        getContextSQL(nodes[LEFT].nodes[RIGHT]));
 
                     return sb.toString();
                 }
@@ -422,26 +404,16 @@ public class ExpressionLogical extends Expression {
                 return sb.toString();
 
             case OpTypes.NOT_DISTINCT :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_IS)
-                  .append(' ')
-                  .append(Tokens.T_NOT)
-                  .append(' ')
-                  .append(Tokens.T_DISTINCT)
-                  .append(' ')
-                  .append(Tokens.T_FROM)
-                  .append(' ')
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_IS).append(
+                    ' ').append(Tokens.T_NOT).append(' ').append(
+                    Tokens.T_DISTINCT).append(' ').append(
+                    Tokens.T_FROM).append(' ').append(right);
 
                 return sb.toString();
 
             case OpTypes.IS_NULL :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_IS)
-                  .append(' ')
-                  .append(Tokens.T_NULL);
+                sb.append(left).append(' ').append(Tokens.T_IS).append(
+                    ' ').append(Tokens.T_NULL);
 
                 return sb.toString();
 
@@ -489,99 +461,64 @@ public class ExpressionLogical extends Expression {
                 return sb.toString();
 
             case OpTypes.AND :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_AND)
-                  .append(' ')
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_AND).append(
+                    ' ').append(right);
 
                 return sb.toString();
 
             case OpTypes.OR :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_OR)
-                  .append(' ')
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_OR).append(
+                    ' ').append(right);
 
                 return sb.toString();
 
             case OpTypes.IN :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_IN)
-                  .append(' ')
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_IN).append(
+                    ' ').append(right);
 
                 return sb.toString();
 
             case OpTypes.MATCH_SIMPLE :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_MATCH)
-                  .append(' ')
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_MATCH).append(
+                    ' ').append(right);
 
                 return sb.toString();
 
             case OpTypes.MATCH_PARTIAL :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_MATCH)
-                  .append(' ')
-                  .append(Tokens.PARTIAL)
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_MATCH).append(
+                    ' ').append(Tokens.PARTIAL).append(right);
 
                 return sb.toString();
 
             case OpTypes.MATCH_FULL :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_MATCH)
-                  .append(' ')
-                  .append(Tokens.FULL)
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_MATCH).append(
+                    ' ').append(Tokens.FULL).append(right);
 
                 return sb.toString();
 
             case OpTypes.MATCH_UNIQUE_SIMPLE :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_MATCH)
-                  .append(' ')
-                  .append(Tokens.UNIQUE)
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_MATCH).append(
+                    ' ').append(Tokens.UNIQUE).append(right);
 
                 return sb.toString();
 
             case OpTypes.MATCH_UNIQUE_PARTIAL :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_MATCH)
-                  .append(' ')
-                  .append(Tokens.UNIQUE)
-                  .append(' ')
-                  .append(Tokens.PARTIAL)
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_MATCH).append(
+                    ' ').append(Tokens.UNIQUE).append(' ').append(
+                    Tokens.PARTIAL).append(right);
 
                 return sb.toString();
 
             case OpTypes.MATCH_UNIQUE_FULL :
-                sb.append(left)
-                  .append(' ')
-                  .append(Tokens.T_MATCH)
-                  .append(' ')
-                  .append(Tokens.UNIQUE)
-                  .append(' ')
-                  .append(Tokens.FULL)
-                  .append(right);
+                sb.append(left).append(' ').append(Tokens.T_MATCH).append(
+                    ' ').append(Tokens.UNIQUE).append(' ').append(
+                    Tokens.FULL).append(right);
 
                 return sb.toString();
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
 
         return sb.toString();
@@ -600,10 +537,9 @@ public class ExpressionLogical extends Expression {
         switch (opType) {
 
             case OpTypes.VALUE :
-                sb.append("VALUE = ")
-                  .append(dataType.convertToSQLString(valueData))
-                  .append(", TYPE = ")
-                  .append(dataType.getNameString());
+                sb.append("VALUE = ").append(
+                    dataType.convertToSQLString(valueData));
+                sb.append(", TYPE = ").append(dataType.getNameString());
 
                 return sb.toString();
 
@@ -700,21 +636,20 @@ public class ExpressionLogical extends Expression {
                 break;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
 
         if (getLeftNode() != null) {
-            sb.append(" arg_left=[")
-              .append(nodes[LEFT].describe(session, blanks + 1))
-              .append(']');
+            sb.append(" arg_left=[");
+            sb.append(nodes[LEFT].describe(session, blanks + 1));
+            sb.append(']');
         }
 
         if (getRightNode() != null) {
-            sb.append(" arg_right=[")
-              .append(nodes[RIGHT].describe(session, blanks + 1))
-              .append(']');
+            sb.append(" arg_right=[");
+            sb.append(nodes[RIGHT].describe(session, blanks + 1));
+            sb.append(']');
         }
 
         return sb.toString();
@@ -775,29 +710,20 @@ public class ExpressionLogical extends Expression {
                     } else {
                         Object value = nodes[LEFT].getValue(session);
 
-                        if (Boolean.FALSE.equals(value)) {
+                        if (value == null || Boolean.FALSE.equals(value)) {
                             setAsConstantValue(Boolean.FALSE, parent);
-                        } else if (Boolean.TRUE.equals(value)) {
-                            if (parent != null) {
-                                parent.replaceNode(this, nodes[RIGHT]);
-                            }
                         }
                     }
                 } else if (nodes[RIGHT].opType == OpTypes.VALUE) {
                     Object value = nodes[RIGHT].getValue(session);
 
-                    if (Boolean.FALSE.equals(value)) {
+                    if (value == null || Boolean.FALSE.equals(value)) {
                         setAsConstantValue(Boolean.FALSE, parent);
-                    } else if (Boolean.TRUE.equals(value)) {
-                        if (parent != null) {
-                            parent.replaceNode(this, nodes[LEFT]);
-                        }
                     }
                 }
 
                 break;
             }
-
             case OpTypes.OR : {
                 resolveTypesForLogicalOp();
 
@@ -809,10 +735,6 @@ public class ExpressionLogical extends Expression {
 
                         if (Boolean.TRUE.equals(value)) {
                             setAsConstantValue(Boolean.TRUE, parent);
-                        } else if (Boolean.FALSE.equals(value)) {
-                            if (parent != null) {
-                                parent.replaceNode(this, nodes[RIGHT]);
-                            }
                         }
                     }
                 } else if (nodes[RIGHT].opType == OpTypes.VALUE) {
@@ -820,16 +742,11 @@ public class ExpressionLogical extends Expression {
 
                     if (Boolean.TRUE.equals(value)) {
                         setAsConstantValue(Boolean.TRUE, parent);
-                    } else if (Boolean.FALSE.equals(value)) {
-                        if (parent != null) {
-                            parent.replaceNode(this, nodes[LEFT]);
-                        }
                     }
                 }
 
                 break;
             }
-
             case OpTypes.IS_NOT_NULL :
             case OpTypes.IS_NULL : {
                 switch (nodes[LEFT].opType) {
@@ -841,12 +758,12 @@ public class ExpressionLogical extends Expression {
                         for (int i = 0; i < sourceNodes.length; i++) {
                             Expression node;
 
-                            node = new ExpressionLogical(
-                                OpTypes.IS_NULL,
-                                sourceNodes[i]);
+                            node = new ExpressionLogical(OpTypes.IS_NULL,
+                                                         sourceNodes[i]);
 
                             if (opType == OpTypes.IS_NOT_NULL) {
-                                node = new ExpressionLogical(OpTypes.NOT, node);
+                                node = new ExpressionLogical(OpTypes.NOT,
+                                                             node);
                             }
 
                             result = andExpressions(result, node);
@@ -856,14 +773,13 @@ public class ExpressionLogical extends Expression {
                         nodes  = result.nodes;
 
                         resolveTypes(session, parent);
+
                         break;
                     }
-
                     case OpTypes.ROW_SUBQUERY :
                     case OpTypes.TABLE_SUBQUERY : {
                         break;
                     }
-
                     default : {
                         if (nodes[LEFT].isUnresolvedParam()) {
                             if (session.database.sqlEnforceTypes) {
@@ -876,17 +792,13 @@ public class ExpressionLogical extends Expression {
                         if (opType == OpTypes.IS_NOT_NULL) {
                             Expression node;
 
-                            node = new ExpressionLogical(
-                                OpTypes.IS_NULL,
-                                nodes[LEFT]);
+                            node = new ExpressionLogical(OpTypes.IS_NULL,
+                                                         nodes[LEFT]);
                             nodes[LEFT] = node;
                             opType      = OpTypes.NOT;
 
-                            if (noOptimisation) {
-                                nodes[LEFT].setNoOptimisation();
-                            }
-
                             resolveTypes(session, parent);
+
                             break;
                         }
 
@@ -900,16 +812,17 @@ public class ExpressionLogical extends Expression {
 
                 break;
             }
-
             case OpTypes.NOT : {
                 if (nodes[LEFT].isUnresolvedParam()) {
                     nodes[LEFT].dataType = Type.SQL_BOOLEAN;
+
                     break;
                 }
 
                 if (nodes[LEFT].opType == OpTypes.VALUE) {
                     if (nodes[LEFT].dataType.isBooleanType()) {
                         setAsConstantValue(session, parent);
+
                         break;
                     } else {
                         throw Error.error(ErrorCode.X_42563);
@@ -922,15 +835,15 @@ public class ExpressionLogical extends Expression {
                 }
 
                 dataType = Type.SQL_BOOLEAN;
+
                 break;
             }
-
             case OpTypes.OVERLAPS :
                 resolveTypesForOverlaps();
                 break;
 
             case OpTypes.IN :
-                resolveTypesForAllAny(session);
+                resolveTypesForIn(session);
                 break;
 
             case OpTypes.MATCH_SIMPLE :
@@ -953,9 +866,8 @@ public class ExpressionLogical extends Expression {
                 break;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
     }
 
@@ -984,7 +896,8 @@ public class ExpressionLogical extends Expression {
         }
     }
 
-    private void resolveTypesForComparison(Session session, Expression parent) {
+    private void resolveTypesForComparison(Session session,
+                                           Expression parent) {
 
         if (exprSubType == OpTypes.ALL_QUANTIFIED
                 || exprSubType == OpTypes.ANY_QUANTIFIED) {
@@ -1019,11 +932,13 @@ public class ExpressionLogical extends Expression {
                 nodes[RIGHT].dataType = nodes[LEFT].dataType;
             }
 
-            if (nodes[LEFT].dataType == null || nodes[RIGHT].dataType == null) {
+            if (nodes[LEFT].dataType == null
+                    || nodes[RIGHT].dataType == null) {
                 throw Error.error(ErrorCode.X_42567);
             }
 
-            if (!nodes[LEFT].dataType.canCompareDirect(nodes[RIGHT].dataType)) {
+            if (!nodes[LEFT].dataType.canCompareDirect(
+                    nodes[RIGHT].dataType)) {
                 if (convertDateTime(session)) {
 
                     // compatibility for BIT with number and BOOLEAN - convert bit to other type
@@ -1035,10 +950,8 @@ public class ExpressionLogical extends Expression {
 
                     if (nodes[LEFT].dataType.canConvertFrom(
                             nodes[RIGHT].dataType)) {
-                        nodes[RIGHT] = ExpressionOp.getCastExpression(
-                            session,
-                            nodes[RIGHT],
-                            nodes[LEFT].dataType);
+                        nodes[RIGHT] = ExpressionOp.getCastExpression(session,
+                                nodes[RIGHT], nodes[LEFT].dataType);
                     }
                 } else if (nodes[RIGHT].dataType.isBitType()
                            || nodes[RIGHT].dataType.isBooleanType()) {
@@ -1048,10 +961,8 @@ public class ExpressionLogical extends Expression {
 
                     if (nodes[RIGHT].dataType.canConvertFrom(
                             nodes[LEFT].dataType)) {
-                        nodes[LEFT] = ExpressionOp.getCastExpression(
-                            session,
-                            nodes[LEFT],
-                            nodes[RIGHT].dataType);
+                        nodes[LEFT] = ExpressionOp.getCastExpression(session,
+                                nodes[LEFT], nodes[RIGHT].dataType);
                     }
                 } else if (nodes[LEFT].dataType.isNumberType()) {
                     if (session.database.sqlEnforceTypes) {
@@ -1060,10 +971,8 @@ public class ExpressionLogical extends Expression {
 
                     if (nodes[LEFT].dataType.canConvertFrom(
                             nodes[RIGHT].dataType)) {
-                        nodes[RIGHT] = ExpressionOp.getCastExpression(
-                            session,
-                            nodes[RIGHT],
-                            nodes[LEFT].dataType);
+                        nodes[RIGHT] = ExpressionOp.getCastExpression(session,
+                                nodes[RIGHT], nodes[LEFT].dataType);
                     }
                 } else if (nodes[RIGHT].dataType.isNumberType()) {
                     if (session.database.sqlEnforceTypes) {
@@ -1072,10 +981,8 @@ public class ExpressionLogical extends Expression {
 
                     if (nodes[RIGHT].dataType.canConvertFrom(
                             nodes[LEFT].dataType)) {
-                        nodes[LEFT] = ExpressionOp.getCastExpression(
-                            session,
-                            nodes[LEFT],
-                            nodes[RIGHT].dataType);
+                        nodes[LEFT] = ExpressionOp.getCastExpression(session,
+                                nodes[LEFT], nodes[RIGHT].dataType);
                     }
                 } else if (nodes[LEFT].dataType.isDateTimeType()) {
                     if (nodes[LEFT].dataType.isDateTimeTypeWithZone()
@@ -1084,10 +991,8 @@ public class ExpressionLogical extends Expression {
                     }
                 } else if (nodes[LEFT].dataType.canConvertFrom(
                         nodes[RIGHT].dataType)) {
-                    nodes[RIGHT] = ExpressionOp.getCastExpression(
-                        session,
-                        nodes[RIGHT],
-                        nodes[LEFT].dataType);
+                    nodes[RIGHT] = ExpressionOp.getCastExpression(session,
+                            nodes[RIGHT], nodes[LEFT].dataType);
                 } else {
                     throw Error.error(ErrorCode.X_42562);
                 }
@@ -1121,15 +1026,13 @@ public class ExpressionLogical extends Expression {
                 if (nodes[LEFT].dataType.typeComparisonGroup
                         == Types.SQL_VARCHAR) {
                     if (nodes[LEFT].opType == OpTypes.VALUE) {
-                        nodes[RIGHT].dataType.convertToTypeLimits(
-                            session,
-                            nodes[LEFT].valueData);
+                        nodes[RIGHT].dataType.convertToTypeLimits(session,
+                                nodes[LEFT].valueData);
                     }
 
                     if (nodes[RIGHT].opType == OpTypes.VALUE) {
-                        nodes[LEFT].dataType.convertToTypeLimits(
-                            session,
-                            nodes[RIGHT].valueData);
+                        nodes[LEFT].dataType.convertToTypeLimits(session,
+                                nodes[RIGHT].valueData);
                     }
                 }
             }
@@ -1145,9 +1048,9 @@ public class ExpressionLogical extends Expression {
                 break;
 
             default :
-                nodes[nodeIndex] = new Expression(
-                    OpTypes.ROW,
-                    new Expression[]{ nodes[nodeIndex] });
+                nodes[nodeIndex] = new Expression(OpTypes.ROW,
+                                                  new Expression[]{
+                                                      nodes[nodeIndex] });
                 nodes[nodeIndex].nodeDataTypes = new Type[]{
                     nodes[nodeIndex].nodes[0].dataType };
         }
@@ -1169,13 +1072,14 @@ public class ExpressionLogical extends Expression {
                 throw Error.error(ErrorCode.X_42567);
             }
 
-            if (leftType.typeComparisonGroup != rightType.typeComparisonGroup) {
+            if (leftType.typeComparisonGroup
+                    != rightType.typeComparisonGroup) {
                 throw Error.error(ErrorCode.X_42562);
             } else if (leftType.isDateTimeType()) {
                 if (leftType.isDateTimeTypeWithZone()
                         ^ rightType.isDateTimeTypeWithZone()) {
-                    nodes[LEFT].nodes[i] = new ExpressionOp(
-                        nodes[LEFT].nodes[i]);
+                    nodes[LEFT].nodes[i] =
+                        new ExpressionOp(nodes[LEFT].nodes[i]);
                     nodes[LEFT].nodeDataTypes[i] =
                         nodes[LEFT].nodes[i].dataType;
                 }
@@ -1193,8 +1097,7 @@ public class ExpressionLogical extends Expression {
             Type leftType  = nodes[LEFT].nodeDataTypes[i];
             Type rightType = nodes[RIGHT].nodeDataTypes[i];
 
-            if (leftType.isArrayType()
-                    || leftType.isLobType()
+            if (leftType.isArrayType() || leftType.isLobType()
                     || rightType.isLobType()) {
                 throw Error.error(ErrorCode.X_42534);
             }
@@ -1227,17 +1130,15 @@ public class ExpressionLogical extends Expression {
         if (nodes[b].dataType.isCharacterType()) {
             if (nodes[b].opType == OpTypes.VALUE) {
                 try {
-                    nodes[b].valueData = nodes[a].dataType.castToType(
-                        session,
-                        nodes[b].valueData,
-                        nodes[b].dataType);
+                    nodes[b].valueData = nodes[a].dataType.castToType(session,
+                            nodes[b].valueData, nodes[b].dataType);
                     nodes[b].dataType = nodes[a].dataType;
                 } catch (HsqlException e) {
                     if (nodes[a].dataType == Type.SQL_DATE) {
-                        nodes[b].valueData = Type.SQL_TIMESTAMP.castToType(
-                            session,
-                            nodes[b].valueData,
-                            nodes[b].dataType);
+                        nodes[b].valueData =
+                            Type.SQL_TIMESTAMP.castToType(session,
+                                                          nodes[b].valueData,
+                                                          nodes[b].dataType);
                         nodes[b].dataType = Type.SQL_TIMESTAMP;
                     }
                 }
@@ -1299,9 +1200,8 @@ public class ExpressionLogical extends Expression {
         int degree = nodes[LEFT].getDegree();
 
         if (degree == 1 && nodes[LEFT].opType != OpTypes.ROW) {
-            nodes[LEFT] = new Expression(
-                OpTypes.ROW,
-                new Expression[]{ nodes[LEFT] });
+            nodes[LEFT] = new Expression(OpTypes.ROW,
+                                         new Expression[]{ nodes[LEFT] });
         }
 
         if (nodes[RIGHT].opType == OpTypes.VALUELIST) {
@@ -1345,6 +1245,10 @@ public class ExpressionLogical extends Expression {
         }
     }
 
+    void resolveTypesForIn(Session session) {
+        resolveTypesForAllAny(session);
+    }
+
     public Object getValue(Session session) {
 
         switch (opType) {
@@ -1353,8 +1257,8 @@ public class ExpressionLogical extends Expression {
                 return valueData;
 
             case OpTypes.NEGATE :
-                return dataType.negate(
-                    nodes[LEFT].getValue(session, nodes[LEFT].dataType));
+                return dataType.negate(nodes[LEFT].getValue(session,
+                        nodes[LEFT].dataType));
 
             case OpTypes.IS_NOT_NULL :
             case OpTypes.IS_NULL : {
@@ -1381,27 +1285,20 @@ public class ExpressionLogical extends Expression {
                     }
                 }
 
-                return nodes[LEFT].getValue(session) == null
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return nodes[LEFT].getValue(session) == null ? Boolean.TRUE
+                                                             : Boolean.FALSE;
             }
-
             case OpTypes.OVERLAPS : {
                 Object[] left  = nodes[LEFT].getRowValue(session);
                 Object[] right = nodes[RIGHT].getRowValue(session);
 
-                return DateTimeType.overlaps(
-                    session,
-                    left,
-                    nodes[LEFT].nodeDataTypes,
-                    right,
-                    nodes[RIGHT].nodeDataTypes);
+                return DateTimeType.overlaps(session, left,
+                                             nodes[LEFT].nodeDataTypes, right,
+                                             nodes[RIGHT].nodeDataTypes);
             }
-
             case OpTypes.IN : {
                 return testInCondition(session);
             }
-
             case OpTypes.MATCH_SIMPLE :
             case OpTypes.MATCH_PARTIAL :
             case OpTypes.MATCH_FULL :
@@ -1410,7 +1307,6 @@ public class ExpressionLogical extends Expression {
             case OpTypes.MATCH_UNIQUE_FULL : {
                 return testMatchCondition(session);
             }
-
             case OpTypes.NOT_DISTINCT :
                 return testNotDistinctCondition(session);
 
@@ -1421,21 +1317,16 @@ public class ExpressionLogical extends Expression {
                        ? Boolean.TRUE
                        : Boolean.FALSE;
             }
-
             case OpTypes.EXISTS : {
                 return testExistsCondition(session);
             }
-
             case OpTypes.NOT : {
                 Boolean result = (Boolean) nodes[LEFT].getValue(session);
 
-                return result == null
-                       ? null
-                       : result.booleanValue()
-                         ? Boolean.FALSE
-                         : Boolean.TRUE;
+                return result == null ? null
+                                      : result.booleanValue() ? Boolean.FALSE
+                                                              : Boolean.TRUE;
             }
-
             case OpTypes.AND : {
                 Boolean r1 = (Boolean) nodes[LEFT].getValue(session);
 
@@ -1455,7 +1346,6 @@ public class ExpressionLogical extends Expression {
 
                 return Boolean.TRUE;
             }
-
             case OpTypes.OR : {
                 Boolean r1 = (Boolean) nodes[LEFT].getValue(session);
 
@@ -1475,7 +1365,6 @@ public class ExpressionLogical extends Expression {
 
                 return Boolean.FALSE;
             }
-
             case OpTypes.EQUAL :
             case OpTypes.GREATER :
             case OpTypes.GREATER_EQUAL :
@@ -1498,12 +1387,12 @@ public class ExpressionLogical extends Expression {
 
                 if (o1 instanceof Object[]) {
                     if (o2 != null && !(o2 instanceof Object[])) {
-                        throw Error.runtimeError(
-                            ErrorCode.U_S0500,
-                            "ExpressionLogical");
+                        throw Error.runtimeError(ErrorCode.U_S0500,
+                                                 "ExpressionLogical");
                     }
 
-                    return compareValues(session, (Object[]) o1, (Object[]) o2);
+                    return compareValues(session, (Object[]) o1,
+                                         (Object[]) o2);
                 } else {
                     if (o2 instanceof Object[]) {
                         o2 = ((Object[]) o2)[0];
@@ -1512,11 +1401,9 @@ public class ExpressionLogical extends Expression {
                     return compareValues(session, o1, o2);
                 }
             }
-
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
     }
 
@@ -1537,40 +1424,33 @@ public class ExpressionLogical extends Expression {
         switch (opType) {
 
             case OpTypes.EQUAL :
-                return result == 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result == 0 ? Boolean.TRUE
+                                   : Boolean.FALSE;
 
             case OpTypes.NOT_EQUAL :
-                return result != 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result != 0 ? Boolean.TRUE
+                                   : Boolean.FALSE;
 
             case OpTypes.GREATER :
-                return result > 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result > 0 ? Boolean.TRUE
+                                  : Boolean.FALSE;
 
             case OpTypes.GREATER_EQUAL :
             case OpTypes.GREATER_EQUAL_PRE :
-                return result >= 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result >= 0 ? Boolean.TRUE
+                                   : Boolean.FALSE;
 
             case OpTypes.SMALLER_EQUAL :
-                return result <= 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result <= 0 ? Boolean.TRUE
+                                   : Boolean.FALSE;
 
             case OpTypes.SMALLER :
-                return result < 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result < 0 ? Boolean.TRUE
+                                  : Boolean.FALSE;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
     }
 
@@ -1578,10 +1458,8 @@ public class ExpressionLogical extends Expression {
      * For MATCH SIMPLE and FULL expressions, nulls in left are handled
      * prior to calling this method
      */
-    private Boolean matchValues(
-            Session session,
-            Object[] leftData,
-            Object[] rightData) {
+    private Boolean matchValues(Session session, Object[] leftData,
+                                Object[] rightData) {
 
         Type[] types  = nodes[LEFT].nodeDataTypes;
         int    result = 0;
@@ -1613,21 +1491,17 @@ public class ExpressionLogical extends Expression {
                     }
                 }
 
-                return result == 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result == 0 ? Boolean.TRUE
+                                   : Boolean.FALSE;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
     }
 
-    private Boolean compareValues(
-            Session session,
-            Object[] leftData,
-            Object[] rightData) {
+    private Boolean compareValues(Session session, Object[] leftData,
+                                  Object[] rightData) {
 
         Type[]  types   = nodes[LEFT].nodeDataTypes;
         int     result  = 0;
@@ -1643,6 +1517,7 @@ public class ExpressionLogical extends Expression {
 
             if (leftValue == null || rightValue == null) {
                 hasNull = true;
+
                 continue;
             }
 
@@ -1681,9 +1556,8 @@ public class ExpressionLogical extends Expression {
                     return null;
                 }
 
-                return result > 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result > 0 ? Boolean.TRUE
+                                  : Boolean.FALSE;
 
             case OpTypes.GREATER_EQUAL :
             case OpTypes.GREATER_EQUAL_PRE :
@@ -1691,32 +1565,28 @@ public class ExpressionLogical extends Expression {
                     return null;
                 }
 
-                return result >= 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result >= 0 ? Boolean.TRUE
+                                   : Boolean.FALSE;
 
             case OpTypes.SMALLER_EQUAL :
                 if (hasNull) {
                     return null;
                 }
 
-                return result <= 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result <= 0 ? Boolean.TRUE
+                                   : Boolean.FALSE;
 
             case OpTypes.SMALLER :
                 if (hasNull) {
                     return null;
                 }
 
-                return result < 0
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return result < 0 ? Boolean.TRUE
+                                  : Boolean.FALSE;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
     }
 
@@ -1741,9 +1611,8 @@ public class ExpressionLogical extends Expression {
             for (int i = 0; i < length; i++) {
                 Object[] rowData = nodes[RIGHT].nodes[i].getRowValue(session);
 
-                if (Boolean.TRUE.equals(compareValues(session,
-                        data,
-                        rowData))) {
+                if (Boolean.TRUE.equals(compareValues(session, data,
+                                                      rowData))) {
                     return Boolean.TRUE;
                 }
             }
@@ -1788,14 +1657,12 @@ public class ExpressionLogical extends Expression {
                     if (nulls == data.length) {
                         return Boolean.TRUE;
                     }
-
                     break;
 
                 case OpTypes.MATCH_FULL :
                 case OpTypes.MATCH_UNIQUE_FULL :
-                    return nulls == data.length
-                           ? Boolean.TRUE
-                           : Boolean.FALSE;
+                    return nulls == data.length ? Boolean.TRUE
+                                                : Boolean.FALSE;
             }
         }
 
@@ -1806,8 +1673,8 @@ public class ExpressionLogical extends Expression {
                 boolean   hasMatch = false;
 
                 for (int i = 0; i < length; i++) {
-                    Object[] rowData = nodes[RIGHT].nodes[i].getRowValue(
-                        session);
+                    Object[] rowData =
+                        nodes[RIGHT].nodes[i].getRowValue(session);
                     Boolean result = matchValues(session, data, rowData);
 
                     if (!result.booleanValue()) {
@@ -1835,28 +1702,23 @@ public class ExpressionLogical extends Expression {
                     }
                 }
 
-                return hasMatch
-                       ? Boolean.TRUE
-                       : Boolean.FALSE;
+                return hasMatch ? Boolean.TRUE
+                                : Boolean.FALSE;
             }
-
             case OpTypes.TABLE_SUBQUERY : {
-                PersistentStore store = nodes[RIGHT].getTable()
-                        .getRowStore(session);
+                PersistentStore store =
+                    nodes[RIGHT].getTable().getRowStore(session);
 
                 nodes[RIGHT].materialise(session);
-                convertToType(
-                    session,
-                    data,
-                    nodes[LEFT].nodeDataTypes,
-                    nodes[RIGHT].nodeDataTypes);
+                convertToType(session, data, nodes[LEFT].nodeDataTypes,
+                              nodes[RIGHT].nodeDataTypes);
 
                 if (nulls != 0
                         && (opType == OpTypes.MATCH_PARTIAL
                             || opType == OpTypes.MATCH_UNIQUE_PARTIAL)) {
                     boolean hasMatch = false;
-                    RowIterator it = nodes[RIGHT].getTable()
-                                                 .rowIterator(session);
+                    RowIterator it =
+                        nodes[RIGHT].getTable().rowIterator(session);
 
                     while (it.next()) {
                         Object[] rowData = it.getCurrent();
@@ -1879,18 +1741,13 @@ public class ExpressionLogical extends Expression {
                         }
                     }
 
-                    return hasMatch
-                           ? Boolean.TRUE
-                           : Boolean.FALSE;
+                    return hasMatch ? Boolean.TRUE
+                                    : Boolean.FALSE;
                 }
 
                 // now nulls == 0;
-                RowIterator it = nodes[RIGHT].getTable()
-                                             .getFullIndex(session)
-                                             .findFirstRow(
-                                                 session,
-                                                 store,
-                                                 data);
+                RowIterator it = nodes[RIGHT].getTable().getFullIndex(
+                    session).findFirstRow(session, store, data);
                 boolean result = it.next();
 
                 if (!result) {
@@ -1898,6 +1755,7 @@ public class ExpressionLogical extends Expression {
                 }
 
                 switch (opType) {
+
                     case OpTypes.MATCH_SIMPLE :
                     case OpTypes.MATCH_PARTIAL :
                     case OpTypes.MATCH_FULL :
@@ -1914,20 +1772,17 @@ public class ExpressionLogical extends Expression {
 
                     Object[] rowData = it.getCurrent();
 
-                    if (Boolean.TRUE.equals(matchValues(session,
-                            data,
-                            rowData))) {
+                    if (Boolean.TRUE.equals(matchValues(session, data,
+                                                        rowData))) {
                         return Boolean.FALSE;
                     }
                 }
 
                 return Boolean.TRUE;
             }
-
             default : {
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
             }
         }
     }
@@ -1936,9 +1791,8 @@ public class ExpressionLogical extends Expression {
 
         nodes[LEFT].materialise(session);
 
-        return nodes[LEFT].getTable().isEmpty(session)
-               ? Boolean.FALSE
-               : Boolean.TRUE;
+        return nodes[LEFT].getTable().isEmpty(session) ? Boolean.FALSE
+                                                       : Boolean.TRUE;
     }
 
     private Boolean testAllAnyCondition(Session session) {
@@ -1953,10 +1807,8 @@ public class ExpressionLogical extends Expression {
         return result;
     }
 
-    private Boolean getAllAnyValue(
-            Session session,
-            Object[] data,
-            TableDerived td) {
+    private Boolean getAllAnyValue(Session session, Object[] data,
+                                   TableDerived td) {
 
         boolean         empty     = td.isEmpty(session);
         Index           index     = td.getFullIndex(session);
@@ -1970,11 +1822,8 @@ public class ExpressionLogical extends Expression {
             hasNulls |= store.hasNull(i);
         }
 
-        convertToType(
-            session,
-            data,
-            nodes[LEFT].nodeDataTypes,
-            nodes[RIGHT].nodeDataTypes);
+        convertToType(session, data, nodes[LEFT].nodeDataTypes,
+                      nodes[RIGHT].nodeDataTypes);
 
         switch (exprSubType) {
 
@@ -1987,19 +1836,11 @@ public class ExpressionLogical extends Expression {
                     return null;
                 }
 
-                int searchType = opType == OpTypes.NOT_EQUAL
-                                 ? OpTypes.EQUAL
-                                 : opType;
+                int searchType = opType == OpTypes.NOT_EQUAL ? OpTypes.EQUAL
+                                                             : opType;
 
-                it = index.findFirstRow(
-                    session,
-                    store,
-                    data,
-                    data.length,
-                    0,
-                    searchType,
-                    false,
-                    null);
+                it = index.findFirstRow(session, store, data, data.length, 0,
+                                        searchType, false, null);
 
                 switch (opType) {
 
@@ -2019,7 +1860,6 @@ public class ExpressionLogical extends Expression {
                                 return null;
                             }
                         }
-
                         break;
 
                     case OpTypes.NOT_EQUAL :
@@ -2035,6 +1875,7 @@ public class ExpressionLogical extends Expression {
 
                     if (result == null) {
                         comparedNull = true;
+
                         continue;
                     }
 
@@ -2051,7 +1892,6 @@ public class ExpressionLogical extends Expression {
 
                 return Boolean.FALSE;
             }
-
             case OpTypes.ALL_QUANTIFIED : {
                 if (empty) {
                     return Boolean.TRUE;
@@ -2078,7 +1918,6 @@ public class ExpressionLogical extends Expression {
                                 }
                             }
                         }
-
                         break;
 
                     case OpTypes.GREATER :
@@ -2093,7 +1932,6 @@ public class ExpressionLogical extends Expression {
 
                             return compareValues(session, data, lastdata);
                         }
-
                         break;
 
                     case OpTypes.SMALLER :
@@ -2118,6 +1956,7 @@ public class ExpressionLogical extends Expression {
 
                     if (result == null) {
                         comparedNull = true;
+
                         continue;
                     }
 
@@ -2134,11 +1973,9 @@ public class ExpressionLogical extends Expression {
 
                 return Boolean.TRUE;
             }
-
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
     }
 
@@ -2154,10 +1991,8 @@ public class ExpressionLogical extends Expression {
         if (nodes[LEFT].opType == OpTypes.AND) {
             opType = OpTypes.AND;
 
-            Expression temp = new ExpressionLogical(
-                OpTypes.OR,
-                nodes[LEFT].nodes[RIGHT],
-                nodes[RIGHT]);
+            Expression temp = new ExpressionLogical(OpTypes.OR,
+                nodes[LEFT].nodes[RIGHT], nodes[RIGHT]);
 
             nodes[LEFT].opType       = OpTypes.OR;
             nodes[LEFT].nodes[RIGHT] = nodes[RIGHT];
@@ -2192,14 +2027,12 @@ public class ExpressionLogical extends Expression {
 
                 return result;
             }
-
             case OpTypes.OR : {
                 result = nodes[LEFT].isIndexable(rangeVar)
                          && nodes[RIGHT].isIndexable(rangeVar);
 
                 return result;
             }
-
             default : {
                 Expression temp = getIndexableExpression(rangeVar);
 
@@ -2214,16 +2047,14 @@ public class ExpressionLogical extends Expression {
 
             case OpTypes.IS_NULL :
                 return nodes[LEFT].opType == OpTypes.COLUMN
-                       && nodes[LEFT].isIndexable(rangeVar)
-                       ? this
-                       : null;
+                       && nodes[LEFT].isIndexable(rangeVar) ? this
+                                                            : null;
 
             case OpTypes.NOT :
                 return nodes[LEFT].opType == OpTypes.IS_NULL
                        && nodes[LEFT].nodes[LEFT].opType == OpTypes.COLUMN
-                       && nodes[LEFT].nodes[LEFT].isIndexable(rangeVar)
-                       ? this
-                       : null;
+                       && nodes[LEFT].nodes[LEFT].isIndexable(rangeVar) ? this
+                                                                        : null;
 
             case OpTypes.EQUAL :
                 if (exprSubType == OpTypes.ANY_QUANTIFIED) {
@@ -2371,9 +2202,8 @@ public class ExpressionLogical extends Expression {
                 break;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
 
         opType = i;
@@ -2432,16 +2262,13 @@ public class ExpressionLogical extends Expression {
             return false;
         }
 
-        Expression           otherExpression = left
-                ? nodes[RIGHT]
-                : nodes[LEFT];
+        Expression           otherExpression = left ? nodes[RIGHT]
+                                                    : nodes[LEFT];
         ExpressionArithmetic newArg          = null;
 
         if (!replaceColumn) {
-            newArg = new ExpressionArithmetic(
-                operation,
-                otherExpression,
-                nonColExpression);
+            newArg = new ExpressionArithmetic(operation, otherExpression,
+                                              nonColExpression);
 
             newArg.resolveTypesForArithmetic(session, parent);
         }
@@ -2452,8 +2279,7 @@ public class ExpressionLogical extends Expression {
                 nodes[LEFT].nodes[RIGHT] = otherExpression;
 
                 ((ExpressionArithmetic) nodes[LEFT]).resolveTypesForArithmetic(
-                    session,
-                    parent);
+                    session, parent);
             } else {
                 nodes[LEFT]  = colExpression;
                 nodes[RIGHT] = newArg;
@@ -2463,9 +2289,8 @@ public class ExpressionLogical extends Expression {
                 nodes[LEFT]               = colExpression;
                 nodes[RIGHT].nodes[RIGHT] = otherExpression;
 
-                ((ExpressionArithmetic) nodes[RIGHT]).resolveTypesForArithmetic(
-                    session,
-                    parent);
+                ((ExpressionArithmetic) nodes[RIGHT])
+                    .resolveTypesForArithmetic(session, parent);
             } else {
                 nodes[RIGHT] = colExpression;
                 nodes[LEFT]  = newArg;
@@ -2481,12 +2306,15 @@ public class ExpressionLogical extends Expression {
             return true;
         }
 
-        return nodes[RIGHT].getRangeVariable() == range;
+        if (nodes[RIGHT].getRangeVariable() == range) {
+            return true;
+        }
+
+        return false;
     }
 
-    void getJoinRangeVariables(
-            RangeVariable[] ranges,
-            List<RangeVariable> list) {
+    void getJoinRangeVariables(RangeVariable[] ranges, List list) {
+
         for (int i = 0; i < nodes.length; i++) {
             nodes[i].getJoinRangeVariables(ranges, list);
         }
@@ -2499,18 +2327,9 @@ public class ExpressionLogical extends Expression {
         switch (opType) {
 
             case OpTypes.OR : {
-                double leftFactor = nodes[LEFT].costFactor(
-                    session,
-                    rangeVar,
-                    opType);
-                double rightFactor = nodes[RIGHT].costFactor(
-                    session,
-                    rangeVar,
-                    opType);
-
-                return leftFactor + rightFactor;
+                return nodes[LEFT].costFactor(session, rangeVar, opType)
+                       + nodes[RIGHT].costFactor(session, rangeVar, opType);
             }
-
             case OpTypes.OVERLAPS :
             case OpTypes.IN :
             case OpTypes.MATCH_SIMPLE :
@@ -2520,8 +2339,8 @@ public class ExpressionLogical extends Expression {
             case OpTypes.MATCH_UNIQUE_PARTIAL :
             case OpTypes.MATCH_UNIQUE_FULL :
             case OpTypes.NOT_DISTINCT : {
-                PersistentStore store = rangeVar.rangeTable.getRowStore(
-                    session);
+                PersistentStore store =
+                    rangeVar.rangeTable.getRowStore(session);
 
                 cost = store.elementCount();
 
@@ -2531,29 +2350,30 @@ public class ExpressionLogical extends Expression {
 
                 break;
             }
-
             case OpTypes.IS_NULL :
             case OpTypes.NOT : {
                 cost = costFactorUnaryColumn(session, rangeVar);
+
                 break;
             }
-
             case OpTypes.EQUAL : {
                 switch (exprSubType) {
 
                     case OpTypes.ANY_QUANTIFIED : {
                         if (nodes[LEFT].opType == OpTypes.COLUMN
-                                && nodes[LEFT].getRangeVariable() == rangeVar) {
+                                && nodes[LEFT].getRangeVariable()
+                                   == rangeVar) {
                             cost = costFactorColumns(session, rangeVar);
                             cost *= 1024;
+
                             break;
                         }
                     }
 
                     // fall through
                     case OpTypes.ALL_QUANTIFIED : {
-                        PersistentStore store = rangeVar.rangeTable.getRowStore(
-                            session);
+                        PersistentStore store =
+                            rangeVar.rangeTable.getRowStore(session);
 
                         cost = store.elementCount();
 
@@ -2562,29 +2382,27 @@ public class ExpressionLogical extends Expression {
                         }
 
                         cost *= 1024;
+
                         break;
                     }
-
                     default :
                         cost = costFactorColumns(session, rangeVar);
                 }
 
                 break;
             }
-
             case OpTypes.GREATER :
             case OpTypes.GREATER_EQUAL :
             case OpTypes.GREATER_EQUAL_PRE :
             case OpTypes.SMALLER :
             case OpTypes.SMALLER_EQUAL : {
                 cost = costFactorColumns(session, rangeVar);
+
                 break;
             }
-
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionLogical");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionLogical");
         }
 
         return cost;
@@ -2599,7 +2417,8 @@ public class ExpressionLogical extends Expression {
             PersistentStore store = rangeVar.rangeTable.getRowStore(session);
             double          cost  = store.elementCount();
 
-            return Math.max(cost, Index.minimumSelectivity);
+            return cost < Index.minimumSelectivity ? Index.minimumSelectivity
+                                                   : cost;
         }
     }
 
@@ -2634,18 +2453,5 @@ public class ExpressionLogical extends Expression {
         }
 
         return cost;
-    }
-
-    public void setNoOptimisation() {
-
-        super.setNoOptimisation();
-
-        if (opType == OpTypes.EQUAL) {
-            if (exprSubType == OpTypes.ANY_QUANTIFIED) {
-                exprSubType  = 0;
-                opType       = OpTypes.IN;
-                isQuantified = false;
-            }
-        }
     }
 }

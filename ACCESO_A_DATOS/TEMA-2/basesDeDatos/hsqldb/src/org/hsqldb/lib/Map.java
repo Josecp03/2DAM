@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,10 @@ package org.hsqldb.lib;
  * Interface for collections of mapped key - value pairs.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 2.6.0
  */
-public interface Map<K, V> {
-
+public interface Map<K,V> {
     int size();
 
     boolean isEmpty();
@@ -48,11 +47,13 @@ public interface Map<K, V> {
 
     boolean containsValue(Object value);
 
-    V get(K key);
+    V get(Object key);
 
     V put(K key, V value);
 
     V remove(Object key);
+
+    void putAll(Map<? extends K, ? extends V> m);
 
     void clear();
 
@@ -60,12 +61,12 @@ public interface Map<K, V> {
 
     Collection<V> values();
 
-    Set<Entry<K, V>> entrySet();
+    Set<Map.Entry<K, V>> entrySet();
 
     /**
      * Interface for a key - value pair.
      */
-    interface Entry<K, V> {
+    interface Entry<K,V> {
 
         K getKey();
 

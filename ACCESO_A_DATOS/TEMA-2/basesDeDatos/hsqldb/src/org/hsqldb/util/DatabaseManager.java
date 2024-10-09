@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,10 @@
 
 package org.hsqldb.util;
 
+import java.applet.Applet;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -42,9 +42,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import java.util.ArrayList;
-
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Color;
@@ -73,7 +71,6 @@ import java.awt.image.MemoryImageSource;
 // sqlbob@users 20020407 - patch 1.7.0 - reengineering
 // nickferguson@users 20021005 - patch 1.7.1 - enhancements
 // fredt@users - version 2.50 - removed deprecated
-
 /*
 
  * unsaved@users 20050426 - Switched default switch method from "-switch" to
@@ -106,7 +103,7 @@ import java.awt.image.MemoryImageSource;
  * @since Hypersonic SQL
  */
 public class DatabaseManager extends Panel
-        implements ActionListener, WindowListener, KeyListener {
+implements ActionListener, WindowListener, KeyListener {
 
     static final String    NL           = System.getProperty("line.separator");
     static final int       iMaxRecent   = 24;
@@ -114,8 +111,8 @@ public class DatabaseManager extends Panel
 
     static {
         try {
-            Class.forName(
-                DatabaseManager.class.getPackage().getName() + ".Transfer");
+            Class.forName(DatabaseManager.class.getPackage().getName()
+                          + ".Transfer");
 
             TT_AVAILABLE = true;
         } catch (Throwable t) {}
@@ -125,41 +122,41 @@ public class DatabaseManager extends Panel
         "See the forums, mailing lists, and HSQLDB User Guide\n"
         + "at http://hsqldb.org.\n\n"
         + "Please paste the following version identifier with any\n"
-        + "problem reports or help requests:  $Revision: 6721 $" + (TT_AVAILABLE
-            ? ""
-            : ("\n\nTransferTool classes are not in CLASSPATH.\n"
-               + "To enable the Tools menu, add 'transfer.jar' to your class path."));
+        + "problem reports or help requests:  $Revision: 6351 $"
+        + (TT_AVAILABLE ? ""
+                        : ("\n\nTransferTool classes are not in CLASSPATH.\n"
+                           + "To enable the Tools menu, add 'transfer.jar' to your class path."));
+    ;
     private static final String ABOUT_TEXT =
-        "$Revision: 6721 $ of DatabaseManager\n\n"
+        "$Revision: 6351 $ of DatabaseManager\n\n"
         + "Copyright (c) 1995-2000, The Hypersonic SQL Group.\n"
-        + "Copyright c 2001-2024, The HSQL Development Group.\n"
+        + "Copyright (c) 2001-2021, The HSQL Development Group.\n"
         + "http://hsqldb.org  (User Guide available at this site).\n\n\n"
         + "You may use and redistribute according to the HSQLDB\n"
         + "license documented in the source code and at the web\n"
-        + "site above."                     //
-        + (TT_AVAILABLE
-           ? "\n\nTransferTool options are available."
-           : "");
-    Connection                  cConn;
-    DatabaseMetaData            dMeta;
-    Statement                   sStatement;
-    Menu                        mRecent;
-    String[]                    sRecent;
-    int                         iRecent;
-    TextArea                    txtCommand;
-    Button                      butExecute;
-    Button                      butClear;
-    Tree                        tTree;
-    Panel                       pResult;
-    long                        lTime;
-    int                         iResult;    // 0: grid; 1: text
-    Grid                        gResult;
-    TextArea                    txtResult;
-    boolean                     bHelp;
-    Frame                       fMain;
-    Image                       imgEmpty;
-    static boolean              bMustExit;
-    String                      ifHuge = "";
+        + "site above."          //
+        + (TT_AVAILABLE ? "\n\nTransferTool options are available."
+                        : "");
+    Connection       cConn;
+    DatabaseMetaData dMeta;
+    Statement        sStatement;
+    Menu             mRecent;
+    String[]         sRecent;
+    int              iRecent;
+    TextArea         txtCommand;
+    Button           butExecute;
+    Button           butClear;
+    Tree             tTree;
+    Panel            pResult;
+    long             lTime;
+    int              iResult;    // 0: grid; 1: text
+    Grid             gResult;
+    TextArea         txtResult;
+    boolean          bHelp;
+    Frame            fMain;
+    Image            imgEmpty;
+    static boolean   bMustExit;
+    String           ifHuge = "";
 
     // (ulrivo): variables set by arguments from the commandline
     static String defDriver   = "org.hsqldb.jdbc.JDBCDriver";
@@ -200,11 +197,8 @@ public class DatabaseManager extends Panel
         m.main();
 
         try {
-            m.connect(
-                ConnectionDialog.createConnection(defDriver,
-                        defURL,
-                        defUser,
-                        defPassword));
+            m.connect(ConnectionDialog.createConnection(defDriver, defURL,
+                    defUser, defPassword));
             m.insertTestData();
             m.refreshTree();
         } catch (Exception e) {
@@ -274,8 +268,8 @@ public class DatabaseManager extends Panel
 
                 //
             } else if (i == arg.length - 1) {
-                throw new IllegalArgumentException(
-                    "No value for argument " + currentArg);
+                throw new IllegalArgumentException("No value for argument "
+                                                   + currentArg);
             }
 
             i++;
@@ -311,7 +305,6 @@ public class DatabaseManager extends Panel
 
                 return;
             } else {
-
                 /* Syntax ERRORS should either throw or exit with non-0 status.
                  * In our case, it may be unsafe to exit, so we throw.
                  * (I.e. should provide easy way for caller to programmatically
@@ -339,11 +332,8 @@ public class DatabaseManager extends Panel
             }
 
             if (autoConnect) {
-                c = ConnectionDialog.createConnection(
-                    defDriver,
-                    defURL,
-                    defUser,
-                    defPassword);
+                c = ConnectionDialog.createConnection(defDriver, defURL,
+                                                      defUser, defPassword);
             } else if (urlidConnect) {
                 if (urlid == null) {
                     throw new IllegalArgumentException(
@@ -356,11 +346,8 @@ public class DatabaseManager extends Panel
                     rcFile = System.getProperty("user.home") + "/dbmanager.rc";
                 }
 
-                c = new RCData(
-                    new File(rcFile),
-                    urlid).getConnection(
-                        null,
-                        System.getProperty("javax.net.ssl.trustStore"));
+                c = new RCData(new File(rcFile), urlid).getConnection(null,
+                               System.getProperty("javax.net.ssl.trustStore"));
             } else {
                 c = ConnectionDialog.createConnection(m.fMain, "Connect");
             }
@@ -401,7 +388,8 @@ public class DatabaseManager extends Panel
                 DatabaseManagerCommon.createTestData(sStatement));
             refreshTree();
 
-            for (int i = 0; i < DatabaseManagerCommon.testDataSql.length; i++) {
+            for (int i = 0; i < DatabaseManagerCommon.testDataSql.length;
+                    i++) {
                 addToRecent(DatabaseManagerCommon.testDataSql[i]);
             }
 
@@ -414,8 +402,8 @@ public class DatabaseManager extends Panel
     public void main() {
 
         fMain = new Frame("HSQL Database Manager");
-        imgEmpty = createImage(
-            new MemoryImageSource(2, 2, new int[4 * 4], 2, 2));
+        imgEmpty = createImage(new MemoryImageSource(2, 2, new int[4 * 4], 2,
+                2));
 
         fMain.setIconImage(imgEmpty);
         fMain.addWindowListener(this);
@@ -431,8 +419,8 @@ public class DatabaseManager extends Panel
         addMenu(bar, "File", fitems);
 
         String[] vitems = {
-            "RRefresh Tree", "--", "GResults in Grid", "TResults in Text", "--",
-            "1Shrink Tree", "2Enlarge Tree", "3Shrink Command",
+            "RRefresh Tree", "--", "GResults in Grid", "TResults in Text",
+            "--", "1Shrink Tree", "2Enlarge Tree", "3Shrink Command",
             "4Enlarge Command"
         };
 
@@ -460,7 +448,9 @@ public class DatabaseManager extends Panel
 
         addMenu(bar, "Options", soptions);
 
-        String[] stools = { "-Dump", "-Restore", "-Transfer" };
+        String[] stools = {
+            "-Dump", "-Restore", "-Transfer"
+        };
 
         addMenu(bar, "Tools", stools);
 
@@ -491,9 +481,8 @@ public class DatabaseManager extends Panel
 
         // (ulrivo): full size on screen with less than 640 width
         if (d.width >= 640) {
-            fMain.setLocation(
-                (d.width - size.width) / 2,
-                (d.height - size.height) / 2);
+            fMain.setLocation((d.width - size.width) / 2,
+                              (d.height - size.height) / 2);
         } else {
             fMain.setLocation(0, 0);
             fMain.setSize(d);
@@ -588,9 +577,13 @@ public class DatabaseManager extends Panel
         } else if (s.equals("Logging off")) {
             setLogToSystem(false);
         } else if (s.equals("Help")) {
-            showHelp(new String[]{ "", HELP_TEXT });
+            showHelp(new String[] {
+                "", HELP_TEXT
+            });
         } else if (s.equals("About")) {
-            showHelp(new String[]{ "", ABOUT_TEXT });
+            showHelp(new String[] {
+                "", ABOUT_TEXT
+            });
         } else if (s.equals("Refresh Tree")) {
             refreshTree();
         } else if (s.startsWith("#")) {
@@ -607,10 +600,8 @@ public class DatabaseManager extends Panel
             pResult.add("Center", gResult);
             pResult.doLayout();
         } else if (s.equals("Open Script...")) {
-            FileDialog f = new FileDialog(
-                fMain,
-                "Open Script",
-                FileDialog.LOAD);
+            FileDialog f = new FileDialog(fMain, "Open Script",
+                                          FileDialog.LOAD);
 
             // (ulrivo): set default directory if set from command line
             if (defDirectory != null) {
@@ -624,8 +615,8 @@ public class DatabaseManager extends Panel
             if (file != null) {
                 StringBuilder buf = new StringBuilder();
 
-                ifHuge = DatabaseManagerCommon.readFile(
-                    f.getDirectory() + file);
+                ifHuge = DatabaseManagerCommon.readFile(f.getDirectory()
+                        + file);
 
                 if (4096 <= ifHuge.length()) {
                     buf.append(
@@ -636,10 +627,8 @@ public class DatabaseManager extends Panel
                 }
             }
         } else if (s.equals("Save Script...")) {
-            FileDialog f = new FileDialog(
-                fMain,
-                "Save Script",
-                FileDialog.SAVE);
+            FileDialog f = new FileDialog(fMain, "Save Script",
+                                          FileDialog.SAVE);
 
             // (ulrivo): set default directory if set from command line
             if (defDirectory != null) {
@@ -651,15 +640,12 @@ public class DatabaseManager extends Panel
             String file = f.getFile();
 
             if (file != null) {
-                DatabaseManagerCommon.writeFile(
-                    f.getDirectory() + file,
-                    txtCommand.getText());
+                DatabaseManagerCommon.writeFile(f.getDirectory() + file,
+                                                txtCommand.getText());
             }
         } else if (s.equals("Save Result csv...")) {
-            FileDialog f = new FileDialog(
-                fMain,
-                "Save Result CSV",
-                FileDialog.SAVE);
+            FileDialog f = new FileDialog(fMain, "Save Result CSV",
+                                          FileDialog.SAVE);
 
             // (ulrivo): set default directory if set from command line
             if (defDirectory != null) {
@@ -680,10 +666,8 @@ public class DatabaseManager extends Panel
                 saveAsCsv(file);
             }
         } else if (s.equals("Save Result...")) {
-            FileDialog f = new FileDialog(
-                fMain,
-                "Save Result",
-                FileDialog.SAVE);
+            FileDialog f = new FileDialog(fMain, "Save Result",
+                                          FileDialog.SAVE);
 
             // (ulrivo): set default directory if set from command line
             if (defDirectory != null) {
@@ -696,9 +680,8 @@ public class DatabaseManager extends Panel
 
             if (file != null) {
                 showResultInText();
-                DatabaseManagerCommon.writeFile(
-                    f.getDirectory() + file,
-                    txtResult.getText());
+                DatabaseManagerCommon.writeFile(f.getDirectory() + file,
+                                                txtResult.getText());
             }
         } else if (s.equals("Results in Text")) {
             iResult = 1;
@@ -738,9 +721,8 @@ public class DatabaseManager extends Panel
         } else if (s.equals("Shrink Command")) {
             int i = txtCommand.getRows() - 1;
 
-            txtCommand.setRows(i < 1
-                               ? 1
-                               : i);
+            txtCommand.setRows(i < 1 ? 1
+                                     : i);
             fMain.pack();
         } else if (s.equals("Commit")) {
             try {
@@ -834,6 +816,7 @@ public class DatabaseManager extends Panel
      * Clear SQL Statements.
      */
     void clear() {
+
         ifHuge = "";
 
         txtCommand.setText(ifHuge);
@@ -1038,7 +1021,7 @@ public class DatabaseManager extends Panel
 
         lTime = System.nanoTime() - lTime;
 
-        while (!all.isEmpty()) {
+        while (!all.equals("")) {
             int    i = all.indexOf(';');
             String sql;
 
@@ -1052,6 +1035,7 @@ public class DatabaseManager extends Panel
 
             if (sql.startsWith("--#")) {
                 max = Integer.parseInt(sql.substring(3));
+
                 continue;
             } else if (sql.startsWith("--")) {
                 continue;
@@ -1090,13 +1074,13 @@ public class DatabaseManager extends Panel
     void saveAsCsv(String filename) {
 
         try {
-            File                file   = new File(filename);
-            CSVWriter           writer = new CSVWriter(file, null);
-            String[]            col    = gResult.getHead();
-            int                 width  = col.length;
+            File      file   = new File(filename);
+            CSVWriter writer = new CSVWriter(file, null);
+            String[]  col    = gResult.getHead();
+            int       width  = col.length;
             ArrayList<String[]> data   = gResult.getData();
-            String[]            row;
-            int                 height = data.size();
+            String[]  row;
+            int       height = data.size();
 
             writer.writeHeader(col);
 
@@ -1128,12 +1112,12 @@ public class DatabaseManager extends Panel
 
     void showResultInText() {
 
-        String[]            col   = gResult.getHead();
-        int                 width = col.length;
-        int[]               size  = new int[width];
+        String[]  col   = gResult.getHead();
+        int       width = col.length;
+        int[]     size  = new int[width];
         ArrayList<String[]> data  = gResult.getData();
-        String[]            row;
-        int                 height = data.size();
+        String[]  row;
+        int       height = data.size();
 
         for (int i = 0; i < width; i++) {
             size[i] = col[i].length();
@@ -1190,7 +1174,8 @@ public class DatabaseManager extends Panel
         long millis   = lTime / 1000000;
         long fraction = (lTime % 1000000) / 100000;
 
-        b.append(NL + height + " row(s) in " + millis + '.' + fraction + " ms");
+        b.append(NL + height + " row(s) in " + millis + '.' + fraction
+                 + " ms");
         txtResult.setText(b.toString());
     }
 
@@ -1298,15 +1283,17 @@ public class DatabaseManager extends Panel
 
             tTree.addRow("", dMeta.getURL(), "-", 0);
 
-            String[] usertables = { "TABLE", "GLOBAL TEMPORARY", "VIEW" };
+            String[] usertables = {
+                "TABLE", "GLOBAL TEMPORARY", "VIEW"
+            };
 
             // fredt@users Schema support
-            ArrayList<String> schemas = new ArrayList<>();
-            ArrayList<String> tables  = new ArrayList<>();
+            ArrayList<String> schemas = new ArrayList<String>();
+            ArrayList<String> tables  = new ArrayList<String>();
 
             // sqlbob@users Added remarks.
-            ArrayList<String> remarks = new ArrayList<>();
-            ResultSet result = dMeta.getTables(null, null, null, usertables);
+            ArrayList<String> remarks = new ArrayList<String>();
+            ResultSet result  = dMeta.getTables(null, null, null, usertables);
 
             try {
                 while (result.next()) {
@@ -1328,11 +1315,11 @@ public class DatabaseManager extends Panel
                 // sqlbob@users Added remarks.
                 String remark = remarks.get(i);
 
-                if ((schema != null) && !schema.trim().isEmpty()) {
+                if ((schema != null) && !schema.trim().equals("")) {
                     tTree.addRow(key + "s", "schema: " + schema);
                 }
 
-                if ((remark != null) && !remark.trim().isEmpty()) {
+                if ((remark != null) && !remark.trim().equals("")) {
                     tTree.addRow(key + "r", " " + remark);
                 }
 
@@ -1349,8 +1336,8 @@ public class DatabaseManager extends Panel
 
                         tTree.addRow(k1 + "t", "Type: " + type);
 
-                        boolean nullable = col.getInt(
-                            11) != DatabaseMetaData.columnNoNulls;
+                        boolean nullable = col.getInt(11)
+                                           != DatabaseMetaData.columnNoNulls;
 
                         tTree.addRow(k1 + "n", "Nullable: " + nullable);
                     }
@@ -1360,12 +1347,8 @@ public class DatabaseManager extends Panel
 
                 tTree.addRow(key + "ind", "Indices", "+", 0);
 
-                ResultSet ind = dMeta.getIndexInfo(
-                    null,
-                    schema,
-                    name,
-                    false,
-                    false);
+                ResultSet ind = dMeta.getIndexInfo(null, schema, name, false,
+                                                   false);
                 String oldiname = null;
 
                 try {
@@ -1396,7 +1379,8 @@ public class DatabaseManager extends Panel
             tTree.addRow("pa", "AutoCommit: " + cConn.getAutoCommit());
             tTree.addRow("pd", "Driver: " + dMeta.getDriverName());
             tTree.addRow("pp", "Product: " + dMeta.getDatabaseProductName());
-            tTree.addRow("pv", "Version: " + dMeta.getDatabaseProductVersion());
+            tTree.addRow("pv",
+                         "Version: " + dMeta.getDatabaseProductVersion());
         } catch (SQLException e) {
             tTree.addRow("", "Error getting metadata:", "-", 0);
             tTree.addRow("-", e.getMessage());
@@ -1415,9 +1399,8 @@ public class DatabaseManager extends Panel
     private static void setLogToSystem(boolean value) {
 
         try {
-            PrintWriter newPrintWriter = (value)
-                                         ? new PrintWriter(System.out)
-                                         : null;
+            PrintWriter newPrintWriter = (value) ? new PrintWriter(System.out)
+                                                 : null;
 
             DriverManager.setLogWriter(newPrintWriter);
         } catch (Exception e) {}

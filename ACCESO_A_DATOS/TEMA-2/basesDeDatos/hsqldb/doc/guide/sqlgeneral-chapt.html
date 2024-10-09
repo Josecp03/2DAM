@@ -44,12 +44,12 @@
 </div>
 </div>
 <div>
-<p class="releaseinfo">$Revision: 6765 $</p>
+<p class="releaseinfo">$Revision: 6339 $</p>
 </div>
 <div>
 <div class="legalnotice">
-<a name="N10366"></a>
-<p>Copyright 2002-2024 Fred Toussi. Permission is granted to
+<a name="N1035E"></a>
+<p>Copyright 2002-2021 Fred Toussi. Permission is granted to
       distribute this document without any alteration under the terms of the
       HSQLDB license. Additional permission is granted to the HSQL Development
       Group to distribute this document with or without alterations under the
@@ -57,7 +57,7 @@
 </div>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -106,7 +106,7 @@
 <dd>
 <dl>
 <dt>
-<span class="section"><a href="sqlgeneral-chapt.html#N1048D">Case Sensitivity</a></span>
+<span class="section"><a href="sqlgeneral-chapt.html#N10485">Case Sensitivity</a></span>
 </dt>
 <dt>
 <span class="section"><a href="sqlgeneral-chapt.html#sgc_persist_tables">Persistent Tables</a></span>
@@ -185,11 +185,11 @@
 </div>
 <p>The SQL language consists of statements for different operations.
     HyperSQL 2.x supports the dialect of SQL defined progressively by ISO
-    (also ANSI) SQL standards 92, 1999, 2003, 2008, 2011, 2016 and 2023. This
-    means the syntax specified by the Standard text is accepted for any
-    supported operation. Almost all features of SQL-92 up to Advanced Level
-    are supported, as well as the additional features that make up the
-    SQL:2023 core and many optional features of this standard.</p>
+    (also ANSI) SQL standards 92, 1999, 2003, 2008, 2011 and 2016. This means
+    the syntax specified by the Standard text is accepted for any supported
+    operation. Almost all features of SQL-92 up to Advanced Level are
+    supported, as well as the additional features that make up the SQL:2016
+    core and many optional features of this standard.</p>
 <p>At the time of this release, HyperSQL supports the widest range of
     SQL Standard features among all open source RDBMS.</p>
 <p>Various chapters of this guide list the supported syntax. When
@@ -200,16 +200,16 @@
 <p>Over 300 words are reserved by the Standard and should not be used
     as table or column names. For example, the word POSITION is reserved as it
     is a function defined by the Standards with a similar role as
-    <code class="methodname">String.indexOf(String)</code> in Java. By default,
-    HyperSQL does not prevent you from using a reserved word if it does not
-    support its use or can distinguish it. For example, CUBE is a reserved
-    word for a feature that is supported by HyperSQL from version 2.5.1.
-    Before this version, CUBE was allowed as a table or column name but it is
-    no longer allowed. You should avoid using such names as future versions of
-    HyperSQL are likely to support the reserved words and may reject your
-    table definitions or queries. The full list of SQL reserved words is in
-    the appendix <a class="link" href="lists-app.html" title="Appendix&nbsp;A.&nbsp;Lists of Keywords">Lists of Keywords</a>. You
-    can set a property to disallow the use of reserved keywords for names of
+    <code class="methodname">String.indexOf()</code> in Java. By default, HyperSQL
+    does not prevent you from using a reserved word if it does not support its
+    use or can distinguish it. For example, CUBE is a reserved word for a
+    feature that is supported by HyperSQL from version 2.5.1. Before this
+    version, CUBE was allowed as a table or column name, but it is no longer
+    allowed. You should avoid using such names as future versions of HyperSQL
+    are likely to support the reserved words and may reject your table
+    definitions or queries. The full list of SQL reserved words is in the
+    appendix <a class="link" href="lists-app.html" title="Appendix&nbsp;A.&nbsp;Lists of Keywords">Lists of Keywords</a> . You can
+    set a property to disallow the use of reserved keywords for names of
     tables and other database objects. There are several other user-defined
     properties to control the strict application of the SQL Standard in
     different areas.</p>
@@ -471,7 +471,7 @@
 <div>
 <div>
 <h3 class="title">
-<a name="N1048D"></a>Case Sensitivity</h3>
+<a name="N10485"></a>Case Sensitivity</h3>
 </div>
 </div>
 </div>
@@ -492,7 +492,7 @@
       double-quoted name is all-uppercase, it can be referenced in any case;
       <code class="literal">"MYTABLE"</code> is the same as <code class="literal">myTable</code>
       and <code class="literal">MyTable</code> because they are all converted to
-      <code class="literal">MYTABLE</code>.</p>
+      <code class="literal">MYTABLE</code>. </p>
 </div>
 <div class="section">
 <div class="titlepage">
@@ -582,7 +582,7 @@
       <code class="literal">ON COMMIT PRESERVE ROWS</code>, then the contents are kept
       when a commit takes place.</p>
 <p>The rows in temporary tables are stored in memory by default. If
-      the <span class="property">hsqldb.result_max_memory_rows</span> property has been
+      the <code class="literal">hsqldb.result_max_memory_rows</code> property has been
       set or the <code class="literal">SET SESSION RESULT MEMORY ROWS &lt;row
       count&gt;</code> has been specified, tables with row count above the
       setting are stored on disk.</p>
@@ -631,20 +631,20 @@
         performance implications. By default LONGVARCHAR is a synonym for a
         long VARCHAR and can be used without specifying the size. You can set
         LONGVARCHAR to map to CLOB, with the
-        <span class="property">sql.longvar_is_lob</span> connection property or the SET
+        <code class="literal">sql.longvar_is_lob</code> connection property or the SET
         DATABASE SQL LONGVAR IS LOB TRUE statement.</p>
 </li>
 <li class="listitem">
 <p>Binary string types are BINARY(L), VARBINARY(L) and BLOB. Do not
-        use BINARY(L) unless you are storing fixed length binary strings. This
-        type pads short binary strings with zero bytes. BINARY without the
-        length L means a single byte. Use VARBINARY(L) for general binary
-        strings, and BLOB for large binary objects. You should apply the same
-        considerations as with the character string types. By default,
-        LONGVARBINARY is a synonym for a long VARBINARY and can be used
-        without specifying the size. You can set LONGVARBINARY to map to BLOB,
-        with the <span class="property">sql.longvar_is_lob</span> connection property
-        or the SET DATABASE SQL LONGVAR IS LOB TRUE statement.</p>
+        use BINARY(L) unless you are storing fixed length strings such as
+        UUID. This type pads short binary strings with zero bytes. BINARY
+        without the length L means a single byte. Use VARBINARY(L) for general
+        binary strings, and BLOB for large binary objects. You should apply
+        the same considerations as with the character string types. By
+        default, LONGVARBINARY is a synonym for a long VARBINARY and can be
+        used without specifying the size. You can set LONGVARBINARY to map to
+        BLOB, with the <code class="literal">sql.longvar_is_lob</code> connection
+        property or the SET DATABASE SQL LONGVAR IS LOB TRUE statement.</p>
 </li>
 <li class="listitem">
 <p>The BIT(L) and BITVARYING(L) types are for bit maps. Do not use
@@ -687,12 +687,12 @@
 </li>
 </ul>
 </div>
-<p>HyperSQL 2.7 has several compatibility modes which allow the type
+<p>HyperSQL 2.6 has several compatibility modes which allow the type
     names that are used by other RDBMS to be accepted and translated into the
     closest SQL Standard type. For example, the type TEXT, supported by MySQL
     and PostgreSQL is translated in these compatibility modes.</p>
 <div class="table">
-<a name="N10539"></a>
+<a name="N10531"></a>
 <p class="title">
 <b>Table&nbsp;2.1.&nbsp;List of SQL types</b>
 </p>
@@ -736,7 +736,7 @@
 </tr>
 <tr>
 <td style="border-right: 0.5pt solid ; border-bottom: 0.5pt solid ; " align="left">BINARY(L)</td><td style="border-bottom: 0.5pt solid ; ">fixed-length binary string type - padded with zero to
-            length L (**)</td>
+            length L (**) </td>
 </tr>
 <tr>
 <td style="border-right: 0.5pt solid ; border-bottom: 0.5pt solid ; " align="left">VARBINARY(L) or BINARY VARYING(L)</td><td style="border-bottom: 0.5pt solid ; ">variable-length binary string type (***)</td>
@@ -793,13 +793,13 @@
     used, S defaults to 0. If none is used, P defaults to 128 and S defaults
     to 0. The maximum value of each parameter is unlimited. (**) The parameter
     L is used for fixed length. If not used, it defaults to 1. (***) The
-    parameter L is used for maximum length. It is optional. If not used, it
-    defaults to 32K for VARCHAR and VARBINARY, 1G for BLOB or CLOB, and 16M
-    for the LONGVARCHAR and LONGVARBINARY. The maximum value of the parameter
-    is unlimited for CLOB and BLOB. It is 2 * 1024 *1024 *1024 for other
-    string types. (****) The parameter S is optional and indicates sub-second
-    fraction precision of time (0 to 9). When not used, it defaults to 6 for
-    TIMESTAMP and 0 for TIME.</p>
+    parameter L is used for maximum length. It is required for VARCHAR(L) and
+    VARBINARY(L) but is optional for the other types. If not used, it defaults
+    to 1G for BLOB or CLOB, and 16M for the LONGVARCHAR and LONGVARBINARY. The
+    maximum value of the parameter is unlimited for CLOB and BLOB. It is 2 *
+    1024 *1024 *1024 for other string types. (****) The parameter S is
+    optional and indicates sub-second fraction precision of time (0 to 9).
+    When not used, it defaults to 6.</p>
 </div>
 <div class="section">
 <div class="titlepage">
@@ -833,10 +833,10 @@
     the exact type of the argument and the return value is determined at
     compile time.</p>
 <p>When a statement is prepared, using a JDBC
-    <code class="classname">PreparedStatement</code> object, it is compiled by the
-    engine and the type of the columns of its <code class="classname">ResultSet</code>
-    and / or its parameters are accessible through the methods of
-    <code class="classname">PreparedStatement</code>.</p>
+    <code class="literal">PreparedStatement</code> object, it is compiled by the engine
+    and the type of the columns of its ResultSet and / or its parameters are
+    accessible through the methods of
+    <code class="literal">PreparedStatement</code>.</p>
 <div class="section">
 <div class="titlepage">
 <div>
@@ -846,7 +846,7 @@
 </div>
 </div>
 </div>
-<a name="N105DC" class="indexterm"></a>
+<a name="N105D1" class="indexterm"></a>
 <p>TINYINT, SMALLINT, INTEGER, BIGINT, NUMERIC and DECIMAL (without a
       decimal point) are the supported integral types. They correspond
       respectively to <code class="classname">byte</code>,
@@ -943,8 +943,8 @@
       synonymous) is part of an expression involving different numeric types,
       the type of the result is DOUBLE. DECIMAL values can be converted to
       DOUBLE unless they are beyond the <code class="literal">Double.MIN_VALUE -
-      Double.MAX_VALUE</code> range. For example, A * B, A / B, A + B,
-      etc., will return a DOUBLE value if either A or B is a DOUBLE.</p>
+      Double.MAX_VALUE</code> range. For example, A * B, A / B, A + B, etc.
+      will return a DOUBLE value if either A or B is a DOUBLE.</p>
 <p>Otherwise, when no DOUBLE value exists, if a DECIMAL or NUMERIC
       value is part an expression, the type of the result is DECIMAL or
       NUMERIC. Similar to integral values, when the result of an expression is
@@ -970,10 +970,9 @@
       <code class="classname">PreparedStatement</code> methods and are returned in
       <code class="classname">ResultSet</code> objects. In order to allow division by
       zero of DOUBLE values in SQL statements (which returns NaN or
-      +-Infinity) you should set the property
-      <span class="property">hsqldb.double_nan</span> as false (SET DATABASE SQL DOUBLE
-      NAN FALSE). The double values can be retrieved from a
-      <code class="classname">ResultSet</code> in the required type so long as they
+      +-Infinity) you should set the property hsqldb.double_nan as false (SET
+      DATABASE SQL DOUBLE NAN FALSE). The double values can be retrieved from
+      a <code class="classname">ResultSet</code> in the required type so long as they
       can be represented. For setting the values, when
       <code class="methodname">PreparedStatement.setDouble()</code> or
       <code class="methodname">setFloat()</code> is used, the value is treated as a
@@ -1013,7 +1012,7 @@
 </div>
 </div>
 </div>
-<a name="N106AB" class="indexterm"></a>
+<a name="N1069D" class="indexterm"></a>
 <p>The BOOLEAN type conforms to the SQL Standard and represents the
       values <code class="literal">TRUE</code>, <code class="literal">FALSE</code> and
       <code class="literal">UNKNOWN</code>. This type of column can be initialised with
@@ -1047,13 +1046,13 @@
 </div>
 </div>
 </div>
-<a name="N106D2" class="indexterm"></a>
+<a name="N106C4" class="indexterm"></a>
 <p>The CHARACTER, CHARACTER VARYING and CLOB types are the SQL
       Standard character string types. CHAR, VARCHAR and CHARACTER LARGE
       OBJECT are synonyms for these types. HyperSQL also supports LONGVARCHAR
       as a synonym for VARCHAR. If LONGVARCHAR is used without a length, then
       a length of 16M is assigned. You can set LONGVARCHAR to map to CLOB,
-      with the <span class="property">sql.longvar_is_lob</span> connection property or
+      with the <code class="literal">sql.longvar_is_lob</code> connection property or
       the SET DATABASE SQL LONGVAR IS LOB TRUE statement..</p>
 <p>HyperSQL's default character set is Unicode, therefore all
       possible character strings can be represented by these types.</p>
@@ -1140,13 +1139,13 @@
 </div>
 </div>
 </div>
-<a name="N1070D" class="indexterm"></a>
+<a name="N106FF" class="indexterm"></a>
 <p>The BINARY, BINARY VARYING and BLOB types are the SQL Standard
       binary string types. VARBINARY and BINARY LARGE OBJECT are synonyms for
       BINARY VARYING and BLOB types. HyperSQL also supports LONGVARBINARY as a
       synonym for VARBINARY. You can set LONGVARBINARY to map to BLOB, with
-      the <span class="property">sql.longvar_is_lob</span> connection property or the
-      SET DATABASE SQL LONGVAR IS LOB TRUE statement.</p>
+      the <code class="literal">sql.longvar_is_lob</code> connection property or the SET
+      DATABASE SQL LONGVAR IS LOB TRUE statement.</p>
 <p>Binary string types are used in a similar way to character string
       types. There are several built-in functions that are overloaded to
       support character, binary and bit strings.</p>
@@ -1174,9 +1173,9 @@
       '24ff182401e84dac8eb33fee32ad2b9c' are allowed. When a value of the UUID
       type is converted to a CHARACTER type, the hyphens are inserted in the
       required positions. Java UUID objects can be used with
-      <code class="classname">java.sql.PreparedStatement</code> to insert values of
-      this type. The <code class="methodname">getObject()</code> method of ResultSet
-      returns the Java object for UUID column data.</p>
+      <code class="literal">java.sql.PreparedStatement</code> to insert values of this
+      type. The <code class="literal">getObject()</code> method of ResultSet returns the
+      Java object for UUID column data.</p>
 <p>
 <code class="literal">&lt;binary string type&gt; ::= BINARY [ &lt;left
       paren&gt; &lt;length&gt; &lt;right paren&gt; ] | { BINARY VARYING |
@@ -1213,7 +1212,7 @@
 </div>
 </div>
 </div>
-<a name="N1073A" class="indexterm"></a>
+<a name="N1072C" class="indexterm"></a>
 <p>The BIT and BIT VARYING types are the supported bit string types.
       These types were defined by SQL:1999 but were later removed from the
       Standard. Bit types represent bit maps of given lengths. Each bit is 0
@@ -1265,52 +1264,45 @@
       are usually much larger and therefore accessed with special JDBC
       methods.</p>
 <p>To insert a lob into a table, or to update a column of lob type
-      with a new lob, you can use the
-      <code class="methodname">setBinaryStream()</code> and
-      <code class="methodname">setCharacterStream()</code> methods of JDBC
-      <code class="classname">java.sql.PreparedStatement</code>. These are very
-      efficient methods for long lobs. Other methods are also supported. If
-      the data for the BLOB or CLOB is already a memory object, you can use
-      the <code class="methodname">setBytes()</code> or
-      <code class="methodname">setString()</code> methods, which are efficient for
-      memory data. Another method is to obtain a lob with the
-      <code class="methodname">getBlob()</code> and
-      <code class="methodname">getClob()</code> methods of
-      <code class="classname">java.sql.Connection</code>, populate its data, then use
-      the <code class="methodname">setBlob()</code> or
-      <code class="methodname">setClob()</code> methods of
-      <code class="classname">PreparedStatement</code>. Yet another method allows to
-      create instances of <code class="classname">org.hsqldb.jdbc.JDBCBlobFile</code>
-      and <code class="classname">org.hsqldb.jdbc.JDBCClobFile</code> and construct a
-      large lob for use with <code class="methodname">setBlob()</code> and
-      <code class="methodname">setClob()</code> methods.</p>
-<p>A lob is retrieved from a <code class="classname">ResultSet</code> with
-      the <code class="methodname">getBlob()</code> or
-      <code class="methodname">getClob()</code> method. The steaming methods of the
-      lob objects are then used to access the data. HyperSQL also allows
-      efficient access to chunks of lobs with
-      <code class="methodname">getBytes()</code> or
-      <code class="methodname">getString()</code> methods. Furthermore, parts of a
-      BLOB or CLOB already stored in a table can be modified. An updatable
-      <code class="classname">ResultSet</code> is used to select the row from the
-      table. The <code class="methodname">getBlob()</code> or
-      <code class="methodname">getClob()</code> methods of
-      <code class="classname">ResultSet</code> are used to access the lob as a
-      <code class="classname">java.sql.Blob</code> or
-      <code class="classname">java.sql.Clob</code> object. The
-      <code class="methodname">setBytes()</code> and
-      <code class="methodname">setString()</code> methods of these objects can be
-      used to modify the lob. Finally the <code class="methodname">updateRow()</code>
-      method of the <code class="classname">ResultSet</code> is used to update the lob
-      in the row. Note these modifications are not allowed with compressed or
-      encrypted lobs.</p>
+      with a new lob, you can use the <code class="literal">setBinaryStream()</code> and
+      <code class="literal">setCharacterStream()</code> methods of JDBC
+      <code class="literal">java.sql.PreparedStatement</code>. These are very efficient
+      methods for long lobs. Other methods are also supported. If the data for
+      the BLOB or CLOB is already a memory object, you can use the
+      <code class="literal">setBytes()</code> or <code class="literal">setString()</code> methods,
+      which are efficient for memory data. Another method is to obtain a lob
+      with the <code class="literal">getBlob()</code> and <code class="literal">getClob()</code>
+      methods of <code class="literal">java.sql.Connection</code>, populate its data,
+      then use the <code class="literal">setBlob()</code> or
+      <code class="literal">setClob()</code> methods of
+      <code class="literal">PreparedStatement</code>. Yet another method allows to
+      create instances of <code class="literal">org.hsqldb.jdbc.JDBCBlobFile</code> and
+      <code class="literal">org.hsqldb.jdbc.JDBCClobFile</code> and construct a large
+      lob for use with <code class="literal">setBlob()</code> and
+      <code class="literal">setClob()</code> methods.</p>
+<p>A lob is retrieved from a ResultSet with the
+      <code class="literal">getBlob()</code> or <code class="literal">getClob()</code> method. The
+      steaming methods of the lob objects are then used to access the data.
+      HyperSQL also allows efficient access to chunks of lobs with
+      <code class="literal">getBytes()</code> or <code class="literal">getString()</code> methods.
+      Furthermore, parts of a BLOB or CLOB already stored in a table can be
+      modified. An updatable <code class="literal">ResultSet</code> is used to select
+      the row from the table. The <code class="literal">getBlob()</code> or
+      <code class="literal">getClob()</code> methods of <code class="literal">ResultSet</code> are
+      used to access the lob as a <code class="literal">java.sql.Blob</code> or
+      <code class="literal">java.sql.Clob</code> object. The
+      <code class="literal">setBytes()</code> and <code class="literal">setString()</code> methods
+      of these objects can be used to modify the lob. Finally the
+      <code class="literal">updateRow()</code> method of the
+      <code class="literal">ResultSet</code> is used to update the lob in the row. Note
+      these modifications are not allowed with compressed or encrypted
+      lobs.</p>
 <p>Lobs are logically stored in columns of tables. Their physical
-      storage is a separate <code class="filename">*.lobs</code> file. This file is
-      created as soon as a BLOB or CLOB is inserted into the database. The
-      file will grow as new lobs are inserted into the database. In version 2,
-      the <code class="filename">*.lobs</code> file is never deleted even if all lobs
-      are deleted from the database. In this case you can delete the
-      <code class="filename">*.lobs</code> file after a SHUTDOWN. When a CHECKPOINT
+      storage is a separate *.lobs file. This file is created as soon as a
+      BLOB or CLOB is inserted into the database. The file will grow as new
+      lobs are inserted into the database. In version 2, the *.lobs file is
+      never deleted even if all lobs are deleted from the database. In this
+      case you can delete the *.lobs file after a SHUTDOWN. When a CHECKPOINT
       happens, the space used for deleted lobs is freed and is reused for
       future lobs. By default, clobs are stored without compression. You can
       use a database setting to enable compression of clobs. This can
@@ -1325,7 +1317,7 @@
 </div>
 </div>
 </div>
-<a name="N107C0" class="indexterm"></a>
+<a name="N107A6" class="indexterm"></a>
 <p>From version 2.3.4 there are two options for storing Java
       Objects.</p>
 <p>The default option allows storing Serializable object. The objects
@@ -1338,8 +1330,8 @@
       <code class="methodname">PreparedStatement.setObject()</code> methods.</p>
 <p>The alternative Live Object option is for
       <em class="glossterm">mem:</em> databases only and is enabled when the
-      database property <span class="property">sql.live_object=true</span> is appended
-      to the connection property that creates the mem database. For example
+      database property sql.live_object=true is appended to the connection
+      property that creates the mem database. For example
       <code class="literal">'jdbc:hsqldb:mem:mydb;sql.live_object=true'</code>. With
       this option, any Java object can be stored as it is not serialized. The
       SQL statement <code class="literal">SET DATABASE SQL LIVE OBJECT TRUE</code> can
@@ -1398,7 +1390,7 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
       require a size parameter and do not have a default. For compatibility
       with CREATE TABLE statements from other databases that do not have size
       parameters for VARCHAR column, the URL property
-      <span class="property">hsqldb.enforce_size=false</span> or the SQL statement
+      <code class="literal">hsqldb.enforce_size=false</code> or the SQL statement
       <code class="literal">SET DATABASE SQL SIZE FALSE</code> can be used to allow the
       table creation and automatically apply a large value for the maximum
       size of the VARCHAR column. You should test your application to ensure
@@ -1455,7 +1447,7 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
 <p>HSQLDB fully supports datetime and interval types and operations,
     including all relevant optional features, as specified by the SQL Standard
     since SQL-92. The two groups of types are complementary.</p>
-<a name="N10820" class="indexterm"></a>
+<a name="N10803" class="indexterm"></a>
 <p>The DATE type represents a calendar date with YEAR, MONTH and DAY
     fields.</p>
 <p>The TIME type represents time of day with HOUR, MINUTE and SECOND
@@ -1506,7 +1498,7 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
  TIME '20:08:08.034900'
  TIME '20:08:08.034900-8:00' /* US Pacific */</pre>
 </div>
-<a name="N10846" class="indexterm"></a>
+<a name="N10829" class="indexterm"></a>
 <p>
 <span class="bold"><strong>Time Zone</strong></span>
 </p>
@@ -1526,40 +1518,29 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
     zone displacement value.</p>
 <p>The time zone displacement is of the type INTERVAL HOUR TO MINUTE.
     This data type is described in the next section. The legal values are
-    between '&ndash;18:00' and '+18:00'.</p>
-<a name="N10855" class="indexterm"></a>
+    between '&ndash;18:00' and &nbsp; '+18:00'.</p>
+<a name="N10838" class="indexterm"></a>
 <p>
 <span class="bold"><strong>Operations on Datetime
     Types</strong></span>
 </p>
-<p>The expression <code class="literal">&lt;datetime expression&gt; AT TIME ZONE {
-    &lt;interval primary&gt; | &lt;time zone name&gt; }</code> evaluates to
-    a datetime value representing exactly the same point of time in the
-    specified <code class="literal">&lt;time displacement&gt;</code> or the geographical
-    <code class="literal">&lt;time zone name&gt;</code>. The expression, <code class="literal">AT
+<p>The expression <code class="literal">&lt;datetime expression&gt; AT TIME ZONE
+    &lt;time displacement&gt;</code> evaluates to a datetime value
+    representing exactly the same point of time in the specified
+    <code class="literal">&lt;time displacement&gt;</code>. The expression, <code class="literal">AT
     LOCAL</code> is equivalent to <code class="literal">AT TIME ZONE &lt;local time
     displacement&gt;</code>. If <code class="literal">AT TIME ZONE</code> is used
     with a datetime operand of type WITHOUT TIME ZONE, the operand is first
-    converted to a value of type WITH TIME ZONE using the session's calendar,
-    then the specified time zone displacement is set for the value. Therefore,
-    in these cases, the final value depends on the time zone of the session in
-    which the statement was used, calculated at the exact point of time (of
-    the input) and accounting for daylight saving time at that point of
-    time.</p>
-<p>From version 2.7.0 it is possible to use regional time zones with AT
-    TIME ZONE. Any zone name used must match exactly a TimeZone id supported
-    by the JVM. These include names such as 'America/New_York'. Some zones
-    include daylight saving time periods which are used when converting the
-    time zone.</p>
-<p>See also the FROM_TZ function which allows you to convert to a time
-    zone without changing the date-time values such as hour and minute.</p>
+    converted to a value of type WITH TIME ZONE at the session&rsquo;s time
+    displacement, then the specified time zone displacement is set for the
+    value. Therefore, in these cases, the final value depends on the time zone
+    of the session in which the statement was used.</p>
 <p>AT TIME ZONE, modifies the field values of the datetime operand.
     This is done by the following procedure:</p>
 <div class="orderedlist">
 <ol class="orderedlist" type="1">
 <li class="listitem">
-<p>determine the corresponding datetime at UTC using the session's
-        calendar.</p>
+<p>determine the corresponding datetime at UTC.</p>
 </li>
 <li class="listitem">
 <p>find the datetime value at the given time zone that corresponds
@@ -1569,25 +1550,12 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
 </div>
 <p>Example a:</p>
 <div class="informalexample">
-<pre class="programlisting"> VALUES TIMESTAMP'2022-03-28 11:00:00' AT TIME ZONE INTERVAL '-5:00' HOUR TO MINUTE
- C1                       
- ------------------------ 
- 2022-03-28 14:00:00-5:00 
-
- VALUES TIMESTAMP'2022-03-28 11:00:00+4:00' AT TIME ZONE 'America/Chicago'
- C1                       
- ------------------------ 
- 2022-03-28 02:00:00-5:00 
+<pre class="programlisting"> TIME '12:00:00' AT TIME ZONE INTERVAL '1:00' HOUR TO MINUTE
 </pre>
 </div>
-<p>In the first example above, the session's time zone displacement is
-    '-8:00'. In step 1, time '11:00:00' is converted to UTC, which is time
-    '19:00:00+0:00'. In step 2, this value is expressed as time
-    '14:00:00-5:00' in the target zone.</p>
-<p>In the second example, the session's time zone displacement is not
-    considered because the timestamp has a time zone. In step 1, time is
-    converted to UTC, which is time '07:00:00+0:00', In step 2, this value is
-    expressed as time '02:00:00-5:00' in the target zone.</p>
+<p>If the session&rsquo;s time zone displacement is -'8:00', then in step 1,
+    TIME '12:00:00' is converted to UTC, which is TIME '20:00:00+0:00'. In
+    step 2, this value is expressed as TIME '21:00:00+1:00'.</p>
 <p>Example b:</p>
 <div class="informalexample">
 <pre class="programlisting"> TIME '12:00:00-5:00' AT TIME ZONE INTERVAL '1:00' HOUR TO MINUTE
@@ -1703,15 +1671,10 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
 </p>
 <p>When an SQL session is started (with a JDBC connection) the local
     time zone of the client JVM (including any seasonal time adjustments such
-    as daylight-saving time) is used as the session time zone displacement. In
-    version 2.7.0 a Java Calendar object with the local time zone of the
-    client JVM is created and used. Therefore when a seasonal time adjustment
-    for daylight saving time is made while the session is open, the SQL
-    session zone displacement is changed. In some older versions of HyperSQL,
-    the SQL session time displacement was not changed when a seasonal time
-    adjustment took place.</p>
-<p>To change the SQL session time zone displacement, use the following
-    commands:</p>
+    as daylight-saving time) is used as the session time zone displacement.
+    Note that the SQL session time displacement is not changed when a seasonal
+    time adjustment takes place while the session is open. To change the SQL
+    session time zone displacement, use the following commands:</p>
 <p>
 <code class="literal">SET TIME ZONE &lt;time
     displacement&gt;</code>
@@ -1760,16 +1723,19 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
     <code class="methodname">getTimestamp(...)</code> methods of the ResultSet
     interface which have a Calendar parameter can be used with a Calendar
     argument to retrieve the values.</p>
+<p>JDBC 4 and JAVA6 has an unfortunate limitation and does not include
+    type codes for SQL datetime types that have a TIME ZONE property.
+    Therefore, for compatibility with database tools that are limited to the
+    JDBC type codes, HyperSQL reports these types by default as datetime types
+    without TIME ZONE.</p>
 <p>
 <span class="bold"><strong>Java 8 Extensions</strong></span>
 </p>
-<p>JDBC 4 and JAVA6 did not include type codes for SQL datetime types
-    that have a TIME ZONE property. Therefore, HyperSQL reported these types
-    by default as datetime types without TIME ZONE.</p>
 <p>JAVA 8 introduced new type codes for TIMESTAMP WITH TIME ZONE and
-    TIME WITH TIME ZONE. HyperSQL supports this in
-    <code class="classname">ResultSet</code>, <code class="classname">PreparedStatement</code>
-    and <code class="classname">CallableStatement</code>.</p>
+    TIME WITH TIME ZONE. HSQLDB 2.4.0 and later when compiled with JDK8
+    supports this in <code class="classname">ResultSet</code>,
+    <code class="classname">PreparedStatement</code> and
+    <code class="classname">CallableStatement</code>.</p>
 <div class="itemizedlist">
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
@@ -1788,9 +1754,8 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
         <code class="classname">java.time</code> package types:
         <code class="classname">LocalDate</code>, <code class="classname">LocalTime</code>,
         <code class="classname">LocalDateTime</code>,
-        <code class="classname">OffsetTime</code>,
-        <code class="classname">OffsetDateTime</code>, and
-        <code class="classname">Instance</code> as well as
+        <code class="classname">OffsetTime</code> and
+        <code class="classname">OffsetDateTime</code> as well as
         <code class="classname">java.sql</code> package types,
         <code class="classname">Date</code>, <code class="classname">Time</code> and
         <code class="classname">Timestamp</code>.</p>
@@ -1811,7 +1776,7 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
 <span class="bold"><strong>Non-Standard
     Extensions</strong></span>
 </p>
-<p>HyperSQL version 2.7 supports some extensions to the SQL standard
+<p>HyperSQL version 2.5 supports some extensions to the SQL standard
     treatment of datetime and interval types. For example, the Standard
     expression to add a number of days to a date has an explicit INTERVAL
     value but HSQLDB also allows an integer to be used without specifying DAY.
@@ -1839,7 +1804,7 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
 </div>
 </div>
 </div>
-<a name="N1099B" class="indexterm"></a>
+<a name="N10970" class="indexterm"></a>
 <p>Interval types are used to represent differences between date time
     values. The difference between two date time values can be measured in
     seconds or in months. For measurements in months, the units YEAR and MONTH
@@ -2026,7 +1991,7 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
     fields. In the first example below, COL1 and COL2 are of the same datetime
     type, and the result is evaluated in INTERVAL YEAR TO MONTH type.</p>
 <div class="informalexample">
-<pre class="programlisting"> (COL1 &ndash; COL2) YEAR TO MONTH /* the difference between two DATE or two TIMESTAMP values in years and months */
+<pre class="programlisting"> (COL1 &ndash; COL2) YEAR TO MONTH /* the difference between two DATE or two TIEMSTAMP values in years and months */
  (CURRENT_DATE &ndash; COL3) DAY /* the number of days between the value of COL3 and the current date */
  (CURRENT_DATE - DATE '2000-01-01') YEAR TO MONTH /* the number of years and months since the beginning of this century */
  CURRENT_DATE - 2 DAY /* the date of the day before yesterday */
@@ -2055,23 +2020,24 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
     for SQL INTERVAL types. Therefore, for compatibility with database tools
     that are limited to the JDBC type codes, HyperSQL reports these types by
     default as VARCHAR. You can use the URL property
-    <span class="property">hsqldb.translate_dti_types=false</span> to override the
+    <code class="literal">hsqldb.translate_dti_types=false</code> to override the
     default behaviour.</p>
 <p>
 <span class="bold"><strong>Java 8 Extensions</strong></span>
 </p>
-<p>JAVA 8 does not have SQL type codes for INTERVAL types. HyperSQL
-    supports <code class="classname">java.time</code> types for INTERVAL types in
+<p>JAVA 8 does not have SQL type codes for INTERVAL types. HSQLDB 2.4.0
+    and later, when compiled with JDK8 or later, supports
+    <code class="classname">java.time</code> types for INTERVAL types in
     <code class="classname">ResultSet</code>, <code class="classname">PreparedStatement</code>
     and <code class="classname">CallableStatement</code>.</p>
 <div class="itemizedlist">
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 <p>The <code class="methodname">getObject(int columnIndex, Class
-        type)</code> method on an INTERVAL supports the
+        type)</code> method on an INTERVAL supports
         <code class="classname">java.time.Period</code> type for YEAR and MONTH
-        interval and the <code class="classname">java.time.Duration</code> type for
-        other interval types that cover DAY to SECOND.</p>
+        interval and <code class="classname">java.time.Duration</code> type for other
+        interval types that cover DAY to SECOND.</p>
 </li>
 <li class="listitem">
 <p>The <code class="methodname">setObject(int columnIndex)</code> method
@@ -2097,7 +2063,7 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
 </div>
 </div>
 </div>
-<p>Array are a powerful feature of SQL:2023 and can help solve many
+<p>Array are a powerful feature of SQL:2016 and can help solve many
     common problems. Arrays should not be used as a substitute for
     tables.</p>
 <p>HyperSQL supports arrays of values according to the Standard.</p>
@@ -2179,8 +2145,8 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
 </pre>
 </div>
 <p>When using a PreparedStatement with an ARRAY parameter, a Java
-      array or a <code class="classname">java.sql.Array</code> object may be used to
-      set the parameter.</p>
+      array or a <code class="literal">java.sql.Array</code> object may be used to set
+      the parameter.</p>
 <p>In the example below prepared statements for INSERT and UPDATE
       with array parameters are used.</p>
 <div class="informalexample">
@@ -2209,8 +2175,8 @@ SELECT obj FROM movies WHERE director LIKE 'Luc%'
 
 </pre>
 </div>
-<p>In the example below, a <code class="classname">java.sql.Array</code> is
-      used for the update, using the same data as above:</p>
+<p>In the example below, a <code class="literal">java.sql.Array</code> is used
+      for the update, using the same data as above:</p>
 <div class="informalexample">
 <pre class="programlisting">data = new Object[]{"I", "II", "III", "IV"};
 Array array = connection.createArrayOf("VARCHAR", data);
@@ -2439,7 +2405,7 @@ ps.executeUpdate();
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

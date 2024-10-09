@@ -1,5 +1,5 @@
 /**
- * $Id: build-dist.gradle 6764 2024-05-26 15:05:10Z fredt $
+ * $Id: build-dist.gradle 6338 2021-04-07 19:42:24Z fredt $
  *
  * Invoke this build file with Gradle's -b switch for zip and jar
  * distribution building.
@@ -40,29 +40,21 @@
  *     11: Make a release tag.
  *
  *   USAGE:
- *       1: Do a Subversion export with the release tag to a NEW directory
- *       2: If you don't have a .properties file set up for this purpose
+ *       1: Set up your desired build environment (JAVA_HOME set, etc.).
+ *       2: Do a Subversion export with the release tag to a NEW directory
+ *       3: If you don't have a .properties file set up for this purpose
  *          already, then make one outside of this work area with a distinctive
  *          name (for auditing and so you can archive it and/or re-use it for
  *          future distribution builds), then copy it to "build.properties"
  *          in this directory.  (If on a good operating system, just sym-link).
- *          This file must set Ant properties "build.label",
+ *          This file must set Ant properties "build.label", "build.vendor",
  *          "dbimage.path".  (See following section about optional properties).
  *          Set property "doc.pubtime" to the current date/time in
  *          format like 2019-01-27 18:55:44.
- *       3: Set up your desired build environment (JAVA_HOME of JDK11, etc.).
- *       4: For additional Java 8 jars, use regular late-model java (prev. step)
- *          and cross-compile by setting build properties ant.build.javac and
- *          javac.bootcp.override.  Make sure that build.debug=false.
- *              gradlew hsqldb sqltool
+ *       4: Run
+ *              gradlew -i -b build-dist.gradle  # Gradle users
  *          from the build directory.
- *          After the jars are built, COMMENT OUT the cross-compile properties.
- *       5: Run
- *              gradlew -i -b build-dist.gradle
- *          from the build directory..
- *          After the distribution zip is built, it resides in /dist/ and will
- *          be retained there if you proceed with the mvn-pub procedure.
- *       6: If you used a properties file shared with other environments,
+ *       5: If you used a properties file shared with other environments,
  *          then comment out distribution-specific build properties, including
  *          "doc.pubtime" (otherwise future document builds will label
  *          incorrectly).

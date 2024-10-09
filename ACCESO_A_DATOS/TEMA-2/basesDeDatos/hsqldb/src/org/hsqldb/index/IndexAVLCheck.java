@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,11 @@
 
 package org.hsqldb.index;
 
+import org.hsqldb.Table;
+import org.hsqldb.persist.RowStoreAVL;
+import org.hsqldb.result.Result;
+import org.hsqldb.lib.HsqlArrayList;
+import org.hsqldb.Session;
 import org.hsqldb.HsqlException;
 import org.hsqldb.Row;
 import org.hsqldb.Session;
@@ -42,29 +47,26 @@ import org.hsqldb.lib.OrderedLongHashSet;
 import org.hsqldb.map.BitMap;
 import org.hsqldb.persist.DataFileCache;
 import org.hsqldb.persist.PersistentStore;
-import org.hsqldb.persist.RowStoreAVL;
-import org.hsqldb.result.Result;
 import org.hsqldb.rowio.RowInputBinary;
 
 /**
- * Checks indexes for inconsistencies
+ * Checks indexex for insonsistencies
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.1
  * @since 2.5.1
  */
 public class IndexAVLCheck {
 
     public static Result checkAllTables(Session session, int type) {
 
-        Result result     = IndexStats.newEmptyResult();
-        HsqlArrayList<Table> allTables =
-            session.database.schemaManager.getAllTables(
-                true);
-        int    tableCount = allTables.size();
+        Result result = IndexStats.newEmptyResult();
+        HsqlArrayList allTables =
+            session.database.schemaManager.getAllTables(true);
+        int tableCount = allTables.size();
 
         for (int i = 0; i < tableCount; i++) {
-            Table table = allTables.get(i);
+            Table table = (Table) allTables.get(i);
 
             if (!table.isCached()) {
                 continue;
@@ -89,11 +91,8 @@ public class IndexAVLCheck {
         return result;
     }
 
-    public static void checkTable(
-            Session session,
-            Table table,
-            Result result,
-            int type) {
+    public static void checkTable(Session session, Table table, Result result,
+                                  int type) {
 
         RowStoreAVL tableStore =
             (RowStoreAVL) table.database.persistentStoreCollection.getStore(
@@ -112,7 +111,6 @@ public class IndexAVLCheck {
             for (int j = 0; j < statList.length; j++) {
                 if (statList[j].hasErrors) {
                     hasErrors = true;
-                    break;
                 }
             }
 
@@ -128,11 +126,9 @@ public class IndexAVLCheck {
         }
     }
 
-    public static void reindexTable(
-            Session session,
-            Table table,
-            PersistentStore store,
-            IndexStats[] indexStats) {
+    public static void reindexTable(Session session, Table table,
+                                    PersistentStore store,
+                                    IndexStats[] indexStats) {
 
         Index   readIndex = null;
         boolean reindex   = false;
@@ -140,6 +136,7 @@ public class IndexAVLCheck {
         for (int i = 0; i < indexStats.length; i++) {
             if (!indexStats[i].hasErrors) {
                 readIndex = table.getIndex(i);
+
                 break;
             }
         }
@@ -147,8 +144,7 @@ public class IndexAVLCheck {
         if (readIndex == null) {
             session.database.logger.logSevereEvent(
                 "could not recreate damaged indexes for table: "
-                + table.getName().statementName,
-                null);
+                + table.getName().statementName, null);
 
             return;
         }
@@ -167,8 +163,7 @@ public class IndexAVLCheck {
         if (reindex) {
             session.database.logger.logSevereEvent(
                 "recreated damaged indexes for table: "
-                + table.getName().statementName,
-                null);
+                + table.getName().statementName, null);
         }
     }
 
@@ -183,18 +178,18 @@ public class IndexAVLCheck {
         final NodeAVLDisk     rootNode;
 
         //
-        IntKeyHashMap<BitMap> bitMaps;
-        IntKeyHashMap<BitMap> bitMapsPos;
-        OrderedLongHashSet    badRows;
-        OrderedLongHashSet    loopedRows;
-        OrderedLongHashSet    ignoreRows;
-        HsqlArrayList<String> unorderedRows = new HsqlArrayList<>();
-        int                   branchPosition;
-        int                   leafPosition;
-        long                  errorRowCount;
-        long                  rowCount;
-        long                  loopCount;
-        boolean               printErrors = false;
+        IntKeyHashMap      bitMaps;
+        IntKeyHashMap      bitMapsPos;
+        OrderedLongHashSet badRows;
+        OrderedLongHashSet loopedRows;
+        OrderedLongHashSet ignoreRows;
+        HsqlArrayList      unorderedRows = new HsqlArrayList();
+        int                branchPosition;
+        int                leafPosition;
+        long               errorRowCount;
+        long               rowCount;
+        long               loopCount;
+        boolean            printErrors = false;
 
         /**
          * Uses one arraylist for the nodes near the root and another array list
@@ -202,27 +197,23 @@ public class IndexAVLCheck {
          *
          * Returns nodes to depth of 32
          */
-        public IndexAVLProbe(
-                Session session,
-                PersistentStore store,
-                IndexAVL index,
-                NodeAVL rootNode) {
+        public IndexAVLProbe(Session session, PersistentStore store,
+                             IndexAVL index, NodeAVL rootNode) {
 
             DataFileCache cache = store.getCache();
 
-            this.fileBlockItemCount = cache == null
-                                      ? 0
-                                      : store.getCache().spaceManager
-                                             .getFileBlockItemCount();
-            this.cacheScale         = cache == null
-                                      ? 0
-                                      : store.getCache().getDataFileScale();
-            this.session            = session;
-            this.store              = store;
-            this.index              = index;
-            this.rootNode           = cache == null
-                                      ? null
-                                      : (NodeAVLDisk) rootNode;
+            this.fileBlockItemCount = cache == null ? 0
+                                                    : store.getCache()
+                                                    .spaceManager
+                                                        .getFileBlockItemCount();
+            this.cacheScale = cache == null ? 0
+                                            : store.getCache()
+                                                .getDataFileScale();
+            this.session  = session;
+            this.store    = store;
+            this.index    = index;
+            this.rootNode = cache == null ? null
+                                          : (NodeAVLDisk) rootNode;
         }
 
         public IndexStats getStats() {
@@ -241,8 +232,7 @@ public class IndexAVLCheck {
         }
 
         public boolean hasErrors() {
-            return !(errorRowCount == 0
-                     && loopCount == 0
+            return !(errorRowCount == 0 && loopCount == 0
                      && unorderedRows.isEmpty());
         }
 
@@ -260,12 +250,12 @@ public class IndexAVLCheck {
                 return;
             }
 
-            bitMaps       = new IntKeyHashMap<>();
-            bitMapsPos    = new IntKeyHashMap<>();
+            bitMaps       = new IntKeyHashMap();
+            bitMapsPos    = new IntKeyHashMap();
             badRows       = new OrderedLongHashSet();
             loopedRows    = new OrderedLongHashSet();
             ignoreRows    = new OrderedLongHashSet();
-            unorderedRows = new HsqlArrayList<>();
+            unorderedRows = new HsqlArrayList();
 
             Row row = rootNode.getRow(store);
 
@@ -302,12 +292,8 @@ public class IndexAVLCheck {
                     NodeAVL fnext = index.next(store, f);
 
                     if (fnext != null) {
-                        int c = index.compareRowForInsertOrDelete(
-                            session,
-                            fnext.getRow(store),
-                            f.getRow(store),
-                            true,
-                            0);
+                        int c = index.compareRowForInsertOrDelete(session,
+                            fnext.getRow(store), f.getRow(store), true, 0);
 
                         if (c <= 0) {
                             if (errors < 10) {
@@ -325,7 +311,7 @@ public class IndexAVLCheck {
             }
         }
 
-        int checkNodes(NodeAVL p, HsqlArrayList<String> list) {
+        int checkNodes(NodeAVL p, HsqlArrayList list) {
 
             NodeAVLDisk l      = (NodeAVLDisk) p.getLeft(store);
             NodeAVLDisk r      = (NodeAVLDisk) p.getRight(store);
@@ -366,7 +352,7 @@ public class IndexAVLCheck {
             return errorRowCount;
         }
 
-        public IntKeyHashMap<BitMap> getBitMaps() {
+        public IntKeyHashMap getBitMaps() {
             return bitMaps;
         }
 
@@ -386,10 +372,8 @@ public class IndexAVLCheck {
          * goes to maxDepth
          * include is false to exclude a node that has readable index pointers but unreadable data
          */
-        private void getNodesFrom(
-                int depth,
-                NodeAVLDisk node,
-                boolean include) {
+        private void getNodesFrom(int depth, NodeAVLDisk node,
+                                  boolean include) {
 
             if (node == null) {
                 return;
@@ -428,8 +412,7 @@ public class IndexAVLCheck {
 
                         if (next.getParentPos() != pos) {
                             NodeAVLDisk parentNode =
-                                (NodeAVLDisk) node.getParent(
-                                    store);
+                                (NodeAVLDisk) node.getParent(store);
 
                             loopCount++;
                         }
@@ -477,8 +460,7 @@ public class IndexAVLCheck {
 
                         if (next.getParentPos() != pos) {
                             NodeAVLDisk parentNode =
-                                (NodeAVLDisk) node.getParent(
-                                    store);
+                                (NodeAVLDisk) node.getParent(store);
 
                             loopCount++;
                         }
@@ -518,7 +500,7 @@ public class IndexAVLCheck {
             int     units    = object.getStorageSize() / cacheScale;
             boolean result   = true;
 
-            while (units > 0) {
+            for (; units > 0; ) {
                 int blockIndex   = (int) (position / fileBlockItemCount);
                 int blockOffset  = (int) (position % fileBlockItemCount);
                 int currentUnits = fileBlockItemCount - blockOffset;
@@ -527,10 +509,8 @@ public class IndexAVLCheck {
                     currentUnits = units;
                 }
 
-                BitMap bitMap = getBitMap(blockIndex);
-                int countSet = bitMap.countSetBits(
-                    blockOffset,
-                    blockOffset + currentUnits);
+                BitMap bitMap   = getBitMap(blockIndex);
+                int    countSet = bitMap.countSet(blockOffset, currentUnits);
 
                 if (countSet > 0) {
 
@@ -555,10 +535,11 @@ public class IndexAVLCheck {
 
         BitMap getBitMap(int blockIndex) {
 
-            BitMap bitMap = bitMaps.get(blockIndex);
+            BitMap bitMap = (BitMap) bitMaps.get(blockIndex);
 
             if (bitMap == null) {
-                bitMap = new BitMap(new int[fileBlockItemCount / Integer.SIZE]);
+                bitMap =
+                    new BitMap(new int[fileBlockItemCount / Integer.SIZE]);
 
                 bitMaps.put(blockIndex, bitMap);
             }
@@ -583,10 +564,11 @@ public class IndexAVLCheck {
 
         BitMap getPosSet(int blockIndex) {
 
-            BitMap bitMap = bitMapsPos.get(blockIndex);
+            BitMap bitMap = (BitMap) bitMapsPos.get(blockIndex);
 
             if (bitMap == null) {
-                bitMap = new BitMap(new int[fileBlockItemCount / Integer.SIZE]);
+                bitMap =
+                    new BitMap(new int[fileBlockItemCount / Integer.SIZE]);
 
                 bitMapsPos.put(blockIndex, bitMap);
             }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 package org.hsqldb.persist;
 
 import java.io.IOException;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -147,6 +146,7 @@ public class DataFileCache {
     Lock          writeLock = lock.writeLock();
 
     public DataFileCache(Database db, String baseFileName) {
+
         initParams(db, baseFileName, false);
 
         cache = new Cache(this);
@@ -180,10 +180,8 @@ public class DataFileCache {
     /**
      * initial external parameters are set here.
      */
-    protected void initParams(
-            Database database,
-            String baseFileName,
-            boolean defrag) {
+    protected void initParams(Database database, String baseFileName,
+                              boolean defrag) {
 
         this.database    = database;
         dataFileName     = baseFileName + Logger.dataFileExtension;
@@ -232,11 +230,8 @@ public class DataFileCache {
             }
 
             if (readonly || database.isFilesInJar()) {
-                dataFile = RAFile.newScaledRAFile(
-                    database,
-                    dataFileName,
-                    true,
-                    fileType);
+                dataFile = RAFile.newScaledRAFile(database, dataFileName,
+                                                  true, fileType);
 
                 int flags = getFlags();
 
@@ -266,7 +261,8 @@ public class DataFileCache {
             boolean doRestore     = false;
 
             if (preexists) {
-                dataFile = new RAFileSimple(database.logger, dataFileName, "r");
+                dataFile = new RAFileSimple(database.logger, dataFileName,
+                                            "r");
 
                 long    length       = dataFile.length();
                 boolean wrongVersion = false;
@@ -304,16 +300,15 @@ public class DataFileCache {
                 if (!database.logger.propLargeData) {
                     if (length > (maxDataFileSize / 8) * 7) {
                         database.logger.propLargeData = true;
-                        maxDataFileSize = (long) Integer.MAX_VALUE
-                                          * dataFileScale
-                                          * database.logger.getDataFileFactor();
+                        maxDataFileSize =
+                            (long) Integer.MAX_VALUE * dataFileScale
+                            * database.logger.getDataFileFactor();
                     }
                 }
 
                 if (length > maxDataFileSize) {
-                    throw Error.error(
-                        ErrorCode.DATA_FILE_IS_FULL,
-                        String.valueOf(maxDataFileSize));
+                    throw Error.error(ErrorCode.DATA_FILE_IS_FULL,
+                                      String.valueOf(maxDataFileSize));
                 }
             }
 
@@ -350,11 +345,8 @@ public class DataFileCache {
                 }
             }
 
-            dataFile = RAFile.newScaledRAFile(
-                database,
-                dataFileName,
-                readonly,
-                fileType);
+            dataFile = RAFile.newScaledRAFile(database, dataFileName,
+                                              readonly, fileType);
 
             if (preexists) {
                 dataFile.seek(Positions.LONG_EMPTY_SIZE);
@@ -409,11 +401,10 @@ public class DataFileCache {
             logSevereEvent("DataFileCache.open", t);
             release();
 
-            throw Error.error(
-                t,
-                ErrorCode.FILE_IO_ERROR,
-                ErrorCode.M_DataFileCache_open,
-                new String[]{ t.toString(), dataFileName });
+            throw Error.error(t, ErrorCode.FILE_IO_ERROR,
+                              ErrorCode.M_DataFileCache_open, new String[] {
+                t.toString(), dataFileName
+            });
         }
     }
 
@@ -484,12 +475,9 @@ public class DataFileCache {
 
     private void openShadowFile() {
 
-        shadowFile = new RAShadowFile(
-            database.logger,
-            dataFile,
-            backupFileName,
-            fileFreePosition,
-            1 << 14);
+        shadowFile = new RAShadowFile(database.logger, dataFile,
+                                      backupFileName, fileFreePosition,
+                                      1 << 14);
     }
 
     /**
@@ -503,11 +491,9 @@ public class DataFileCache {
             deleteBackupFile();
 
             if (fileAccess.isStreamElement(backupFileName)) {
-                FileArchiver.unarchive(
-                    backupFileName,
-                    dataFileName,
-                    fileAccess,
-                    FileArchiver.COMPRESSION_ZIP);
+                FileArchiver.unarchive(backupFileName, dataFileName,
+                                       fileAccess,
+                                       FileArchiver.COMPRESSION_ZIP);
 
                 return true;
             }
@@ -516,11 +502,10 @@ public class DataFileCache {
         } catch (Throwable t) {
             database.logger.logSevereEvent("DataFileCache.restoreBackup", t);
 
-            throw Error.error(
-                t,
-                ErrorCode.FILE_IO_ERROR,
-                ErrorCode.M_Message_Pair,
-                new String[]{ t.toString(), backupFileName });
+            throw Error.error(t, ErrorCode.FILE_IO_ERROR,
+                              ErrorCode.M_Message_Pair, new String[] {
+                t.toString(), backupFileName
+            });
         }
     }
 
@@ -533,10 +518,8 @@ public class DataFileCache {
             FileAccess fileAccess = database.logger.getFileAccess();
 
             if (fileAccess.isStreamElement(backupFileName)) {
-                RAShadowFile.restoreFile(
-                    database,
-                    backupFileName,
-                    dataFileName);
+                RAShadowFile.restoreFile(database, backupFileName,
+                                         dataFileName);
                 deleteBackupFile();
 
                 return true;
@@ -547,8 +530,7 @@ public class DataFileCache {
             return false;
         } catch (Throwable e) {
             database.logger.logSevereEvent(
-                "DataFileCache.restoreBackupIncremental",
-                e);
+                "DataFileCache.restoreBackupIncremental", e);
 
             throw Error.error(ErrorCode.FILE_IO_ERROR, e);
         }
@@ -606,11 +588,10 @@ public class DataFileCache {
         } catch (Throwable t) {
             logSevereEvent("DataFileCache.close", t);
 
-            throw Error.error(
-                t,
-                ErrorCode.FILE_IO_ERROR,
-                ErrorCode.M_DataFileCache_close,
-                new String[]{ t.toString(), dataFileName });
+            throw Error.error(t, ErrorCode.FILE_IO_ERROR,
+                              ErrorCode.M_DataFileCache_close, new String[] {
+                t.toString(), dataFileName
+            });
         } finally {
             writeLock.unlock();
         }
@@ -712,11 +693,10 @@ public class DataFileCache {
         } catch (Throwable t) {
             logSevereEvent("DataFileCache.reset commit", t);
 
-            throw Error.error(
-                t,
-                ErrorCode.FILE_IO_ERROR,
-                ErrorCode.M_DataFileCache_close,
-                new String[]{ t.toString(), dataFileName });
+            throw Error.error(t, ErrorCode.FILE_IO_ERROR,
+                              ErrorCode.M_DataFileCache_close, new String[] {
+                t.toString(), dataFileName
+            });
         } finally {
             writeLock.unlock();
         }
@@ -725,16 +705,14 @@ public class DataFileCache {
     protected void initBuffers() {
 
         if (rowOut == null) {
-            rowOut = new RowOutputBinaryEncode(
-                database.logger.getCrypto(),
-                initIOBufferSize,
-                cachedRowPadding);
+            rowOut = new RowOutputBinaryEncode(database.logger.getCrypto(),
+                                               initIOBufferSize,
+                                               cachedRowPadding);
         }
 
         if (rowIn == null) {
-            rowIn = new RowInputBinaryDecode(
-                database.logger.getCrypto(),
-                new byte[initIOBufferSize]);
+            rowIn = new RowInputBinaryDecode(database.logger.getCrypto(),
+                                             new byte[initIOBufferSize]);
         }
     }
 
@@ -786,10 +764,8 @@ public class DataFileCache {
         }
     }
 
-    public CachedObject get(
-            CachedObject object,
-            PersistentStore store,
-            boolean keep) {
+    public CachedObject get(CachedObject object, PersistentStore store,
+                            boolean keep) {
 
         readLock.lock();
 
@@ -826,11 +802,8 @@ public class DataFileCache {
         return getFromFile(pos, store, keep);
     }
 
-    public CachedObject get(
-            long pos,
-            int size,
-            PersistentStore store,
-            boolean keep) {
+    public CachedObject get(long pos, int size, PersistentStore store,
+                            boolean keep) {
 
         CachedObject object;
 
@@ -884,10 +857,8 @@ public class DataFileCache {
         return getFromFile(pos, store, keep);
     }
 
-    private CachedObject getFromFile(
-            long pos,
-            PersistentStore store,
-            boolean keep) {
+    private CachedObject getFromFile(long pos, PersistentStore store,
+                                     boolean keep) {
 
         CachedObject object = null;
 
@@ -911,9 +882,8 @@ public class DataFileCache {
                     object = store.get(rowIn);
 
                     if (object == null) {
-                        throw Error.error(
-                            ErrorCode.GENERAL_IO_ERROR,
-                            "position " + pos);
+                        throw Error.error(ErrorCode.GENERAL_IO_ERROR,
+                                          "position " + pos);
                     }
 
                     break;
@@ -922,13 +892,11 @@ public class DataFileCache {
                         cache.clearUnchanged();
 
                         if (j > 0) {
-                            logInfoEvent(
-                                dataFileName + " getFromFile out of mem, pos: "
-                                + pos);
+                            logInfoEvent(dataFileName
+                                         + " getFromFile out of mem, pos: " + pos);
 
-                            HsqlException ex = Error.error(
-                                ErrorCode.OUT_OF_MEMORY,
-                                t);
+                            HsqlException ex =
+                                Error.error(ErrorCode.OUT_OF_MEMORY, t);
 
                             ex.info = rowIn;
 
@@ -937,11 +905,10 @@ public class DataFileCache {
                     } else if (t instanceof HsqlException) {
                         ((HsqlException) t).info = rowIn;
 
-                        throw(HsqlException) t;
+                        throw (HsqlException) t;
                     } else {
-                        HsqlException ex = Error.error(
-                            ErrorCode.GENERAL_IO_ERROR,
-                            t);
+                        HsqlException ex =
+                            Error.error(ErrorCode.GENERAL_IO_ERROR, t);
 
                         ex.info = rowIn;
 
@@ -972,11 +939,8 @@ public class DataFileCache {
         }
     }
 
-    private CachedObject getFromFile(
-            long pos,
-            int size,
-            PersistentStore store,
-            boolean keep) {
+    private CachedObject getFromFile(long pos, int size,
+                                     PersistentStore store, boolean keep) {
 
         CachedObject object = null;
 
@@ -998,15 +962,16 @@ public class DataFileCache {
                     readObject(pos, size);
 
                     object = store.get(rowIn);
+
                     break;
                 } catch (OutOfMemoryError err) {
                     cache.clearUnchanged();
                     System.gc();
 
                     if (j > 0) {
-                        logSevereEvent(
-                            dataFileName + " getFromFile out of mem " + pos,
-                            err);
+                        logSevereEvent(dataFileName
+                                       + " getFromFile out of mem "
+                                       + pos, err);
 
                         throw err;
                     }
@@ -1176,10 +1141,8 @@ public class DataFileCache {
 
         try {
             dataFile.seek(pos * dataFileScale);
-            dataFile.write(
-                rowOut.getOutputStream().getBuffer(),
-                0,
-                rowOut.getOutputStream().size());
+            dataFile.write(rowOut.getOutputStream().getBuffer(), 0,
+                           rowOut.getOutputStream().size());
         } catch (Throwable t) {
             logSevereEvent("DataFileCache.saveRowOutput", t, pos);
 
@@ -1193,10 +1156,8 @@ public class DataFileCache {
             rowOut.reset();
             row.write(rowOut);
             dataFile.seek(row.getPos() * dataFileScale);
-            dataFile.write(
-                rowOut.getOutputStream().getBuffer(),
-                0,
-                rowOut.getOutputStream().size());
+            dataFile.write(rowOut.getOutputStream().getBuffer(), 0,
+                           rowOut.getOutputStream().size());
             row.setChanged(false);
         } catch (Throwable t) {
             logSevereEvent("DataFileCache.saveRowNoLock", t, row.getPos());
@@ -1219,8 +1180,9 @@ public class DataFileCache {
                 for (int i = offset; i < offset + count; i++) {
                     CachedObject row = rows[i];
 
-                    seekpos   = row.getPos() * dataFileScale;
-                    pageCount += shadowFile.copy(seekpos, row.getStorageSize());
+                    seekpos = row.getPos() * dataFileScale;
+                    pageCount += shadowFile.copy(seekpos,
+                                                 row.getStorageSize());
                 }
 
                 if (pageCount > 0) {
@@ -1237,9 +1199,8 @@ public class DataFileCache {
             if (pageCount > 0) {
                 time = cache.shadowTimer.elapsedTime() - time;
 
-                logDetailEvent(
-                    "copyShadow [size, time] " + shadowFile.getSavedLength()
-                    + " " + time);
+                logDetailEvent("copyShadow [size, time] "
+                               + shadowFile.getSavedLength() + " " + time);
             }
         }
 
@@ -1286,10 +1247,8 @@ public class DataFileCache {
             long position = fileFreePosition;
 
             if (newLength > maxDataFileSize) {
-                logSevereEvent(
-                    "data file reached maximum allowed size: " + dataFileName
-                    + " " + maxDataFileSize,
-                    null);
+                logSevereEvent("data file reached maximum allowed size: "
+                               + dataFileName + " " + maxDataFileSize, null);
 
                 throw Error.error(ErrorCode.DATA_FILE_IS_FULL);
             }
@@ -1297,10 +1256,8 @@ public class DataFileCache {
             boolean result = dataFile.ensureLength(newLength);
 
             if (!result) {
-                logSevereEvent(
-                    "data file cannot be enlarged - disk space: "
-                    + dataFileName + " " + newLength,
-                    null);
+                logSevereEvent("data file cannot be enlarged - disk space: "
+                               + dataFileName + " " + newLength, null);
 
                 throw Error.error(ErrorCode.DATA_FILE_IS_FULL);
             }
@@ -1389,6 +1346,7 @@ public class DataFileCache {
     }
 
     void setFlags(int flags) throws IOException {
+
         dataFile.seek(Positions.INT_FLAGS);
         dataFile.writeInt(flags);
         dataFile.synch();
@@ -1400,9 +1358,8 @@ public class DataFileCache {
 
         int flags = dataFile.readInt();
 
-        flags = val
-                ? BitMap.set(flags, singleFlag)
-                : BitMap.unset(flags, singleFlag);
+        flags = val ? BitMap.set(flags, singleFlag)
+                    : BitMap.unset(flags, singleFlag);
 
         dataFile.seek(Positions.INT_FLAGS);
         dataFile.writeInt(flags);
@@ -1424,26 +1381,32 @@ public class DataFileCache {
     private void logSevereEvent(String message, Throwable t, long position) {
 
         if (logEvents) {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(message);
 
-            sb.append(message).append(' ').append(position);
-            database.logger.logSevereEvent(sb.toString(), t);
+            sb.append(' ').append(position);
+
+            message = sb.toString();
+
+            database.logger.logSevereEvent(message, t);
         }
     }
 
     public void logSevereEvent(String message, Throwable t) {
+
         if (logEvents) {
             database.logger.logSevereEvent(message, t);
         }
     }
 
     void logInfoEvent(String message) {
+
         if (logEvents) {
             database.logger.logInfoEvent(message);
         }
     }
 
     void logDetailEvent(String message) {
+
         if (logEvents) {
             database.logger.logDetailEvent(message);
         }

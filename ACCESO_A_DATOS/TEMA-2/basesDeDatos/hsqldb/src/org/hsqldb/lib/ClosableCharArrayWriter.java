@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,8 +109,8 @@ public class ClosableCharArrayWriter extends Writer {
     public ClosableCharArrayWriter(int size) throws IllegalArgumentException {
 
         if (size < 0) {
-            throw new IllegalArgumentException(
-                "Negative initial size: " + size);    // NOI18N
+            throw new IllegalArgumentException("Negative initial size: "
+                                               + size);    // NOI18N
         }
 
         buf = new char[size];
@@ -148,19 +148,13 @@ public class ClosableCharArrayWriter extends Writer {
      *      In particular, an {@code IOException} may be thrown
      *      if this writer has been {@link #close() closed}.
      */
-    public synchronized void write(
-            char[] c,
-            int off,
-            int len)
-            throws IOException {
+    public synchronized void write(char[] c, int off,
+                                   int len) throws IOException {
 
         checkClosed();
 
-        if ((off < 0)
-                || (off > c.length)
-                || (len < 0)
-                || ((off + len) > c.length)
-                || ((off + len) < 0)) {
+        if ((off < 0) || (off > c.length) || (len < 0)
+                || ((off + len) > c.length) || ((off + len) < 0)) {
             throw new IndexOutOfBoundsException();
         } else if (len == 0) {
             return;
@@ -190,20 +184,14 @@ public class ClosableCharArrayWriter extends Writer {
      *      In particular, an {@code IOException} may be thrown
      *      if this writer has been {@link #close() closed}.
      */
-    public synchronized void write(
-            String str,
-            int off,
-            int len)
-            throws IOException {
+    public synchronized void write(String str, int off,
+                                   int len) throws IOException {
 
         checkClosed();
 
         int strlen = str.length();
 
-        if ((off < 0)
-                || (off > strlen)
-                || (len < 0)
-                || ((off + len) > strlen)
+        if ((off < 0) || (off > strlen) || (len < 0) || ((off + len) > strlen)
                 || ((off + len) < 0)) {
             throw new IndexOutOfBoundsException();
         } else if (len == 0) {
@@ -262,6 +250,7 @@ public class ClosableCharArrayWriter extends Writer {
      *      if this writer has been {@link #free() freed}.
      */
     public synchronized int capacity() throws IOException {
+
         checkFreed();
 
         return buf.length;
@@ -278,6 +267,7 @@ public class ClosableCharArrayWriter extends Writer {
      *      if this output stream has been {@link #close() closed}.
      */
     public synchronized void reset() throws IOException {
+
         checkClosed();
 
         count = 0;
@@ -290,8 +280,6 @@ public class ClosableCharArrayWriter extends Writer {
      * characters, then it may be resized to become more space efficient.
      * Calling this method may, but is not required to, affect the value
      * returned by a subsequent call to the {@link #capacity()} method.
-     *
-     * @throws IOException if buffer is freed
      */
     public synchronized void trimToSize() throws IOException {
 
@@ -314,6 +302,7 @@ public class ClosableCharArrayWriter extends Writer {
      *      if this writer has been {@link #free() freed}.
      */
     public synchronized char[] toCharArray() throws IOException {
+
         checkFreed();
 
         return copyOf(buf, count);
@@ -360,7 +349,8 @@ public class ClosableCharArrayWriter extends Writer {
      *      In particular, an {@code IOException} may be thrown
      *      if this writer has been {@link #free() freed}.
      */
-    public synchronized CharArrayReader toCharArrayReader() throws IOException {
+    public synchronized CharArrayReader toCharArrayReader()
+    throws IOException {
 
         checkFreed();
 
@@ -430,6 +420,7 @@ public class ClosableCharArrayWriter extends Writer {
      * @throws java.io.IOException if this writer is closed.
      */
     protected synchronized void checkClosed() throws IOException {
+
         if (closed) {
             throw new IOException("writer is closed.");    // NOI18N
         }
@@ -439,6 +430,7 @@ public class ClosableCharArrayWriter extends Writer {
      * @throws java.io.IOException if this writer is freed.
      */
     protected synchronized void checkFreed() throws IOException {
+
         if (freed) {
             throw new IOException("write buffer is freed.");    // NOI18N
         }
@@ -456,12 +448,8 @@ public class ClosableCharArrayWriter extends Writer {
 
         char[] copy = new char[newLength];
 
-        System.arraycopy(
-            original,
-            0,
-            copy,
-            0,
-            Math.min(original.length, newLength));
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
 
         return copy;
     }

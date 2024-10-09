@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,18 +54,11 @@ public final class InOutUtil {
 
     /**
      * Implementation only supports unix line-end format and is suitable for
-     * processing HTTP and other network protocol communications. Reads and
-     * writes a line of data. Returns the number of bytes read/written.
-     *
-     * @param in InputStream
-     * @param out OutputStream
-     * @throws IOException on failure
-     * @return int
+     * processing HTTP and other network protocol communications. Reads and writes
+     * a line of data. Returns the number of bytes read/written.
      */
-    public static int readLine(
-            InputStream in,
-            OutputStream out)
-            throws IOException {
+    public static int readLine(InputStream in,
+                               OutputStream out) throws IOException {
 
         int count = 0;
 
@@ -89,12 +82,11 @@ public final class InOutUtil {
     }
 
     /**
-     * Retrieves the serialized form of the specified {@code Object} as an
-     * array of bytes.
+     * Retrieves the serialized form of the specified <code>Object</code>
+     * as an array of bytes.
      *
      * @param s the Object to serialize
-     * @return a static byte array representing the passed Object
-     * @throws IOException on failure
+     * @return  a static byte array representing the passed Object
      */
     public static byte[] serialize(Serializable s) throws IOException {
 
@@ -108,17 +100,13 @@ public final class InOutUtil {
 
     /**
      * Deserializes the specified byte array to an
-     * {@code Object} instance.
+     * <code>Object</code> instance.
      *
      * @return the Object resulting from deserializing the specified array of bytes
      * @param ba the byte array to deserialize to an Object
-     * @throws IOException on failure
-     * @throws ClassNotFoundException if not found
      */
-    public static Serializable deserialize(
-            byte[] ba)
-            throws IOException,
-                   ClassNotFoundException {
+    public static Serializable deserialize(byte[] ba)
+    throws IOException, ClassNotFoundException {
 
         HsqlByteArrayInputStream bi = new HsqlByteArrayInputStream(ba);
         ObjectInputStream        is = new ObjectInputStream(bi);
@@ -130,49 +118,27 @@ public final class InOutUtil {
     public static final long DEFAULT_COPY_AMOUNT      = Long.MAX_VALUE;
 
     /**
-     *
      * @see #copy(java.io.InputStream, java.io.OutputStream, long, int)
-     * @param inputStream InputStream
-     * @param outputStream OutputStream
-     * @throws IOException on failure
-     * @return long
      */
-    public static long copy(
-            final InputStream inputStream,
-            final OutputStream outputStream)
-            throws IOException {
-
-        return copy(
-            inputStream,
-            outputStream,
-            DEFAULT_COPY_AMOUNT,
-            DEFAULT_COPY_BUFFER_SIZE);
+    public static long copy(final InputStream inputStream,
+                            final OutputStream outputStream)
+                            throws IOException {
+        return copy(inputStream, outputStream, DEFAULT_COPY_AMOUNT,
+                    DEFAULT_COPY_BUFFER_SIZE);
     }
 
     /**
-     *
      * @see #copy(java.io.InputStream, java.io.OutputStream, long, int)
-     * @param inputStream InputStream
-     * @param outputStream OutputStream
-     * @param amount long
-     * @throws IOException on failure
-     * @return long
      */
-    public static long copy(
-            final InputStream inputStream,
-            final OutputStream outputStream,
-            final long amount)
-            throws IOException {
-
-        return copy(
-            inputStream,
-            outputStream,
-            amount,
-            DEFAULT_COPY_BUFFER_SIZE);
+    public static long copy(final InputStream inputStream,
+                            final OutputStream outputStream,
+                            final long amount) throws IOException {
+        return copy(inputStream, outputStream, amount,
+                    DEFAULT_COPY_BUFFER_SIZE);
     }
 
     /**
-     * the specified {@code amount} from the given input stream to the
+     * the specified <code>amount</code> from the given input stream to the
      * given output stream, using a buffer of the given size.
      *
      * @param inputStream from which to source bytes
@@ -182,12 +148,10 @@ public final class InOutUtil {
      * @return the number of bytes <i>actually</i> transferred.
      * @throws IOException if any, thrown by either of the given stream objects
      */
-    public static long copy(
-            final InputStream inputStream,
-            final OutputStream outputStream,
-            final long amount,
-            final int bufferSize)
-            throws IOException {
+    public static long copy(final InputStream inputStream,
+                            final OutputStream outputStream,
+                            final long amount,
+                            final int bufferSize) throws IOException {
 
         //
         int maxBytesToRead = (int) Math.min(bufferSize, amount);
@@ -200,9 +164,8 @@ public final class InOutUtil {
         int  bytesRead;
 
         while ((bytesCopied < amount)
-                && -1 != (bytesRead = inputStream.read(buffer,
-                        0,
-                        maxBytesToRead))) {
+                && -1 != (bytesRead = inputStream.read(buffer, 0,
+                    maxBytesToRead))) {
 
             //
             outputStream.write(buffer, 0, bytesRead);
@@ -227,44 +190,24 @@ public final class InOutUtil {
     }
 
     /**
-     *
      * @see #copy(java.io.Reader, java.io.Writer, long, int)
-     * @param reader Reader
-     * @param writer Writer
-     * @throws IOException on failure
-     * @return long
      */
-    public static long copy(
-            final Reader reader,
-            final Writer writer)
-            throws IOException {
-
-        return copy(
-            reader,
-            writer,
-            DEFAULT_COPY_AMOUNT,
-            DEFAULT_COPY_BUFFER_SIZE);
+    public static long copy(final Reader reader,
+                            final Writer writer) throws IOException {
+        return copy(reader, writer, DEFAULT_COPY_AMOUNT,
+                    DEFAULT_COPY_BUFFER_SIZE);
     }
 
     /**
-     *
      * @see #copy(java.io.Reader, java.io.Writer, long, int)
-     * @param reader Reader
-     * @param writer Writer
-     * @param amount long
-     * @throws IOException on failure
-     * @return long
      */
-    public static long copy(
-            final Reader reader,
-            final Writer writer,
-            final long amount)
-            throws IOException {
+    public static long copy(final Reader reader, final Writer writer,
+                            final long amount) throws IOException {
         return copy(reader, writer, amount, DEFAULT_COPY_BUFFER_SIZE);
     }
 
     /**
-     * the specified {@code amount} from the given input stream to the
+     * the specified <code>amount</code> from the given input stream to the
      * given output stream, using a buffer of the given size.
      *
      * @param reader from which to source characters
@@ -274,12 +217,9 @@ public final class InOutUtil {
      * @return the number of characters <i>actually</i> transferred.
      * @throws IOException if any, thrown by either of the given stream objects
      */
-    public static long copy(
-            final Reader reader,
-            final Writer writer,
-            final long amount,
-            final int bufferSize)
-            throws IOException {
+    public static long copy(final Reader reader, final Writer writer,
+                            final long amount,
+                            final int bufferSize) throws IOException {
 
         //
         int maxCharsToRead = (int) Math.min(bufferSize, amount);
@@ -292,7 +232,8 @@ public final class InOutUtil {
         int  charsRead;
 
         while ((charsCopied < amount)
-                && -1 != (charsRead = reader.read(buffer, 0, maxCharsToRead))) {
+                && -1 != (charsRead = reader.read(buffer, 0,
+                    maxCharsToRead))) {
 
             //
             writer.write(buffer, 0, charsRead);

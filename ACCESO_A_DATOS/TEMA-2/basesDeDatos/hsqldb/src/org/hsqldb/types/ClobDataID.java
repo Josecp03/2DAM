@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,14 +56,10 @@ public class ClobDataID implements ClobData {
         this.id = id;
     }
 
-    public char[] getChars(
-            SessionInterface session,
-            long position,
-            int length) {
+    public char[] getChars(SessionInterface session, long position,
+                           int length) {
 
-        ResultLob resultOut = ResultLob.newLobGetCharsRequest(
-            id,
-            position,
+        ResultLob resultOut = ResultLob.newLobGetCharsRequest(id, position,
             length);
         Result resultIn = session.execute(resultOut);
 
@@ -92,7 +88,8 @@ public class ClobDataID implements ClobData {
         return length;
     }
 
-    public String getSubString(SessionInterface session, long pos, int length) {
+    public String getSubString(SessionInterface session, long pos,
+                               int length) {
 
         long clobLength = length(session);
 
@@ -103,6 +100,7 @@ public class ClobDataID implements ClobData {
         if (pos + length >= clobLength) {
             length = (int) (clobLength - pos);
         }
+
 
         char[] chars = getChars(session, pos, length);
 
@@ -129,10 +127,8 @@ public class ClobDataID implements ClobData {
         return new ClobDataID(lobID);
     }
 
-    public ClobData getClob(
-            SessionInterface session,
-            long position,
-            long length) {
+    public ClobData getClob(SessionInterface session, long position,
+                            long length) {
 
         ResultLob resultOut = ResultLob.newLobGetRequest(id, position, length);
         Result    resultIn  = session.execute(resultOut);
@@ -163,21 +159,18 @@ public class ClobDataID implements ClobData {
     }
 
     public Reader getCharacterStream(SessionInterface session) {
+
         long length = length(session);
 
         return new ClobInputStream(session, this, 0, length);
     }
 
-    public void setCharacterStream(
-            SessionInterface session,
-            long pos,
-            Reader in) {}
+    public void setCharacterStream(SessionInterface session, long pos,
+                                   Reader in) {}
 
     public void setString(SessionInterface session, long pos, String str) {
 
-        ResultLob resultOut = ResultLob.newLobSetCharsRequest(
-            id,
-            pos,
+        ResultLob resultOut = ResultLob.newLobSetCharsRequest(id, pos,
             str.toCharArray());
         Result resultIn = session.execute(resultOut);
 
@@ -188,19 +181,11 @@ public class ClobDataID implements ClobData {
         this.length = ((ResultLob) resultIn).getBlockLength();
     }
 
-    public void setClob(
-            SessionInterface session,
-            long pos,
-            ClobData clob,
-            long offset,
-            long len) {}
+    public void setClob(SessionInterface session, long pos, ClobData clob,
+                        long offset, long len) {}
 
-    public void setChars(
-            SessionInterface session,
-            long pos,
-            char[] chars,
-            int offset,
-            int len) {
+    public void setChars(SessionInterface session, long pos, char[] chars,
+                         int offset, int len) {
 
         if (offset != 0 || len != chars.length) {
             if (!isInLimits(chars.length, offset, len)) {
@@ -226,15 +211,11 @@ public class ClobDataID implements ClobData {
         this.length = ((ResultLob) resultIn).getBlockLength();
     }
 
-    public long position(
-            SessionInterface session,
-            String searchstr,
-            long start) {
+    public long position(SessionInterface session, String searchstr,
+                         long start) {
 
-        ResultLob resultOut = ResultLob.newLobGetCharPatternPositionRequest(
-            id,
-            searchstr.toCharArray(),
-            start);
+        ResultLob resultOut = ResultLob.newLobGetCharPatternPositionRequest(id,
+            searchstr.toCharArray(), start);
         Result resultIn = session.execute(resultOut);
 
         if (resultIn.isError()) {
@@ -244,15 +225,11 @@ public class ClobDataID implements ClobData {
         return ((ResultLob) resultIn).getOffset();
     }
 
-    public long position(
-            SessionInterface session,
-            ClobData searchstr,
-            long start) {
+    public long position(SessionInterface session, ClobData searchstr,
+                         long start) {
 
-        ResultLob resultOut = ResultLob.newLobGetCharPatternPositionRequest(
-            id,
-            searchstr.getId(),
-            start);
+        ResultLob resultOut = ResultLob.newLobGetCharPatternPositionRequest(id,
+            searchstr.getId(), start);
         Result resultIn = session.execute(resultOut);
 
         if (resultIn.isError()) {
@@ -275,10 +252,8 @@ public class ClobDataID implements ClobData {
         return ((ResultLob) resultIn).getBlockLength();
     }
 
-    public Reader getCharacterStream(
-            SessionInterface session,
-            long pos,
-            long length) {
+    public Reader getCharacterStream(SessionInterface session, long pos,
+                                     long length) {
         return new ClobInputStream(session, this, pos, length);
     }
 

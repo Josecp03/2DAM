@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ import org.hsqldb.types.Type;
  * Implementation of array aggregate operations
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 2.0.1
  */
 public class ExpressionArrayAggregate extends Expression {
@@ -55,31 +55,31 @@ public class ExpressionArrayAggregate extends Expression {
     SortAndSlice distinctSort;
     String       separator = ",";
     ArrayType    arrayDataType;
-    Type         exprDataType;
-    int          exprOpType;    // original opType, may change during resolution
+    Type         exprType;
     Expression   condition = Expression.EXPR_TRUE;
 
-    ExpressionArrayAggregate(
-            int type,
-            boolean distinct,
-            Expression e,
-            SortAndSlice sort,
-            String separator) {
+    ExpressionArrayAggregate(int type, boolean distinct, Expression e,
+                             SortAndSlice sort, String separator) {
 
         super(type);
 
         this.isDistinctAggregate = distinct;
         this.sort                = sort;
-        this.exprOpType          = e.opType;
 
         if (separator != null) {
             this.separator = separator;
         }
 
+        if (type == OpTypes.MEDIAN) {
+            nodes = new Expression[]{ e };
+
+            return;
+        }
+
         if (sort == null) {
             nodes = new Expression[]{ e };
         } else {
-            HsqlArrayList<Expression> list = sort.getExpressionList();
+            HsqlArrayList list = sort.getExpressionList();
 
             nodes = new Expression[list.size() + 1];
 
@@ -104,40 +104,29 @@ public class ExpressionArrayAggregate extends Expression {
     public String getSQL() {
 
         StringBuilder sb   = new StringBuilder(64);
-        String        left = getContextSQL(nodes.length > 0
-                                           ? nodes[LEFT]
-                                           : null);
+        String        left = getContextSQL(nodes.length > 0 ? nodes[LEFT]
+                                                            : null);
 
         switch (opType) {
 
             case OpTypes.ARRAY_AGG :
-                sb.append(' ')
-                  .append(Tokens.T_ARRAY_AGG)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_ARRAY_AGG).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.GROUP_CONCAT :
-                sb.append(' ')
-                  .append(Tokens.T_GROUP_CONCAT)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_GROUP_CONCAT).append('(');
+                sb.append(left).append(')');
                 break;
 
             case OpTypes.MEDIAN :
-                sb.append(' ')
-                  .append(Tokens.T_MEDIAN)
-                  .append('(')
-                  .append(left)
-                  .append(')');
+                sb.append(' ').append(Tokens.T_MEDIAN).append('(');
+                sb.append(left).append(')');
                 break;
 
             default :
-                throw Error.runtimeError(
-                    ErrorCode.U_S0500,
-                    "ExpressionAggregate");
+                throw Error.runtimeError(ErrorCode.U_S0500,
+                                         "ExpressionAggregate");
         }
 
         return sb.toString();
@@ -171,34 +160,27 @@ public class ExpressionArrayAggregate extends Expression {
         }
 
         if (getLeftNode() != null) {
-            sb.append(" arg=[")
-              .append(nodes[LEFT].describe(session, blanks + 1))
-              .append(']');
+            sb.append(" arg=[");
+            sb.append(nodes[LEFT].describe(session, blanks + 1));
+            sb.append(']');
         }
 
         return sb.toString();
     }
 
-    public List<Expression> resolveColumnReferences(
-            Session session,
-            RangeGroup rangeGroup,
-            int rangeCount,
-            RangeGroup[] rangeGroups,
-            List<Expression> unresolvedSet,
-            boolean acceptsSequences) {
+    public List resolveColumnReferences(Session session,
+            RangeGroup rangeGroup, int rangeCount, RangeGroup[] rangeGroups,
+            List unresolvedSet, boolean acceptsSequences) {
 
-        List<Expression> conditionSet = condition.resolveColumnReferences(
-            session,
-            rangeGroup,
-            rangeCount,
-            rangeGroups,
-            null,
-            false);
+        List conditionSet = condition.resolveColumnReferences(session,
+            rangeGroup, rangeCount, rangeGroups, null, false);
 
-        ExpressionColumn.checkColumnsResolved(conditionSet);
+        if (conditionSet != null) {
+            ExpressionColumn.checkColumnsResolved(conditionSet);
+        }
 
         if (unresolvedSet == null) {
-            unresolvedSet = new ArrayListIdentity<>();
+            unresolvedSet = new ArrayListIdentity();
         }
 
         unresolvedSet.add(this);
@@ -231,13 +213,13 @@ public class ExpressionArrayAggregate extends Expression {
             }
         }
 
-        exprDataType = nodes[nodes.length - 1].dataType;
+        exprType = nodes[nodes.length - 1].dataType;
 
-        if (exprDataType.isLobType()) {
+        if (exprType.isLobType()) {
             throw Error.error(ErrorCode.X_42534);
         }
 
-        if (exprDataType.isArrayType()) {
+        if (exprType.isArrayType()) {
             throw Error.error(ErrorCode.X_42534);
         }
 
@@ -246,29 +228,27 @@ public class ExpressionArrayAggregate extends Expression {
         switch (opType) {
 
             case OpTypes.ARRAY_AGG :
-                arrayDataType = new ArrayType(
-                    rowDataType,
-                    ArrayType.defaultLargeArrayCardinality);
-                dataType = new ArrayType(
-                    exprDataType,
-                    ArrayType.defaultArrayCardinality);
+                arrayDataType =
+                    new ArrayType(rowDataType,
+                                  ArrayType.defaultLargeArrayCardinality);
+                dataType = new ArrayType(exprType,
+                                         ArrayType.defaultArrayCardinality);
                 break;
 
             case OpTypes.GROUP_CONCAT :
-                arrayDataType = new ArrayType(
-                    rowDataType,
-                    ArrayType.defaultLargeArrayCardinality);
+                arrayDataType =
+                    new ArrayType(rowDataType,
+                                  ArrayType.defaultLargeArrayCardinality);
                 dataType = Type.SQL_VARCHAR_DEFAULT;
                 break;
 
             case OpTypes.MEDIAN :
-                arrayDataType = new ArrayType(
-                    nodeDataTypes[0],
-                    ArrayType.defaultLargeArrayCardinality);
-                dataType = ExpressionAggregate.getType(
-                    session,
-                    OpTypes.MEDIAN,
-                    exprDataType);
+                arrayDataType =
+                    new ArrayType(nodeDataTypes[0],
+                                  ArrayType.defaultLargeArrayCardinality);
+                dataType = ExpressionAggregate.getType(session,
+                                                       OpTypes.MEDIAN,
+                                                       exprType);
                 break;
         }
 
@@ -279,22 +259,18 @@ public class ExpressionArrayAggregate extends Expression {
 
         if (other instanceof ExpressionArrayAggregate) {
             ExpressionArrayAggregate o = (ExpressionArrayAggregate) other;
-            boolean result = super.equals(other)
-                             && opType == other.opType
-                             && exprSubType == other.exprSubType
-                             && isDistinctAggregate == o.isDistinctAggregate
-                             && separator.equals(o.separator)
-                             && condition.equals(o.condition)
-                             && sort == o.sort;
 
-            return result;
+            return super.equals(other) && opType == other.opType
+                   && exprSubType == other.exprSubType
+                   && isDistinctAggregate == o.isDistinctAggregate
+                   && separator.equals(o.separator)
+                   && condition.equals(o.condition);
         }
 
         return false;
     }
 
-    public SetFunction updateAggregatingValue(
-            Session session,
+    public SetFunction updateAggregatingValue(Session session,
             SetFunction currValue) {
 
         if (!condition.testCondition(session)) {
@@ -336,7 +312,6 @@ public class ExpressionArrayAggregate extends Expression {
                 if (value == null) {
                     return currValue;
                 }
-
                 break;
         }
 
@@ -349,10 +324,8 @@ public class ExpressionArrayAggregate extends Expression {
         return currValue;
     }
 
-    public SetFunction updateAggregatingValue(
-            Session session,
-            SetFunction currValue,
-            SetFunction value) {
+    public SetFunction updateAggregatingValue(Session session,
+            SetFunction currValue, SetFunction value) {
 
         if (currValue == null) {
             currValue = new SetFunctionValueArray();
@@ -396,7 +369,6 @@ public class ExpressionArrayAggregate extends Expression {
 
                 return resultArray;
             }
-
             case OpTypes.GROUP_CONCAT : {
                 StringBuilder sb = new StringBuilder(16 * array.length);
 
@@ -407,17 +379,15 @@ public class ExpressionArrayAggregate extends Expression {
 
                     Object[] row   = (Object[]) array[i];
                     Object   value = row[row.length - 1];
-                    String string = (String) Type.SQL_VARCHAR.convertToType(
-                        session,
-                        value,
-                        exprDataType);
+                    String string =
+                        (String) Type.SQL_VARCHAR.convertToType(session,
+                            value, exprType);
 
                     sb.append(string);
                 }
 
                 return sb.toString();
             }
-
             case OpTypes.MEDIAN : {
                 SortAndSlice exprSort = new SortAndSlice();
 
@@ -429,12 +399,9 @@ public class ExpressionArrayAggregate extends Expression {
 
                 if (even) {
                     SetFunctionValueAggregate sf =
-                        new SetFunctionValueAggregate(
-                            session,
-                            OpTypes.AVG,
-                            nodes[LEFT].dataType,
-                            dataType,
-                            false);
+                        new SetFunctionValueAggregate(session, OpTypes.AVG,
+                                                      nodes[LEFT].dataType,
+                                                      dataType, false);
 
                     sf.add(array[(array.length / 2) - 1]);
                     sf.add(array[(array.length / 2)]);
@@ -445,10 +412,10 @@ public class ExpressionArrayAggregate extends Expression {
                 }
 
                 if (dataType.isDateTimeTypeWithZone()) {
-                    value = ((DateTimeType) dataType).changeZoneToUTC(value);
+                    value = DateTimeType.changeZoneToUTC(value);
                 }
 
-                return dataType.convertToType(session, value, exprDataType);
+                return dataType.convertToType(session, value, exprType);
             }
         }
 

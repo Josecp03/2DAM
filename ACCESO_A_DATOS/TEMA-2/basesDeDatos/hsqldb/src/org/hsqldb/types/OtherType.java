@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,9 +56,8 @@ public final class OtherType extends Type {
     }
 
     public int displaySize() {
-        return precision > Integer.MAX_VALUE
-               ? Integer.MAX_VALUE
-               : (int) precision;
+        return precision > Integer.MAX_VALUE ? Integer.MAX_VALUE
+                                             : (int) precision;
     }
 
     public int getJDBCTypeCode() {
@@ -132,10 +131,8 @@ public final class OtherType extends Type {
     }
 
     // to review - if conversion is supported, then must be serializable and wrapped
-    public Object convertToType(
-            SessionInterface session,
-            Object a,
-            Type otherType) {
+    public Object convertToType(SessionInterface session, Object a,
+                                Type otherType) {
         return a;
     }
 
@@ -183,7 +180,11 @@ public final class OtherType extends Type {
             return true;
         }
 
-        return otherType.typeCode == Types.SQL_ALL_TYPES;
+        if (otherType.typeCode == Types.SQL_ALL_TYPES) {
+            return true;
+        }
+
+        return false;
     }
 
     public boolean isObjectType() {

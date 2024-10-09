@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
-/* $Id: ClosableByteArrayOutputStream.java 6721 2024-04-03 17:05:14Z fredt $ */
+/* $Id: ClosableByteArrayOutputStream.java 6299 2021-02-09 17:10:48Z fredt $ */
 
 /*
  * @todo - finer-grained synchronization to reduce average
@@ -110,13 +110,12 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      * @param size the initial size.
      * @exception IllegalArgumentException if size is negative.
      */
-    public ClosableByteArrayOutputStream(
-            int size)
-            throws IllegalArgumentException {
+    public ClosableByteArrayOutputStream(int size)
+    throws IllegalArgumentException {
 
         if (size < 0) {
-            throw new IllegalArgumentException(
-                "Negative initial size: " + size);    // NOI18N
+            throw new IllegalArgumentException("Negative initial size: "
+                                               + size);    // NOI18N
         }
 
         buf = new byte[size];
@@ -154,19 +153,13 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      *      In particular, an {@code IOException} may be thrown
      *      if this output stream has been {@link #close() closed}.
      */
-    public synchronized void write(
-            byte[] b,
-            int off,
-            int len)
-            throws IOException {
+    public synchronized void write(byte[] b, int off,
+                                   int len) throws IOException {
 
         checkClosed();
 
-        if ((off < 0)
-                || (off > b.length)
-                || (len < 0)
-                || ((off + len) > b.length)
-                || ((off + len) < 0)) {
+        if ((off < 0) || (off > b.length) || (len < 0)
+                || ((off + len) > b.length) || ((off + len) < 0)) {
             throw new IndexOutOfBoundsException();
         } else if (len == 0) {
             return;
@@ -219,6 +212,7 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      *      if this output stream has been {@link #free() freed}.
      */
     public synchronized int capacity() throws IOException {
+
         checkFreed();
 
         return buf.length;
@@ -236,6 +230,7 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      *      if this output stream has been {@link #close() closed}.
      */
     public synchronized void reset() throws IOException {
+
         checkClosed();
 
         count = 0;
@@ -272,6 +267,7 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      *      if this output stream has been {@link #free() freed}.
      */
     public synchronized byte[] toByteArray() throws IOException {
+
         checkFreed();
 
         return copyOf(buf, count);
@@ -310,7 +306,7 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      * this output stream to an input stream. <p>
      *
      * To ensure the future integrity of the resulting input stream, {@link
-     * #free() free} is invoked upon this output stream as a side effect.
+     * #free() free} is invoked upon this output stream as a side-effect.
      *
      * @return an input stream representing this output stream's accumulated
      *      data
@@ -319,13 +315,11 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      *      if this output stream has been {@link #free() freed}.
      */
     public synchronized ByteArrayInputStream toByteArrayInputStream()
-            throws IOException {
+    throws IOException {
 
         checkFreed();
 
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(
-            buf,
-            0,
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(buf, 0,
             count);
 
         free();
@@ -363,10 +357,9 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      * @throws UnsupportedEncodingException If the named encoding is not
      *      supported.
      */
-    public synchronized String toString(
-            String enc)
-            throws IOException,
-                   UnsupportedEncodingException {
+    public synchronized String toString(String enc)
+    throws IOException, UnsupportedEncodingException {
+
         checkFreed();
 
         return new String(buf, 0, count, enc);
@@ -417,7 +410,9 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      * @throws java.io.IOException if this stream is closed.
      */
     protected synchronized void checkClosed() throws IOException {
+
         if (closed) {
+
             throw new IOException("stream is closed.");    // NOI18N
         }
     }
@@ -428,6 +423,7 @@ public class ClosableByteArrayOutputStream extends OutputStream {
      * @throws java.io.IOException if this stream is freed.
      */
     protected synchronized void checkFreed() throws IOException {
+
         if (freed) {
             throw new IOException("stream buffer is freed.");    // NOI18N
         }
@@ -445,12 +441,8 @@ public class ClosableByteArrayOutputStream extends OutputStream {
 
         byte[] copy = new byte[newLength];
 
-        System.arraycopy(
-            original,
-            0,
-            copy,
-            0,
-            Math.min(original.length, newLength));
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
 
         return copy;
     }

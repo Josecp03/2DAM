@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.hsqldb.rights.Grantee;
  * Class for DOMAIN and DISTINCT objects.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.9.0
  */
 public class UserTypeModifier {
@@ -58,6 +58,7 @@ public class UserTypeModifier {
     boolean        isNullable = true;
 
     public UserTypeModifier(HsqlName name, int type, Type dataType) {
+
         this.name             = name;
         this.schemaObjectType = type;
         this.dataType         = dataType;
@@ -71,9 +72,8 @@ public class UserTypeModifier {
 
         int position = constraints.length;
 
-        constraints = (Constraint[]) ArrayUtil.resizeArray(
-            constraints,
-            position + 1);
+        constraints = (Constraint[]) ArrayUtil.resizeArray(constraints,
+                position + 1);
         constraints[position] = c;
 
         setNotNull();
@@ -83,11 +83,10 @@ public class UserTypeModifier {
 
         for (int i = 0; i < constraints.length; i++) {
             if (constraints[i].getName().name.equals(name)) {
-                constraints = (Constraint[]) ArrayUtil.toAdjustedArray(
-                    constraints,
-                    null,
-                    i,
-                    -1);
+                constraints =
+                    (Constraint[]) ArrayUtil.toAdjustedArray(constraints,
+                        null, i, -1);
+
                 break;
             }
         }
@@ -133,6 +132,7 @@ public class UserTypeModifier {
         for (int i = 0; i < constraints.length; i++) {
             if (constraints[i].isNotNull()) {
                 isNullable = false;
+
                 break;
             }
         }
@@ -155,12 +155,12 @@ public class UserTypeModifier {
         return name.schema.owner;
     }
 
-    public OrderedHashSet<HsqlName> getReferences() {
+    public OrderedHashSet getReferences() {
 
-        OrderedHashSet<HsqlName> set = new OrderedHashSet<>();
+        OrderedHashSet set = new OrderedHashSet();
 
         for (int i = 0; i < constraints.length; i++) {
-            OrderedHashSet<HsqlName> subSet = constraints[i].getReferences();
+            OrderedHashSet subSet = constraints[i].getReferences();
 
             if (subSet != null) {
                 set.addAll(subSet);
@@ -176,18 +176,21 @@ public class UserTypeModifier {
         return set;
     }
 
-    public final OrderedHashSet<SchemaObject> getComponents() {
+    public final OrderedHashSet getComponents() {
 
-        OrderedHashSet<SchemaObject> set = new OrderedHashSet<>();
-
-        if (constraints != null) {
-            set.addAll(constraints);
+        if (constraints == null) {
+            return null;
         }
+
+        OrderedHashSet set = new OrderedHashSet();
+
+        set.addAll(constraints);
 
         return set;
     }
 
     public void compile(Session session) {
+
         for (int i = 0; i < constraints.length; i++) {
             constraints[i].compile(session, null);
         }
@@ -198,15 +201,11 @@ public class UserTypeModifier {
         StringBuilder sb = new StringBuilder();
 
         if (schemaObjectType == SchemaObject.TYPE) {
-            sb.append(Tokens.T_CREATE)
-              .append(' ')
-              .append(Tokens.T_TYPE)
-              .append(' ')
-              .append(name.getSchemaQualifiedStatementName())
-              .append(' ')
-              .append(Tokens.T_AS)
-              .append(' ')
-              .append(dataType.getDefinition());
+            sb.append(Tokens.T_CREATE).append(' ').append(
+                Tokens.T_TYPE).append(' ');
+            sb.append(name.getSchemaQualifiedStatementName());
+            sb.append(' ').append(Tokens.T_AS).append(' ');
+            sb.append(dataType.getDefinition());
 
             if (dataType.isCharacterType()) {
                 Collation collation = dataType.getCollation();
@@ -216,15 +215,11 @@ public class UserTypeModifier {
                 }
             }
         } else {
-            sb.append(Tokens.T_CREATE)
-              .append(' ')
-              .append(Tokens.T_DOMAIN)
-              .append(' ')
-              .append(name.getSchemaQualifiedStatementName())
-              .append(' ')
-              .append(Tokens.T_AS)
-              .append(' ')
-              .append(dataType.getDefinition());
+            sb.append(Tokens.T_CREATE).append(' ').append(
+                Tokens.T_DOMAIN).append(' ');
+            sb.append(name.getSchemaQualifiedStatementName());
+            sb.append(' ').append(Tokens.T_AS).append(' ');
+            sb.append(dataType.getDefinition());
 
             if (dataType.isCharacterType()) {
                 Collation collation = dataType.getCollation();
@@ -235,22 +230,15 @@ public class UserTypeModifier {
             }
 
             if (defaultExpression != null) {
-                sb.append(' ')
-                  .append(Tokens.T_DEFAULT)
-                  .append(' ')
-                  .append(defaultExpression.getSQL());
+                sb.append(' ').append(Tokens.T_DEFAULT).append(' ');
+                sb.append(defaultExpression.getSQL());
             }
 
             for (int i = 0; i < constraints.length; i++) {
-                sb.append(' ')
-                  .append(Tokens.T_CONSTRAINT)
-                  .append(' ')
-                  .append(constraints[i].getName().statementName)
-                  .append(' ')
-                  .append(Tokens.T_CHECK)
-                  .append('(')
-                  .append(constraints[i].getCheckSQL())
-                  .append(')');
+                sb.append(' ').append(Tokens.T_CONSTRAINT).append(' ');
+                sb.append(constraints[i].getName().statementName).append(' ');
+                sb.append(Tokens.T_CHECK).append('(').append(
+                    constraints[i].getCheckSQL()).append(')');
             }
         }
 

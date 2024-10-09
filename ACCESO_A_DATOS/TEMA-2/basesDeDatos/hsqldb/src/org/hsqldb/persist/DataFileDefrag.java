@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 
 package org.hsqldb.persist;
 
+import java.util.Arrays;
+
 import org.hsqldb.Database;
 import org.hsqldb.Session;
 import org.hsqldb.Table;
@@ -55,7 +57,7 @@ import org.hsqldb.lib.StringUtil;
  *  image after translating the old pointers to the new.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version    2.7.3
+ * @version    2.5.1
  * @since      1.7.2
  */
 final class DataFileDefrag {
@@ -69,6 +71,7 @@ final class DataFileDefrag {
     LongLookup    pointerLookup;
 
     DataFileDefrag(Database db, DataFileCache cache) {
+
         this.database     = db;
         this.dataCache    = cache;
         this.dataFileName = cache.getFileName();
@@ -80,20 +83,19 @@ final class DataFileDefrag {
 
         database.logger.logDetailEvent("Defrag process begins");
 
-        HsqlArrayList<Table> allTables = database.schemaManager.getAllTables(
-            true);
+        HsqlArrayList allTables = database.schemaManager.getAllTables(true);
 
         rootsList = new long[allTables.size()][];
 
         long maxSize = 0;
 
         for (int i = 0, tSize = allTables.size(); i < tSize; i++) {
-            Table table = allTables.get(i);
+            Table table = (Table) allTables.get(i);
 
             if (table.getTableType() == TableBase.CACHED_TABLE) {
                 RowStoreAVLDisk store =
-                    (RowStoreAVLDisk) database.persistentStoreCollection.getStore(
-                        table);
+                    (RowStoreAVLDisk) database.persistentStoreCollection
+                        .getStore(table);
                 long size = store.elementCount();
 
                 if (size > maxSize) {
@@ -130,7 +132,7 @@ final class DataFileDefrag {
             }
 
             for (int i = 0, tSize = allTables.size(); i < tSize; i++) {
-                Table t = allTables.get(i);
+                Table t = (Table) allTables.get(i);
 
                 if (t.getTableType() == TableBase.CACHED_TABLE) {
                     long[] rootsArray = writeTableToDataFile(session, t);
@@ -149,8 +151,9 @@ final class DataFileDefrag {
                 long[] roots = rootsList[i];
 
                 if (roots != null) {
-                    database.logger.logDetailEvent(
-                        "roots: " + StringUtil.getList(roots, ",", ""));
+                    database.logger.logDetailEvent("roots: "
+                                                   + StringUtil.getList(roots,
+                                                       ",", ""));
                 }
             }
         } catch (OutOfMemoryError e) {
@@ -170,12 +173,13 @@ final class DataFileDefrag {
 
             if (error instanceof OutOfMemoryError) {
                 database.logger.logInfoEvent(
-                    "defrag failed - out of memory - required: " + maxSize * 8);
+                    "defrag failed - out of memory - required: "
+                    + maxSize * 8);
             }
 
             if (error == null) {
-                database.logger.logDetailEvent(
-                    "Defrag transfer complete: " + stopw.elapsedTime());
+                database.logger.logDetailEvent("Defrag transfer complete: "
+                                               + stopw.elapsedTime());
             } else {
                 database.logger.logSevereEvent("defrag failed ", error);
 
@@ -189,14 +193,14 @@ final class DataFileDefrag {
     long[] writeTableToDataFile(Session session, Table table) {
 
         RowStoreAVLDisk store =
-            (RowStoreAVLDisk) table.database.persistentStoreCollection.getStore(
-                table);
+            (RowStoreAVLDisk) table.database.persistentStoreCollection
+                .getStore(table);
         long[] rootsArray = table.getIndexRootsArray();
 
         pointerLookup.clear();
-        database.logger.logDetailEvent(
-            "lookup begins " + table.getName().statementName + " "
-            + stopw.elapsedTime());
+        database.logger.logDetailEvent("lookup begins "
+                                       + table.getName().statementName + " "
+                                       + stopw.elapsedTime());
         store.moveDataToSpace(dataFileOut, pointerLookup);
 
         for (int i = 0; i < table.getIndexCount(); i++) {
@@ -217,14 +221,14 @@ final class DataFileDefrag {
         long count = store.elementCount();
 
         if (count != pointerLookup.size()) {
-            database.logger.logSevereEvent(
-                "discrepency in row count " + table.getName().name + " "
-                + count + " " + pointerLookup.size(),
-                null);
+            database.logger.logSevereEvent("discrepency in row count "
+                                           + table.getName().name + " "
+                                           + count + " "
+                                           + pointerLookup.size(), null);
         }
 
-        database.logger.logDetailEvent(
-            "table written " + table.getName().statementName);
+        database.logger.logDetailEvent("table written "
+                                       + table.getName().statementName);
 
         return rootsArray;
     }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,14 +41,12 @@ import org.hsqldb.ColumnBase;
 import org.hsqldb.HsqlException;
 import org.hsqldb.Session;
 import org.hsqldb.SessionInterface;
-import org.hsqldb.SessionInterface.AttributePos;
 import org.hsqldb.SqlInvariants;
 import org.hsqldb.Statement;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.ArrayUtil;
 import org.hsqldb.lib.DataOutputStream;
-import org.hsqldb.lib.List;
 import org.hsqldb.map.ValuePool;
 import org.hsqldb.navigator.RowSetNavigator;
 import org.hsqldb.navigator.RowSetNavigatorClient;
@@ -71,7 +69,7 @@ import org.hsqldb.types.Type;
  *
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.1
  * @since 1.9.0
  */
 public class Result {
@@ -86,33 +84,29 @@ public class Result {
         Charset.getDefaultInstance();
         Collation.getDefaultInstance();
 
-        sessionAttributesMetaData = ResultMetaData.newResultMetaData(
-            AttributePos.INFO_LIMIT);
+        sessionAttributesMetaData =
+            ResultMetaData.newResultMetaData(SessionInterface.INFO_LIMIT);
 
-        for (int i = 0; i < AttributePos.INFO_LIMIT; i++) {
-            sessionAttributesMetaData.columns[i] = new ColumnBase(
-                null,
-                null,
-                null,
-                null);
+        for (int i = 0; i < Session.INFO_LIMIT; i++) {
+            sessionAttributesMetaData.columns[i] = new ColumnBase(null, null,
+                    null, null);
         }
 
-        sessionAttributesMetaData.columns[AttributePos.INFO_ID].setType(
+        sessionAttributesMetaData.columns[Session.INFO_ID].setType(
             Type.SQL_INTEGER);
-        sessionAttributesMetaData.columns[AttributePos.INFO_INTEGER].setType(
+        sessionAttributesMetaData.columns[Session.INFO_INTEGER].setType(
             Type.SQL_INTEGER);
-        sessionAttributesMetaData.columns[AttributePos.INFO_BOOLEAN].setType(
+        sessionAttributesMetaData.columns[Session.INFO_BOOLEAN].setType(
             Type.SQL_BOOLEAN);
-        sessionAttributesMetaData.columns[AttributePos.INFO_VARCHAR].setType(
+        sessionAttributesMetaData.columns[Session.INFO_VARCHAR].setType(
             Type.SQL_VARCHAR);
         sessionAttributesMetaData.prepareData();
     }
 
     private static final ResultMetaData emptyMeta =
-        ResultMetaData.newResultMetaData(
-            0);
-    public static final Result emptyGeneratedResult = Result.newDataResult(
-        emptyMeta);
+        ResultMetaData.newResultMetaData(0);
+    public static final Result emptyGeneratedResult =
+        Result.newDataResult(emptyMeta);
     public static final Result updateZeroResult = newUpdateCountResult(0);
     public static final Result updateOneResult  = newUpdateCountResult(1);
 
@@ -211,7 +205,7 @@ public class Result {
     public static Result newResult(int type) {
 
         RowSetNavigator navigator = null;
-        Result          result;
+        Result          result    = null;
 
         switch (type) {
 
@@ -242,7 +236,6 @@ public class Result {
 
             case ResultConstants.LARGE_OBJECT_OP :
                 throw Error.runtimeError(ErrorCode.U_S0500, "Result");
-
             default :
         }
 
@@ -252,20 +245,17 @@ public class Result {
         return result;
     }
 
-    public static Result newResult(
-            DataInputStream dataInput,
-            RowInputInterface in)
-            throws IOException {
+    public static Result newResult(DataInputStream dataInput,
+                                   RowInputInterface in) throws IOException {
+
         int readMode = dataInput.readByte();
 
         return newResult(null, readMode, dataInput, in);
     }
 
-    public static Result newResult(
-            Session session,
-            int mode,
-            DataInputStream dataInput,
-            RowInputInterface in) {
+    public static Result newResult(Session session, int mode,
+                                   DataInputStream dataInput,
+                                   RowInputInterface in) {
 
         try {
             if (mode == ResultConstants.LARGE_OBJECT_OP) {
@@ -276,15 +266,16 @@ public class Result {
 
             return result;
         } catch (IOException e) {
-            throw Error.error(ErrorCode.X_08000, e);
+            throw Error.error(ErrorCode.X_08000);
         }
     }
 
-    public void readAdditionalResults(
-            SessionInterface session,
-            DataInputStream inputStream,
-            RowInputInterface in)
-            throws IOException {
+    public void readAdditionalResults(SessionInterface session,
+                                      DataInputStream inputStream,
+                                      RowInputInterface in)
+                                      throws IOException {
+
+        Result currentResult = this;
 
         setSession(session);
 
@@ -295,20 +286,15 @@ public class Result {
                 return;
             }
 
-            Result currentResult = newResult(
-                null,
-                inputStream,
-                in,
-                addedResultMode);
+            currentResult = newResult(null, inputStream, in, addedResultMode);
 
             addChainedResult(currentResult);
         }
     }
 
-    public Result readLobResults(
-            Session session,
-            DataInputStream inputStream)
-            throws IOException {
+    public Result readLobResults(Session session,
+                                 DataInputStream inputStream)
+                                 throws IOException {
 
         boolean hasLob = false;
 
@@ -326,6 +312,8 @@ public class Result {
                 }
 
                 hasLob = true;
+
+                continue;
             } else if (addedResultMode == ResultConstants.NONE) {
                 break;
             } else {
@@ -340,12 +328,9 @@ public class Result {
         return Result.updateZeroResult;
     }
 
-    private static Result newResult(
-            Session session,
-            DataInput dataInput,
-            RowInputInterface in,
-            int mode)
-            throws IOException {
+    private static Result newResult(Session session, DataInput dataInput,
+                                    RowInputInterface in,
+                                    int mode) throws IOException {
 
         Result result = newResult(mode);
         int    length = dataInput.readInt();
@@ -375,13 +360,12 @@ public class Result {
                 result.rsProperties = in.readByte();
                 result.generateKeys = in.readByte();
 
-                if (result.generateKeys
-                        == ResultConstants.RETURN_GENERATED_KEYS_COL_NAMES
-                        || result.generateKeys
-                        == ResultConstants.RETURN_GENERATED_KEYS_COL_INDEXES) {
+                if (result.generateKeys == ResultConstants
+                        .RETURN_GENERATED_KEYS_COL_NAMES || result
+                        .generateKeys == ResultConstants
+                        .RETURN_GENERATED_KEYS_COL_INDEXES) {
                     result.generatedMetaData = new ResultMetaData(in);
                 }
-
                 break;
 
             case ResultConstants.CLOSE_RESULT :
@@ -401,13 +385,12 @@ public class Result {
                 result.queryTimeout        = in.readShort();
                 result.generateKeys        = in.readByte();
 
-                if (result.generateKeys
-                        == ResultConstants.RETURN_GENERATED_KEYS_COL_NAMES
-                        || result.generateKeys
-                        == ResultConstants.RETURN_GENERATED_KEYS_COL_INDEXES) {
+                if (result.generateKeys == ResultConstants
+                        .RETURN_GENERATED_KEYS_COL_NAMES || result
+                        .generateKeys == ResultConstants
+                        .RETURN_GENERATED_KEYS_COL_INDEXES) {
                     result.generatedMetaData = new ResultMetaData(in);
                 }
-
                 break;
 
             case ResultConstants.CONNECT :
@@ -462,7 +445,6 @@ public class Result {
 
                 break;
             }
-
             case ResultConstants.SETCONNECTATTR : {
                 int type = in.readInt();                        // attr type
 
@@ -483,7 +465,6 @@ public class Result {
 
                 break;
             }
-
             case ResultConstants.SQLCANCEL :
                 result.databaseID   = in.readInt();
                 result.sessionID    = in.readLong();
@@ -517,14 +498,15 @@ public class Result {
                 result.rsProperties = in.readByte();
                 result.queryTimeout = in.readShort();
 
-                Statement statement = session.statementManager.getStatement(
-                    result.statementID);
+                Statement statement =
+                    session.statementManager.getStatement(result.statementID);
 
                 if (statement == null) {
 
                     // invalid statement
                     result.mode      = ResultConstants.EXECUTE_INVALID;
                     result.valueData = ValuePool.emptyObjectArray;
+
                     break;
                 }
 
@@ -542,9 +524,9 @@ public class Result {
 
                 result.metaData  = new ResultMetaData(in);
                 result.valueData = readSimple(in, result.metaData);
+
                 break;
             }
-
             case ResultConstants.BATCHEXECRESPONSE :
             case ResultConstants.BATCHEXECUTE :
             case ResultConstants.BATCHEXECDIRECT :
@@ -556,23 +538,23 @@ public class Result {
                 result.metaData     = new ResultMetaData(in);
 
                 result.navigator.readSimple(in, result.metaData);
+
                 break;
             }
-
             case ResultConstants.PARAM_METADATA : {
                 result.metaData = new ResultMetaData(in);
 
                 result.navigator.read(in, result.metaData);
+
                 break;
             }
-
             case ResultConstants.REQUESTDATA : {
                 result.id          = in.readLong();
                 result.updateCount = in.readInt();
                 result.fetchSize   = in.readInt();
+
                 break;
             }
-
             case ResultConstants.DATAHEAD :
             case ResultConstants.DATA :
             case ResultConstants.GENERATED : {
@@ -584,17 +566,17 @@ public class Result {
                 result.navigator    = new RowSetNavigatorClient();
 
                 result.navigator.read(in, result.metaData);
+
                 break;
             }
-
             case ResultConstants.DATAROWS : {
                 result.metaData  = new ResultMetaData(in);
                 result.navigator = new RowSetNavigatorClient();
 
                 result.navigator.read(in, result.metaData);
+
                 break;
             }
-
             default :
                 throw Error.runtimeError(ErrorCode.U_S0500, "Result");
         }
@@ -641,8 +623,7 @@ public class Result {
      * For execution of SQL prepared statements.
      * The parameters are set afterwards as the Result is reused
      */
-    public static Result newPreparedExecuteRequest(
-            Type[] types,
+    public static Result newPreparedExecuteRequest(Type[] types,
             long statementId) {
 
         Result result = newResult(ResultConstants.EXECUTE);
@@ -658,10 +639,8 @@ public class Result {
      * For CALL_RESPONSE
      * For execution of SQL callable statements.
      */
-    public static Result newCallResponse(
-            Type[] types,
-            long statementId,
-            Object[] values) {
+    public static Result newCallResponse(Type[] types, long statementId,
+                                         Object[] values) {
 
         Result result = newResult(ResultConstants.CALL_RESPONSE);
 
@@ -699,12 +678,8 @@ public class Result {
      * For SQLEXECUTE results
      * The parameters are set by this method as the Result is reused
      */
-    public void setPreparedExecuteProperties(
-            Object[] parameterValues,
-            int maxRows,
-            int fetchSize,
-            int resultProps,
-            int timeout) {
+    public void setPreparedExecuteProperties(Object[] parameterValues,
+            int maxRows, int fetchSize, int resultProps, int timeout) {
 
         mode              = ResultConstants.EXECUTE;
         valueData         = parameterValues;
@@ -751,10 +726,8 @@ public class Result {
     /**
      * For BATCHEXERESPONSE for a BATCHEXECUTE or BATCHEXECDIRECT
      */
-    public static Result newBatchedExecuteResponse(
-            int[] updateCounts,
-            Result generatedResult,
-            Result e) {
+    public static Result newBatchedExecuteResponse(int[] updateCounts,
+            Result generatedResult, Result e) {
 
         Result result = newResult(ResultConstants.BATCHEXECRESPONSE);
 
@@ -777,16 +750,14 @@ public class Result {
     }
 
     public static Result newResetSessionRequest() {
+
         Result result = newResult(ResultConstants.RESETSESSION);
 
         return result;
     }
 
-    public static Result newConnectionAttemptRequest(
-            String user,
-            String password,
-            String database,
-            String zoneString,
+    public static Result newConnectionAttemptRequest(String user,
+            String password, String database, String zoneString,
             int timeZoneSeconds) {
 
         Result result = newResult(ResultConstants.CONNECT);
@@ -807,9 +778,9 @@ public class Result {
         result.sessionID    = session.getId();
         result.databaseID   = session.getDatabase().getDatabaseID();
         result.databaseName = session.getDatabase().getNameString();
-        result.mainString = session.getDatabase()
-                                   .getProperties()
-                                   .getClientPropertiesAsString();
+        result.mainString =
+            session.getDatabase().getProperties()
+                .getClientPropertiesAsString();
         result.generateKeys = session.getRandomId();
 
         return result;
@@ -855,12 +826,12 @@ public class Result {
         return result;
     }
 
-    public static Result newSingleColumnStringResult(
-            String colName,
+    public static Result newSingleColumnStringResult(String colName,
             String contents) {
 
-        Result           result = Result.newSingleColumnResult(colName);
-        LineNumberReader lnr = new LineNumberReader(new StringReader(contents));
+        Result result = Result.newSingleColumnResult(colName);
+        LineNumberReader lnr =
+            new LineNumberReader(new StringReader(contents));
 
         while (true) {
             String line = null;
@@ -879,9 +850,10 @@ public class Result {
         return result;
     }
 
-    public static Result newMultiColumnResult(String[] names, Type[] types) {
+    public static Result newMultiColumnResult(String[] names,
+            Type[] types) {
 
-        Result result = newResult(ResultConstants.DATA);
+        Result   result = newResult(ResultConstants.DATA);
 
         result.metaData  = ResultMetaData.newMetaData(names, types);
         result.navigator = new RowSetNavigatorClient(8);
@@ -905,10 +877,8 @@ public class Result {
         return r;
     }
 
-    public static Result newCancelRequest(
-            int randomId,
-            long statementId,
-            String sql) {
+    public static Result newCancelRequest(int randomId, long statementId,
+                                          String sql) {
 
         Result r = newResult(ResultConstants.SQLCANCEL);
 
@@ -939,15 +909,9 @@ public class Result {
     /**
      * For both EXECDIRECT and PREPARE
      */
-    public void setPrepareOrExecuteProperties(
-            String sql,
-            int maxRows,
-            int fetchSize,
-            int statementReturnType,
-            int timeout,
-            int resultSetProperties,
-            int keyMode,
-            int[] generatedIndexes,
+    public void setPrepareOrExecuteProperties(String sql, int maxRows,
+            int fetchSize, int statementReturnType, int timeout,
+            int resultSetProperties, int keyMode, int[] generatedIndexes,
             String[] generatedNames) {
 
         mainString               = sql;
@@ -957,9 +921,9 @@ public class Result {
         queryTimeout             = timeout;
         rsProperties             = resultSetProperties;
         generateKeys             = keyMode;
-        generatedMetaData = ResultMetaData.newGeneratedColumnsMetaData(
-            generatedIndexes,
-            generatedNames);
+        generatedMetaData =
+            ResultMetaData.newGeneratedColumnsMetaData(generatedIndexes,
+                generatedNames);
     }
 
     public static Result newSetSavepointRequest(String name) {
@@ -1012,11 +976,9 @@ public class Result {
         return rsProperties;
     }
 
-    public static Result newDataHeadResult(
-            SessionInterface session,
-            Result source,
-            int offset,
-            int count) {
+    public static Result newDataHeadResult(SessionInterface session,
+                                           Result source, int offset,
+                                           int count) {
 
         if (offset + count > source.navigator.getSize()) {
             count = source.navigator.getSize() - offset;
@@ -1025,10 +987,8 @@ public class Result {
         Result result = newResult(ResultConstants.DATAHEAD);
 
         result.metaData = source.metaData;
-        result.navigator = new RowSetNavigatorClient(
-            source.navigator,
-            offset,
-            count);
+        result.navigator = new RowSetNavigatorClient(source.navigator, offset,
+                count);
 
         result.navigator.setId(source.navigator.getId());
         result.setSession(session);
@@ -1039,10 +999,8 @@ public class Result {
         return result;
     }
 
-    public static Result newDataRowsResult(
-            Result source,
-            int offset,
-            int count) {
+    public static Result newDataRowsResult(Result source, int offset,
+                                           int count) {
 
         if (offset + count > source.navigator.getSize()) {
             count = source.navigator.getSize() - offset;
@@ -1052,10 +1010,8 @@ public class Result {
 
         result.id       = source.id;
         result.metaData = source.metaData;
-        result.navigator = new RowSetNavigatorClient(
-            source.navigator,
-            offset,
-            count);
+        result.navigator = new RowSetNavigatorClient(source.navigator, offset,
+                count);
 
         return result;
     }
@@ -1079,7 +1035,7 @@ public class Result {
         result.navigator = new RowSetNavigatorClient(1);
         result.metaData  = sessionAttributesMetaData;
 
-        result.navigator.add(new Object[AttributePos.INFO_LIMIT]);
+        result.navigator.add(new Object[SessionInterface.INFO_LIMIT]);
 
         return result;
     }
@@ -1135,11 +1091,8 @@ public class Result {
         return result;
     }
 
-    public void write(
-            SessionInterface session,
-            DataOutputStream dataOut,
-            RowOutputInterface rowOut)
-            throws IOException {
+    public void write(SessionInterface session, DataOutputStream dataOut,
+                      RowOutputInterface rowOut) throws IOException {
 
         rowOut.reset();
         rowOut.writeByte(mode);
@@ -1165,13 +1118,11 @@ public class Result {
                 rowOut.writeByte(rsProperties);
                 rowOut.writeByte(generateKeys);
 
-                if (generateKeys
-                        == ResultConstants.RETURN_GENERATED_KEYS_COL_NAMES
-                        || generateKeys
-                        == ResultConstants.RETURN_GENERATED_KEYS_COL_INDEXES) {
+                if (generateKeys == ResultConstants
+                        .RETURN_GENERATED_KEYS_COL_NAMES || generateKeys == ResultConstants
+                        .RETURN_GENERATED_KEYS_COL_INDEXES) {
                     generatedMetaData.write(rowOut);
                 }
-
                 break;
 
             case ResultConstants.FREESTMT :
@@ -1191,13 +1142,11 @@ public class Result {
                 rowOut.writeShort(queryTimeout);
                 rowOut.writeByte(generateKeys);
 
-                if (generateKeys
-                        == ResultConstants.RETURN_GENERATED_KEYS_COL_NAMES
-                        || generateKeys
-                        == ResultConstants.RETURN_GENERATED_KEYS_COL_INDEXES) {
+                if (generateKeys == ResultConstants
+                        .RETURN_GENERATED_KEYS_COL_NAMES || generateKeys == ResultConstants
+                        .RETURN_GENERATED_KEYS_COL_INDEXES) {
                     generatedMetaData.write(rowOut);
                 }
-
                 break;
 
             case ResultConstants.CONNECT :
@@ -1252,7 +1201,6 @@ public class Result {
 
                 break;
             }
-
             case ResultConstants.SQLCANCEL :
                 rowOut.writeInt(databaseID);
                 rowOut.writeLong(sessionID);
@@ -1305,15 +1253,15 @@ public class Result {
                 rowOut.writeShort(queryTimeout);
                 metaData.write(rowOut);
                 navigator.writeSimple(rowOut, metaData);
+
                 break;
             }
-
             case ResultConstants.PARAM_METADATA : {
                 metaData.write(rowOut);
                 navigator.write(rowOut, metaData);
+
                 break;
             }
-
             case ResultConstants.SETCONNECTATTR : {
                 int type = getConnectionAttrType();
 
@@ -1333,14 +1281,13 @@ public class Result {
 
                 break;
             }
-
             case ResultConstants.REQUESTDATA : {
                 rowOut.writeLong(id);
                 rowOut.writeInt(updateCount);
                 rowOut.writeInt(fetchSize);
+
                 break;
             }
-
             case ResultConstants.DATAROWS :
                 metaData.write(rowOut);
                 navigator.write(rowOut, metaData);
@@ -1389,7 +1336,8 @@ public class Result {
     }
 
     public boolean isData() {
-        return mode == ResultConstants.DATA || mode == ResultConstants.DATAHEAD;
+        return mode == ResultConstants.DATA
+               || mode == ResultConstants.DATAHEAD;
     }
 
     public boolean isError() {
@@ -1510,6 +1458,7 @@ public class Result {
     }
 
     public void setSession(SessionInterface session) {
+
         if (navigator != null) {
             navigator.setSession(session);
         }
@@ -1544,9 +1493,8 @@ public class Result {
 
         mode        = ResultConstants.ENDTRAN;
         updateCount = subType;
-        mainString  = savepoint == null
-                      ? ""
-                      : savepoint;
+        mainString  = savepoint == null ? ""
+                                        : savepoint;
     }
 
     public Object[] getSingleRowData() {
@@ -1556,9 +1504,8 @@ public class Result {
 
         Object[] data = navigator.getCurrent();
 
-        data = (Object[]) ArrayUtil.resizeArrayIfDifferent(
-            data,
-            metaData.getColumnCount());
+        data = (Object[]) ArrayUtil.resizeArrayIfDifferent(data,
+                metaData.getColumnCount());
 
         return data;
     }
@@ -1662,41 +1609,37 @@ public class Result {
         lobCount   = 0;
     }
 
-    public void addRows(List<String> sqlArray) {
+    public void addRows(String[] sql) {
 
-        if (sqlArray == null) {
+        if (sql == null) {
             return;
         }
 
-        for (int i = 0; i < sqlArray.size(); i++) {
+        for (int i = 0; i < sql.length; i++) {
             String[] s = new String[1];
 
-            s[0] = sqlArray.get(i);
+            s[0] = sql[i];
 
             initialiseNavigator().add(s);
         }
     }
 
-    private static Object[] readSimple(
-            RowInputInterface in,
-            ResultMetaData meta) {
+    private static Object[] readSimple(RowInputInterface in,
+                                       ResultMetaData meta)
+                                       throws IOException {
+
         int size = in.readInt();
 
         return in.readData(meta.columnTypes);
     }
 
-    private static void writeSimple(
-            RowOutputInterface out,
-            ResultMetaData meta,
-            Object[] data) {
+    private static void writeSimple(RowOutputInterface out,
+                                    ResultMetaData meta,
+                                    Object[] data) throws IOException {
 
         out.writeInt(1);
-        out.writeData(
-            meta.getColumnCount(),
-            meta.columnTypes,
-            data,
-            null,
-            null);
+        out.writeData(meta.getColumnCount(), meta.columnTypes, data, null,
+                      null);
     }
 
 //----------- Navigation

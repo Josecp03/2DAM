@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,7 @@ public interface Index extends SchemaObject {
     boolean[] getColumnDesc();
 
     /**
-     * Returns the array containing 0, 1, ... column indexes
+     * Returns the array containing 0, 1, .. column indexes
      *
      * @return int[]
      */
@@ -165,11 +165,8 @@ public interface Index extends SchemaObject {
 
     void delete(Session session, PersistentStore store, Row row);
 
-    boolean existsParent(
-            Session session,
-            PersistentStore store,
-            Object[] rowdata,
-            int[] rowColMap);
+    boolean existsParent(Session session, PersistentStore store,
+                         Object[] rowdata, int[] rowColMap);
 
     /**
      * Return the first node equal to the indexdata object. The rowdata has the
@@ -185,15 +182,10 @@ public interface Index extends SchemaObject {
      * @param map boolean[]
      * @return iterator
      */
-    RowIterator findFirstRow(
-            Session session,
-            PersistentStore store,
-            Object[] rowdata,
-            int matchCount,
-            int distinctCount,
-            int compareType,
-            boolean reversed,
-            boolean[] map);
+    RowIterator findFirstRow(Session session, PersistentStore store,
+                             Object[] rowdata, int matchCount,
+                             int distinctCount, int compareType,
+                             boolean reversed, boolean[] map);
 
     /**
      * Return the first node equal to the rowdata object.
@@ -204,10 +196,8 @@ public interface Index extends SchemaObject {
      * @param rowdata array containing table row data
      * @return iterator
      */
-    RowIterator findFirstRow(
-            Session session,
-            PersistentStore store,
-            Object[] rowdata);
+    RowIterator findFirstRow(Session session, PersistentStore store,
+                             Object[] rowdata);
 
     /**
      * Return the first node equal to the rowdata object. The rowdata has the
@@ -219,11 +209,8 @@ public interface Index extends SchemaObject {
      * @param rowColMap int[]
      * @return iterator
      */
-    RowIterator findFirstRow(
-            Session session,
-            PersistentStore store,
-            Object[] rowdata,
-            int[] rowColMap);
+    RowIterator findFirstRow(Session session, PersistentStore store,
+                             Object[] rowdata, int[] rowColMap);
 
     /**
      * Finds the first node where the data is not null.
@@ -241,27 +228,21 @@ public interface Index extends SchemaObject {
      *
      * @return Iterator for first row
      */
-    RowIterator firstRow(
-            Session session,
-            PersistentStore store,
-            RangeVariableConditions[] conditions,
-            int distinctCount,
-            boolean[] map);
+    RowIterator firstRow(Session session, PersistentStore store,
+                         RangeVariableConditions[] conditions,
+                         int distinctCount, boolean[] map);
 
     /**
      * Returns the row for the last node of the index
      *
-     * @return Iterator from last row
+     * @return last row
      * @param session Session
      * @param store PersistentStore
      * @param distinctCount int
      * @param usedColumnCheck boolean[]
      */
-    RowIterator lastRow(
-            Session session,
-            PersistentStore store,
-            int distinctCount,
-            boolean[] usedColumnCheck);
+    RowIterator lastRow(Session session, PersistentStore store,
+                        int distinctCount, boolean[] usedColumnCheck);
 
     /**
      * Compares two table rows based on the columns of this index. The rowColMap
@@ -275,27 +256,17 @@ public interface Index extends SchemaObject {
      * @param rowColMap column indexes in the other table
      * @return comparison result, -1,0,+1
      */
-    int compareRowNonUnique(
-            Session session,
-            Object[] a,
-            Object[] b,
-            int[] rowColMap);
+    int compareRowNonUnique(Session session, Object[] a, Object[] b,
+                            int[] rowColMap);
 
-    int compareRowNonUnique(
-            Session session,
-            Object[] a,
-            Object[] b,
-            int[] rowColMap,
-            int fieldCount);
+    int compareRowNonUnique(Session session, Object[] a, Object[] b,
+                            int[] rowColMap, int fieldCount);
 
     /**
      * As above but use the index column data
      */
-    int compareRowNonUnique(
-            Session session,
-            Object[] a,
-            Object[] b,
-            int fieldcount);
+    int compareRowNonUnique(Session session, Object[] a, Object[] b,
+                            int fieldcount);
 
     int compareRow(Session session, Object[] a, Object[] b);
 

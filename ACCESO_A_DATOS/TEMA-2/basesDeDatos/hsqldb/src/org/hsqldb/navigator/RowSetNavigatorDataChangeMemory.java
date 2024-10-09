@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 
 package org.hsqldb.navigator;
 
+import java.io.IOException;
+
 import org.hsqldb.Row;
 import org.hsqldb.Session;
 import org.hsqldb.error.Error;
@@ -51,19 +53,18 @@ import org.hsqldb.types.Type;
  * @since 1.9.0
  */
 public class RowSetNavigatorDataChangeMemory
-        implements RowSetNavigatorDataChange {
+implements RowSetNavigatorDataChange {
 
     public static final RowSetNavigatorDataChangeMemory emptyRowSet =
-        new RowSetNavigatorDataChangeMemory(
-            null);
-    int                        size;
-    int                        currentPos = -1;
-    OrderedLongKeyHashMap<Row> list;
-    Session                    session;
+        new RowSetNavigatorDataChangeMemory(null);
+    int                   size;
+    int                   currentPos = -1;
+    OrderedLongKeyHashMap list;
+    Session               session;
 
     public RowSetNavigatorDataChangeMemory(Session session) {
         this.session = session;
-        list         = new OrderedLongKeyHashMap<>(64, true);
+        list         = new OrderedLongKeyHashMap(64, true);
     }
 
     public void release() {
@@ -96,13 +97,14 @@ public class RowSetNavigatorDataChangeMemory
     }
 
     public boolean beforeFirst() {
+
         currentPos = -1;
 
         return true;
     }
 
     public Row getCurrentRow() {
-        return list.getValueAt(currentPos);
+        return (Row) list.getValueAt(currentPos);
     }
 
     public Object[] getCurrentChangedData() {
@@ -160,12 +162,8 @@ public class RowSetNavigatorDataChangeMemory
         return true;
     }
 
-    public Object[] addRow(
-            Session session,
-            Row row,
-            Object[] data,
-            Type[] types,
-            int[] columnMap) {
+    public Object[] addRow(Session session, Row row, Object[] data,
+                           Type[] types, int[] columnMap) {
 
         long rowId  = row.getId();
         int  lookup = list.getLookup(rowId);
@@ -179,8 +177,9 @@ public class RowSetNavigatorDataChangeMemory
 
             return data;
         } else {
-            Object[] rowData     = list.getValueAt(lookup).getData();
-            Object[] currentData = (Object[]) list.getSecondValueAt(lookup);
+            Object[] rowData = ((Row) list.getValueAt(lookup)).getData();
+            Object[] currentData =
+                (Object[]) list.getSecondValueAt(lookup);
 
             if (currentData == null) {
                 if (session.database.sqlEnforceTDCD) {
@@ -194,9 +193,8 @@ public class RowSetNavigatorDataChangeMemory
                 int j = columnMap[i];
 
                 if (types[j].compare(session, data[j], currentData[j]) != 0) {
-                    if (types[j].compare(session,
-                                         rowData[j],
-                                         currentData[j]) != 0) {
+                    if (types[j].compare(session, rowData[j], currentData[j])
+                            != 0) {
                         if (session.database.sqlEnforceTDCU) {
                             throw Error.error(ErrorCode.X_27000);
                         }
@@ -241,7 +239,7 @@ public class RowSetNavigatorDataChangeMemory
 
         outerloop:
         for (int i = 0; i < size; i++) {
-            Row oldRow = list.getValueAt(i);
+            Row oldRow = (Row) list.getValueAt(i);
 
             if (oldRow.getTable() != row.getTable()) {
                 continue;
@@ -253,7 +251,8 @@ public class RowSetNavigatorDataChangeMemory
             for (int j = 0; j < keys.length; j++) {
                 int pos = keys[j];
 
-                if (types[pos].compare(session, rowData[pos], data[pos]) != 0) {
+                if (types[pos].compare(session, rowData[pos], data[pos])
+                        != 0) {
                     continue outerloop;
                 }
             }
@@ -323,11 +322,13 @@ public class RowSetNavigatorDataChangeMemory
         }
 
         public Object[] getCurrent() {
-            return RowSetNavigatorDataChangeMemory.this.getCurrentChangedData();
+            return RowSetNavigatorDataChangeMemory.this
+                .getCurrentChangedData();
         }
 
         public Object getField(int col) {
-            return RowSetNavigatorDataChangeMemory.this.getCurrentChangedData()[col];
+            return RowSetNavigatorDataChangeMemory.this
+                .getCurrentChangedData()[col];
         }
 
         public void setCurrent(Object[] data) {}

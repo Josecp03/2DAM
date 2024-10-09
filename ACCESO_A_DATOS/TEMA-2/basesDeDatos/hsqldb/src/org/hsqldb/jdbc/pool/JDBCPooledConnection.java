@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,14 +56,14 @@ import org.hsqldb.lib.OrderedHashSet;
  *
  * The ConnectionEventLister objects that have been registered with this
  * PooledConnection are notified when each lease expires, or an unrecoverable
- * error occurs on the connection to the database.
+ * error occurs on the connection to the database.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  * @version 2.0.1
  * @since JDK 1.2, HSQLDB 2.0
  */
 public class JDBCPooledConnection
-        implements PooledConnection, JDBCConnectionEventListener {
+implements PooledConnection, JDBCConnectionEventListener {
 
     synchronized public Connection getConnection() throws SQLException {
 
@@ -97,7 +97,8 @@ public class JDBCPooledConnection
 
     public void addStatementEventListener(StatementEventListener listener) {}
 
-    public void removeStatementEventListener(StatementEventListener listener) {}
+    public void removeStatementEventListener(
+            StatementEventListener listener) {}
 
     // ------------------------ internal implementation ------------------------
     synchronized public void connectionClosed() {
@@ -109,7 +110,8 @@ public class JDBCPooledConnection
         reset();
 
         for (int i = 0; i < listeners.size(); i++) {
-            ConnectionEventListener connectionEventListener = listeners.get(i);
+            ConnectionEventListener connectionEventListener =
+                (ConnectionEventListener) listeners.get(i);
 
             connectionEventListener.connectionClosed(event);
         }
@@ -122,7 +124,8 @@ public class JDBCPooledConnection
         reset();
 
         for (int i = 0; i < listeners.size(); i++) {
-            ConnectionEventListener connectionEventListener = listeners.get(i);
+            ConnectionEventListener connectionEventListener =
+                (ConnectionEventListener) listeners.get(i);
 
             connectionEventListener.connectionErrorOccurred(event);
         }
@@ -190,8 +193,7 @@ public class JDBCPooledConnection
         isInUse = false;
     }
 
-    protected OrderedHashSet<ConnectionEventListener> listeners =
-        new OrderedHashSet<>();
+    protected OrderedHashSet listeners = new OrderedHashSet();
     protected JDBCConnection connection;
     protected JDBCConnection userConnection;
     protected boolean        isInUse;

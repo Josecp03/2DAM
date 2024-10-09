@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,9 +43,9 @@ import java.util.regex.Pattern;
 
 /**
  * Reads a Tar file for reporting or extraction.
- * N.b. this is not a <I>Reader</I> in the {@code java.io.Reader} sense,
- * but in the sense of differentiating {@code tar x} and
- * {@code tar t} from {@code tar c}.
+ * N.b. this is not a <I>Reader</I> in the <CODE>java.io.Reader</CODE> sense,
+ * but in the sense of differentiating <CODE>tar x</CODE> and
+ * <CODE>tar t</CODE> from <CODE>tar c</CODE>.
  * <P>
  * <B>SECURITY NOTE</B>
  * Due to pitiful lack of support for file security in Java before version 1.6,
@@ -98,7 +98,6 @@ public class TarReader {
      * @param inDir   Directory that RELATIVE entries will be extracted
      *                relative to.  Defaults to current directory (user.dir).
      *                Only used for extract modes and relative file entries.
-     * @throws IOException on access failure
      * @throws IllegalArgumentException if any given pattern is an invalid
      *                  regular expression.  Don't have to worry about this if
      *                  you call with null 'patterns' param.
@@ -470,7 +469,7 @@ public class TarReader {
 
         static protected class MissingField extends Exception {
 
-            private final TarHeaderField field;
+            private TarHeaderField field;
 
             public MissingField(TarHeaderField field) {
                 this.field = field;
@@ -487,8 +486,6 @@ public class TarReader {
         /**
          * @param rawHeader  May be longer than 512 bytes, but the first 512
          *                   bytes MUST COMPRISE a raw tar entry header.
-         *
-         * @throws TarMalformatException if malformed
          */
         public TarEntryHeader(byte[] rawHeader) throws TarMalformatException {
 
@@ -594,8 +591,6 @@ public class TarReader {
 
         /**
          * Setter is needed in order to override header size setting for Pax.
-         *
-         * @param dataSize long
          */
         public void setDataSize(long dataSize) {
             this.dataSize = dataSize;
@@ -617,10 +612,7 @@ public class TarReader {
          * Choosing not to report fields that we don't write (e.g. "gname"),
          * but which would certainly be useful for a general Java tar client
          * implementation.
-         *
-         * <P> This design decision is subject to change.
-         *
-         * @return String
+         * This design decision is subject to change.
          */
         public String toString() {
 
@@ -632,14 +624,14 @@ public class TarReader {
             sb.append(ustar ? '*'
                             : ' ');
             sb.append(
-                    " "
-                    + StringUtil.toPaddedString(
+                " "
+                + StringUtil.toPaddedString(
                     Integer.toOctalString(fileMode), 4, ' ', false) + ' '
-                    + StringUtil.toPaddedString(
+                        + StringUtil.toPaddedString(
                             Long.toString(dataSize), 11, ' ', false) + "  ");
             sb.append(StringUtil.toPaddedString(((ownerName == null) ? "-"
-                                    : ownerName), 8,
-                            ' ',
+                                                                     : ownerName), 8,
+                                                                     ' ',
                                                                      true));
             sb.append("  " + path);
 
@@ -648,9 +640,6 @@ public class TarReader {
 
         /**
          * Is this any UStar variant
-         *
-         * @throws TarMalformatException
-         * @return boolean
          */
         public boolean isUstar() throws TarMalformatException {
 
@@ -660,12 +649,7 @@ public class TarReader {
         }
 
         /**
-         *
          * @return index based at 0 == from
-         * @param ba byte[]
-         * @param val byte
-         * @param from int
-         * @param to int
          */
         public static int indexOf(byte[] ba, byte val, int from, int to) {
 
@@ -689,10 +673,7 @@ public class TarReader {
         }
 
         /**
-         *
-         * @return null or String with {@code length() > 0}.
-         * @param field TarHeaderField
-         * @throws TarMalformatException
+         * @return null or String with length() > 0.
          */
         protected String readString(TarHeaderField field) throws TarMalformatException {
 
@@ -725,12 +706,8 @@ public class TarReader {
         }
 
         /**
-         * Integer as in positive whole number, which does not imply Java types
-         * of {@code int} or {@code Integer}.
-         *
-         * @param field TarHeaderField
-         * @throws TarMalformatException if malformed
-         * @return Long
+         * Integer as in positive whole number, which does not imply Java
+         * types of <CODE>int</CODE> or <CODE>Integer</CODE>.
          */
         protected Long readInteger(TarHeaderField field)
                 throws TarMalformatException {

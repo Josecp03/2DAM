@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,20 @@ package org.hsqldb.lib;
 /**
  * A Map of int primitives to Object values which maintains the insertion order
  * of the key/value pairs and allows access by index. Iterators return the keys
- * or values in the index order.
+ * or values in the index order.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  * @version 2.6.0
  * @since 2.0.0
  */
-public class OrderedIntKeyHashMap<V> extends IntKeyHashMap<V>
-        implements Map<Integer, V> {
+public class OrderedIntKeyHashMap<V> extends IntKeyHashMap<V> implements Map<Integer, V> {
 
     public OrderedIntKeyHashMap() {
         this(8);
     }
 
-    public OrderedIntKeyHashMap(
-            int initialCapacity)
-            throws IllegalArgumentException {
+    public OrderedIntKeyHashMap(int initialCapacity) throws IllegalArgumentException {
+
         super(initialCapacity);
 
         isList = true;
@@ -65,6 +63,7 @@ public class OrderedIntKeyHashMap<V> extends IntKeyHashMap<V>
     }
 
     public Object getValueAt(int index) {
+
         checkRange(index);
 
         return this.objectValueTable[index];
@@ -81,33 +80,25 @@ public class OrderedIntKeyHashMap<V> extends IntKeyHashMap<V>
         return oldValue;
     }
 
-    public boolean set(
-            int index,
-            int key,
-            V value)
-            throws IndexOutOfBoundsException {
+    public boolean set(int index, int key, V value) throws IndexOutOfBoundsException {
 
         checkRange(index);
 
         if (keySet().contains(key) && getIndex(key) != index) {
             return false;
         }
-
         super.remove(intKeyTable[index], 0, null, null, false, false);
         put(key, value);
 
         return true;
     }
 
-    public boolean insert(
-            int index,
-            int key,
-            V value)
-            throws IndexOutOfBoundsException {
+    public boolean insert(int index, int key, V value) throws IndexOutOfBoundsException {
 
         if (index < 0 || index > size()) {
             throw new IndexOutOfBoundsException();
         }
+
 
         int lookup = getLookup(key);
 
@@ -124,10 +115,7 @@ public class OrderedIntKeyHashMap<V> extends IntKeyHashMap<V>
         return true;
     }
 
-    public boolean setKeyAt(
-            int index,
-            int key)
-            throws IndexOutOfBoundsException {
+    public boolean setKeyAt(int index, int key) throws IndexOutOfBoundsException {
 
         checkRange(index);
 
@@ -154,6 +142,7 @@ public class OrderedIntKeyHashMap<V> extends IntKeyHashMap<V>
     }
 
     private void checkRange(int i) {
+
         if (i < 0 || i >= size()) {
             throw new IndexOutOfBoundsException();
         }

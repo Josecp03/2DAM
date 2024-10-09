@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ package org.hsqldb.util;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Toolkit;
-
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -57,12 +56,13 @@ import javax.swing.UIManager;
  */
 final class CommonSwing {
 
-    static final String messagerHeader = "Database Manager Swing Error";
-    static final String Native         = "Native";
-    static final String Java           = "Java";
-    static final String Motif          = "Motif";
-    static String       plaf           = "plaf";
-    static String       GTK            = "GTK";
+    protected static final String messagerHeader =
+        "Database Manager Swing Error";
+    protected static final String Native = "Native";
+    protected static final String Java   = "Java";
+    protected static final String Motif  = "Motif";
+    protected static String       plaf   = "plaf";
+    protected static String       GTK    = "GTK";
 
     // (ulrivo): An actual Image.
     static Image getIcon(String target) {
@@ -106,7 +106,7 @@ final class CommonSwing {
     }
 
     // (weconsultants@users: Callable errorMessage method
-    static void errorMessage(String errorMessage) {
+    protected static void errorMessage(String errorMessage) {
 
         /*
          * Display Jpanel Error messages any text Errors. Overloads
@@ -114,15 +114,10 @@ final class CommonSwing {
          */
         Object[] options = { "OK" };
 
-        JOptionPane.showOptionDialog(
-            null,
-            errorMessage,
-            messagerHeader,
-            JOptionPane.DEFAULT_OPTION,
-            JOptionPane.WARNING_MESSAGE,
-            null,
-            options,
-            options[0]);
+        JOptionPane.showOptionDialog(null, errorMessage, messagerHeader,
+                                     JOptionPane.DEFAULT_OPTION,
+                                     JOptionPane.WARNING_MESSAGE, null,
+                                     options, options[0]);
 
         // DatabaseManagerSwing.StatusMessage(READY_STATUS);
     }
@@ -140,15 +135,10 @@ final class CommonSwing {
          */
         Object[] options = { "OK", };
 
-        JOptionPane.showOptionDialog(
-            null,
-            exceptionMsg,
-            messagerHeader,
-            JOptionPane.DEFAULT_OPTION,
-            JOptionPane.ERROR_MESSAGE,
-            null,
-            options,
-            options[0]);
+        JOptionPane.showOptionDialog(null, exceptionMsg, messagerHeader,
+                                     JOptionPane.DEFAULT_OPTION,
+                                     JOptionPane.ERROR_MESSAGE, null, options,
+                                     options[0]);
 
         if (!quiet) {
             exceptionMsg.printStackTrace();
@@ -165,9 +155,8 @@ final class CommonSwing {
 
         // (ulrivo): full size on screen with less than 640 width
         if (d.width >= 640) {
-            inTargetFrame.setLocation(
-                (d.width - size.width) / 2,
-                (d.height - size.height) / 2);
+            inTargetFrame.setLocation((d.width - size.width) / 2,
+                                      (d.height - size.height) / 2);
         } else {
             inTargetFrame.setLocation(0, 0);
             inTargetFrame.setSize(d);

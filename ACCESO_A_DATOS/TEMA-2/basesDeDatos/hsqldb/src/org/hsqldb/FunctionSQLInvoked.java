@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
 
 package org.hsqldb;
 
-import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
 import org.hsqldb.lib.ArrayListIdentity;
@@ -45,7 +44,7 @@ import org.hsqldb.types.Type;
  * Implementation of SQL-invoked user-defined function calls - PSM and JRT
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 1.9.0
  */
 public class FunctionSQLInvoked extends Expression {
@@ -56,9 +55,8 @@ public class FunctionSQLInvoked extends Expression {
 
     FunctionSQLInvoked(RoutineSchema routineSchema) {
 
-        super(routineSchema.isAggregate()
-              ? OpTypes.USER_AGGREGATE
-              : OpTypes.FUNCTION);
+        super(routineSchema.isAggregate() ? OpTypes.USER_AGGREGATE
+                                          : OpTypes.FUNCTION);
 
         this.routineSchema = routineSchema;
     }
@@ -67,40 +65,30 @@ public class FunctionSQLInvoked extends Expression {
         this.nodes = newNodes;
     }
 
-    public List<Expression> resolveColumnReferences(
-            Session session,
-            RangeGroup rangeGroup,
-            int rangeCount,
-            RangeGroup[] rangeGroups,
-            List<Expression> unresolvedSet,
-            boolean acceptsSequences) {
+    public List resolveColumnReferences(Session session,
+            RangeGroup rangeGroup, int rangeCount, RangeGroup[] rangeGroups,
+            List unresolvedSet, boolean acceptsSequences) {
 
-        List<Expression> conditionSet = condition.resolveColumnReferences(
-            session,
-            rangeGroup,
-            rangeCount,
-            rangeGroups,
-            null,
-            false);
+        List conditionSet = condition.resolveColumnReferences(session,
+            rangeGroup, rangeCount, rangeGroups, null, false);
 
-        ExpressionColumn.checkColumnsResolved(conditionSet);
+        if (conditionSet != null) {
+            ExpressionColumn.checkColumnsResolved(conditionSet);
+        }
 
         if (isSelfAggregate()) {
             if (unresolvedSet == null) {
-                unresolvedSet = new ArrayListIdentity<>();
+                unresolvedSet = new ArrayListIdentity();
             }
 
             unresolvedSet.add(this);
 
             return unresolvedSet;
         } else {
-            return super.resolveColumnReferences(
-                session,
-                rangeGroup,
-                rangeCount,
-                rangeGroups,
-                unresolvedSet,
-                acceptsSequences);
+            return super.resolveColumnReferences(session, rangeGroup,
+                                                 rangeCount, rangeGroups,
+                                                 unresolvedSet,
+                                                 acceptsSequences);
         }
     }
 
@@ -133,9 +121,8 @@ public class FunctionSQLInvoked extends Expression {
 
         boolean  isValue = false;
         Result   result;
-        int      extraArg = routine.javaMethodWithConnection
-                            ? 1
-                            : 0;
+        int      extraArg = routine.javaMethodWithConnection ? 1
+                                                             : 0;
         Object[] data     = ValuePool.emptyObjectArray;
         boolean  push     = true;
 
@@ -143,12 +130,9 @@ public class FunctionSQLInvoked extends Expression {
             if (opType == OpTypes.USER_AGGREGATE) {
                 data = new Object[routine.getParameterCount()];
 
-                System.arraycopy(
-                    aggregateData,
-                    0,
-                    data,
-                    1,
-                    aggregateData.length);
+                for (int i = 0; i < aggregateData.length; i++) {
+                    data[i + 1] = aggregateData[i];
+                }
             } else {
                 data = new Object[nodes.length + extraArg];
             }
@@ -182,9 +166,8 @@ public class FunctionSQLInvoked extends Expression {
             if (routine.isPSM()) {
                 data[i] = value;
             } else {
-                data[i + extraArg] = e.dataType.convertSQLToJava(
-                    session,
-                    value);
+                data[i + extraArg] = e.dataType.convertSQLToJava(session,
+                        value);
             }
         }
 
@@ -235,7 +218,7 @@ public class FunctionSQLInvoked extends Expression {
         return Result.newPSMResult(value);
     }
 
-    void collectObjectNames(Set<HsqlName> set) {
+    void collectObjectNames(Set set) {
         set.add(routine.getSpecificName());
     }
 
@@ -243,8 +226,8 @@ public class FunctionSQLInvoked extends Expression {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(routineSchema.getName().getSchemaQualifiedStatementName())
-          .append('(');
+        sb.append(routineSchema.getName().getSchemaQualifiedStatementName());
+        sb.append('(');
 
         int nodeCount = nodes.length;
 
@@ -282,18 +265,15 @@ public class FunctionSQLInvoked extends Expression {
         if (other instanceof FunctionSQLInvoked) {
             FunctionSQLInvoked o = (FunctionSQLInvoked) other;
 
-            return super.equals(other)
-                   && opType == other.opType
-                   && routineSchema == o.routineSchema
-                   && routine == o.routine
+            return super.equals(other) && opType == other.opType
+                   && routineSchema == o.routineSchema && routine == o.routine
                    && condition.equals(o.condition);
         }
 
         return false;
     }
 
-    public SetFunction updateAggregatingValue(
-            Session session,
+    public SetFunction updateAggregatingValue(Session session,
             SetFunction currValue) {
 
         if (!condition.testCondition(session)) {
@@ -313,7 +293,8 @@ public class FunctionSQLInvoked extends Expression {
         return currValue;
     }
 
-    public Object getAggregatedValue(Session session, SetFunction currValue) {
+    public Object getAggregatedValue(Session session,
+                                     SetFunction currValue) {
 
         if (currValue == null) {
             currValue = new SetFunctionValueUser();

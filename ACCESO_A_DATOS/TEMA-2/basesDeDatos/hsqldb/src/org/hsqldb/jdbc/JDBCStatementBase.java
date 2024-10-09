@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ import org.hsqldb.result.ResultConstants;
  *
  * @author fredt@usrs
  * @version 2.4.0
- * @since HSQLDB 1.9.0
+ * @since 1.9.0
  */
 
 /*
@@ -61,7 +61,7 @@ import org.hsqldb.result.ResultConstants;
  *
  * ResultSets may be held over commits and span several transactions.
  *
- * There is no real relation between the current state of a Statement instance
+ * There is no real relation between the current state fo an Statement instance
  * and the various ResultSets that it may have returned for different queries.
  */
 
@@ -190,8 +190,6 @@ class JDBCStatementBase {
                 generatedResult = current;
             } else if (current.getType() == ResultConstants.DATA) {
                 resultIn.addChainedResult(current);
-            } else if (current.getType() == ResultConstants.SETSESSIONATTR) {
-                connection.sessionProxy.setAttributeFromResult(current);
             }
         }
 
@@ -204,9 +202,9 @@ class JDBCStatementBase {
 
         checkClosed();
 
-        return (resultIn == null || resultIn.isData())
-               ? -1
-               : resultIn.getUpdateCount();
+        return (resultIn == null || resultIn.isData()) ? -1
+                                                       : resultIn
+                                                       .getUpdateCount();
     }
 
     ResultSet getResultSet() throws SQLException {
@@ -215,7 +213,7 @@ class JDBCStatementBase {
 
         ResultSet result = currentResultSet;
 
-        if (!connection.isCloseResultSet) {
+        if(!connection.isCloseResultSet) {
             currentResultSet = null;
         }
 
@@ -250,7 +248,7 @@ class JDBCStatementBase {
         resultIn = resultIn.getChainedResult();
 
         if (currentResultSet != null) {
-            if (current != KEEP_CURRENT_RESULT) {
+            if( current != KEEP_CURRENT_RESULT) {
                 currentResultSet.close();
             }
         }
@@ -258,11 +256,8 @@ class JDBCStatementBase {
         currentResultSet = null;
 
         if (resultIn != null) {
-            currentResultSet = new JDBCResultSet(
-                connection,
-                this,
-                resultIn,
-                resultIn.metaData);
+            currentResultSet = new JDBCResultSet(connection, this, resultIn,
+                                                 resultIn.metaData);
 
             return true;
         }
@@ -271,9 +266,7 @@ class JDBCStatementBase {
     }
 
     ResultSet getGeneratedResultSet() throws SQLException {
-
         checkClosed();
-
         if (generatedResultSet != null) {
             generatedResultSet.close();
         }
@@ -282,11 +275,9 @@ class JDBCStatementBase {
             generatedResult = Result.emptyGeneratedResult;
         }
 
-        generatedResultSet = new JDBCResultSet(
-            connection,
-            this,
-            generatedResult,
-            generatedResult.metaData);
+        generatedResultSet = new JDBCResultSet(connection, null,
+                                               generatedResult,
+                                               generatedResult.metaData);
 
         return generatedResultSet;
     }
@@ -336,7 +327,7 @@ class JDBCStatementBase {
      *
      * @throws SQLException if this method is called on a closed
      * {@code Statement}
-     * @since JDK 1.7, HSQLDB 2.0.1
+     * @since JDK 1.7 M11 2010/09/10 (b123), HSQLDB 2.0.1
      */
     public void closeOnCompletion() throws SQLException {
         checkClosed();
@@ -349,9 +340,10 @@ class JDBCStatementBase {
      * of its dependent result sets are closed; {@code false} otherwise
      * @throws SQLException if this method is called on a closed
      * {@code Statement}
-     * @since JDK 1.7, HSQLDB 2.0.1
+     * @since JDK 1.7 M11 2010/09/10 (b123), HSQLDB 2.0.1
      */
     public boolean isCloseOnCompletion() throws SQLException {
+
         checkClosed();
 
         return false;

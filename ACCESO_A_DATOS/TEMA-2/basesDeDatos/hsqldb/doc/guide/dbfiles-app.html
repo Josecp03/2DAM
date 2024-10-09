@@ -31,10 +31,10 @@
 <a name="dbfiles-app"></a>HyperSQL Database Files and Recovery</h1>
 </div>
 <div>
-<p class="releaseinfo">$Revision: 6692 $</p>
+<p class="releaseinfo">$Revision: 5925 $</p>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -100,9 +100,7 @@
 <p>Contains the entry 'modified'. If the entry 'modified' is set
           to 'yes' then the database is either running or was not closed
           correctly. When the database is properly shutdown, 'modified' is set
-          to 'no'. You can add the optional entry
-          <span class="property">readonly=true</span> to make the database files read
-          only.</p>
+          to 'no'.</p>
 </td>
 </tr>
 <tr>
@@ -112,8 +110,8 @@
 </p>
 </td><td>
 <p>This file contains the SQL statements that makes up the
-          database up to the last checkpoint. All the data for MEMORY tables
-          is also stored in this file.</p>
+          database up to the last checkpoint - it is in sync with the contents
+          of <code class="filename">test.backup</code>.</p>
 </td>
 </tr>
 <tr>
@@ -132,11 +130,12 @@
 <span class="term">test.backup</span>
 </p>
 </td><td>
-<p>This file contains a backup of the parts of the
-          <code class="filename">test.data</code> that have been modified since the
-          last checkpoint. The file is deleted at each checkpoint or shutdown.
-          The size of this file can be as large as the
-          <code class="filename">test.data</code> file.</p>
+<p>Depending on the backup mode ( SET FILES BACKUP INCREMENT
+          {TRUE | FALSE} ), this file contains either a backup of the parts of
+          the <code class="filename">test.data</code> that have been modified since the
+          last checkpoint (the default setting, TRUE) or the complete
+          compressed backup of the <code class="filename">test.data</code> file at the
+          time of last checkpoint (when FALSE).</p>
 </td>
 </tr>
 <tr>
@@ -168,13 +167,8 @@
 </div>
 <p>A CHECKPOINT is an operations that saves all the changed data and
     removes the <code class="filename">test.log</code> followed by the creation of an
-    empty log. It also deletes the <code class="filename">test.backup</code> file. A
-    SHUTDOWN is equivalent to a CHECKPOINT followed by closing the
-    database.</p>
-<p>The disk space needed for the database depends on the amount of
-    data. After the database is opened more space, up to slightly greater than
-    the size of the <code class="filename">test.script</code> and
-    <code class="filename">test.data</code> files is needed during operation.</p>
+    empty log. A SHUTDOWN is equivalent to a CHECKPOINT followed by closing
+    the database.</p>
 </div>
 <div class="section">
 <div class="titlepage">
@@ -196,7 +190,10 @@
 <p>The <code class="filename">test.data</code> file is fully updated.</p>
 </li>
 <li class="listitem">
-<p>There is no <code class="filename">test.backup</code> file.</p>
+<p>When BACKUP INCREMENT TRUE is used, there is no
+        <code class="filename">test.backup</code> at all. Otherwise the
+        <code class="filename">test.backup</code> contains the full compressed
+        <code class="filename">test.data</code> file.</p>
 </li>
 <li class="listitem">
 <p>The <code class="filename">test.script</code> contains all the metadata
@@ -221,11 +218,11 @@
 <ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 <p>The <code class="filename">test.data</code> file does not exist; all
-        CACHED table data is now in the <code class="filename">test.script</code>
+        CACHED table data is in the <code class="filename">test.script</code>
         file</p>
 </li>
 <li class="listitem">
-<p>There is no <code class="filename">test.backup</code> file.</p>
+<p>The <code class="filename">test.backup</code> does not exist.</p>
 </li>
 <li class="listitem">
 <p>The <code class="filename">test.script</code> contains all the metadata
@@ -242,9 +239,8 @@
 </ul>
 </div>
 <p>Database is aborted</p>
-<p>If the database process was terminated without a SHUTDOWN, or the
-    SHUTDOWN IMMEDIATELY command was used, the database is in aborted
-    state.</p>
+<p>If the database process was terminated with a SHUTDOWN, or the
+    SHUTDOWN IMMEDIATELY was used, the database is in aborted state.</p>
 <div class="itemizedlist">
 <p class="title">
 <b>Aborted database state</b>
@@ -264,13 +260,14 @@
 </li>
 <li class="listitem">
 <p>The <code class="filename">test.backup</code> file contains just sections
-        of the original <code class="filename">test.data</code> file that correspond to
+        of the original <code class="filename">test.data</code> file, or a full
+        snapshot of <code class="filename">test.data</code> that corresponds to
         <code class="filename">test.script</code> at the time of the last
         checkpoint.</p>
 </li>
 <li class="listitem">
 <p>The <code class="filename">test.log</code> file contain all data change
-        statements executed since the last checkpoint. As a result of abnormal
+        statements executed since the checkpoint. As a result of abnormal
         termination, the end of file may be incomplete.</p>
 </li>
 </ul>
@@ -297,7 +294,7 @@
 </div>
 </div>
 <div class="procedure">
-<a name="N17F3D"></a>
+<a name="N17A2A"></a>
 <p class="title">
 <b>Procedure&nbsp;B.1.&nbsp;Clean HyperSQL database shutdown</b>
 </p>
@@ -308,13 +305,18 @@
           closed.</p>
 </li>
 <li class="step">
+<p>If backup mode is not INCREMENT, the
+          <code class="filename">test.backup.new</code> is created which contains the
+          compressed <code class="filename">test.data</code> file.</p>
+</li>
+<li class="step">
 <p>The file <code class="filename">test.script.new</code> is created using
           the current state of the database.</p>
 </li>
 <li class="step">
 <p>The entry 'modified' in the properties file is set to
           'yes-new-files' (Note: after this step, the
-          <code class="filename">test.data</code> and
+          <code class="filename">test.data.new</code> and
           <code class="filename">test.script.new</code> files constitute the
           database)</p>
 </li>
@@ -333,6 +335,11 @@
 <p>The file <code class="filename">test.backup</code> is deleted</p>
 </li>
 <li class="step">
+<p>If the file <code class="filename">test.backup.new</code> exists, it is
+          renamed to <code class="filename">test.backup</code>
+</p>
+</li>
+<li class="step">
 <p>The entry 'modified' in the properties file is set to
           'no'</p>
 </li>
@@ -349,7 +356,7 @@
 </div>
 </div>
 <div class="procedure">
-<a name="N17F76"></a>
+<a name="N17A74"></a>
 <p class="title">
 <b>Procedure&nbsp;B.2.&nbsp;Opening the Database</b>
 </p>
@@ -376,8 +383,8 @@
 <p>Otherwise, if in the <code class="filename">test.properties</code> file
           'modified=yes-new-files', then the (old)
           <code class="filename">test.backup</code> and
-          <code class="filename">test.script</code> files are deleted if they exist and
-          the new <code class="filename">test.script.new</code> file is renamed to
+          <code class="filename">test.script</code> files are deleted and the new
+          <code class="filename">test.script.new</code> file is renamed to
           <code class="filename">test.script</code>.</p>
 </li>
 <li class="step">
@@ -403,15 +410,17 @@
 <p>The current <code class="filename">test.data</code> file is not necessarily
       consistent. The database engine takes these steps:</p>
 <div class="procedure">
-<a name="N17FB8"></a>
+<a name="N17AB6"></a>
 <p class="title">
 <b>Procedure&nbsp;B.3.&nbsp;Restore a Database</b>
 </p>
 <ol class="procedure" type="1">
 <li class="step">
 <p>Restore the old <code class="filename">test.data</code> file from the
-          backup by copying the original sections from the
-          <code class="filename">test.backup</code> file.</p>
+          backup. Depending on the backup mode, decompress the
+          <code class="filename">test.backup</code> and overwrite
+          <code class="filename">test.data</code>, or copy the original sections from
+          the <code class="filename">test.backup</code> file.</p>
 </li>
 <li class="step">
 <p>Execute all the statements in the
@@ -427,10 +436,8 @@
           examine and edit the <code class="filename">test.log</code> file.</p>
 </li>
 <li class="step">
-<p>Close the database files.</p>
-</li>
-<li class="step">
-<p>Open the restored database.</p>
+<p>Close the database files, before opening the restored
+          database.</p>
 </li>
 </ol>
 </div>
@@ -438,7 +445,7 @@
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

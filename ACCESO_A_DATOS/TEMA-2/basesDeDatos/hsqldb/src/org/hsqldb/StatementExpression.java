@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
 
 package org.hsqldb;
 
-import org.hsqldb.HsqlNameManager.HsqlName;
 import org.hsqldb.ParserDQL.CompileContext;
 import org.hsqldb.error.Error;
 import org.hsqldb.error.ErrorCode;
@@ -43,7 +42,7 @@ import org.hsqldb.result.Result;
  * Implementation of Statement for PSM statements with expressions.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.2.9
  * @since 1.9.0
  */
 public class StatementExpression extends StatementDMQL {
@@ -53,11 +52,8 @@ public class StatementExpression extends StatementDMQL {
     /**
      * for RETURN and flow control
      */
-    StatementExpression(
-            Session session,
-            CompileContext compileContext,
-            int type,
-            Expression expression) {
+    StatementExpression(Session session, CompileContext compileContext,
+                        int type, Expression expression) {
 
         super(type, StatementTypes.X_SQL_CONTROL, null);
 
@@ -97,13 +93,13 @@ public class StatementExpression extends StatementDMQL {
 
     TableDerived[] getSubqueries(Session session) {
 
-        OrderedHashSet<TableDerived> subQueries = null;
+        OrderedHashSet subQueries = null;
 
         if (expression != null) {
-            subQueries = expression.collectAllSubqueries(null);
+            subQueries = expression.collectAllSubqueries(subQueries);
         }
 
-        if (subQueries == null || subQueries.isEmpty()) {
+        if (subQueries == null || subQueries.size() == 0) {
             return TableDerived.emptyArray;
         }
 
@@ -164,9 +160,9 @@ public class StatementExpression extends StatementDMQL {
 
                 // data navigator has statement scope and will be cleared at the end of statement
                 if (result.isData()) {
-                    RowSetNavigatorData navigator = new RowSetNavigatorData(
-                        session,
-                        result.getNavigator());
+                    RowSetNavigatorData navigator =
+                        new RowSetNavigatorData(session,
+                                                result.getNavigator());
 
                     result.setNavigator(navigator);
                 }
@@ -184,7 +180,7 @@ public class StatementExpression extends StatementDMQL {
         return getSQL();
     }
 
-    void collectTableNamesForRead(OrderedHashSet<HsqlName> set) {
+    void collectTableNamesForRead(OrderedHashSet set) {
 
         for (int i = 0; i < subqueries.length; i++) {
             if (subqueries[i].queryExpression != null) {
@@ -197,5 +193,5 @@ public class StatementExpression extends StatementDMQL {
         }
     }
 
-    void collectTableNamesForWrite(OrderedHashSet<HsqlName> set) {}
+    void collectTableNamesForWrite(OrderedHashSet set) {}
 }

@@ -58,10 +58,10 @@
 </div>
 </div>
 <div>
-<p class="releaseinfo">$Revision: 6692 $</p>
+<p class="releaseinfo">$Revision: 6366 $</p>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -110,11 +110,14 @@
 </div>
 </div>
 <p>The <code class="filename">hsqldb.jar</code> file supplied in the lib
-    directory of the zip release package is built and tested with Java 11. An
-    separate jar for Java 8 is also supplied in the same directory. The jars
-    have been tested extensively with the latest Java versions. You can also
-    find the official jars in major maven repositories as well as downloads
-    from hsqldb.org.</p>
+    directory of the zip release package is tested and built with Java 11. An
+    separate jar for Java 8 is also supplied in the same directory. The code
+    is also tested extensively with Java 6-8 as well as the latest Java
+    versions. If you want to run with a Java 6 JVM, or use an alternative jar
+    (<code class="filename">hsqldb-min.jar</code>, etc.), you must build the desired
+    jar with a JDK or download from hsqldb.org. You can also find official
+    jars built with Java 8 and Java 11 in major maven repositories as well as
+    downloads from hsqldb.org.</p>
 <p>The Gradle task / Ant target <code class="literal">explainjars</code>
     reports the versions of Java and Ant actually used.</p>
 <p>If you want to change Ant or Gradle build settings, edit the text
@@ -133,7 +136,7 @@
 </div>
 </div>
 </div>
-<a name="N18034" class="indexterm"></a>
+<a name="N17B38" class="indexterm"></a>
 <p>Unlike most software build systems, you do not need to have the
     Gradle system installed on your computer to use it. You don't need to
     understand the details to use it, but this is the purpose of the
@@ -243,7 +246,7 @@
 </div>
 </div>
 </div>
-<a name="N180AA" class="indexterm"></a>
+<a name="N17BAE" class="indexterm"></a>
 <p>You should use version 1.9 or 1.10 of Ant (Another Neat Tool) to
     do Ant builds with HyperSQL.</p>
 <div class="section">
@@ -382,8 +385,9 @@
 <p>HSQLDB can be built in any combination of JRE (Java Runtime
       Environment) versions and many jar file sizes.</p>
 <p>A jar built with an older JRE is compatible for use with a
-      newer JRE. You can compile with Java 8 and run with 11 but the Java
-      module capabilities of HyperSQL will be not be available.</p>
+      newer JRE (you can compile with Java 6 and run with 8). But the newer
+      JDBC capabilities of HyperSQL and the JRE will be not be
+      available.</p>
 <p>The smallest engine jar (<code class="filename">hsqldbmin.jar</code>)
       contains the engine and the HSQLDB JDBC Driver client. The default size
       (<code class="filename">hsqldb.jar</code>) also contains server mode support and
@@ -414,7 +418,7 @@
 <p>The command displays a list of different options for building
       different sizes of the HSQLDB Jar. The default is built using:</p>
 <div class="example">
-<a name="N1815E"></a>
+<a name="N17C62"></a>
 <p class="title">
 <b>Example&nbsp;C.1.&nbsp;Buiding the standard HSQLDB jar file with Ant</b>
 </p>
@@ -425,9 +429,9 @@
 <br class="example-break">
 <p>The Ant method always builds a jar with the JDK that is used by
       Ant and specified in its JAVA_HOME environment variable.</p>
-<p>The jars can be compiled with JDK 8 or later. Build has been
-      tested under JDK versions 8, 11, and 21. The same Ant version can be
-      used with all the tested JDKs.</p>
+<p>The jars can be compiled with JDK 6 or later. Build has been
+      tested under JDK versions 6, 8, 9, 10, 11, etc. The same Ant version can
+      be used with all the tested JDKs.</p>
 </div>
 </div>
 <div class="section">
@@ -441,8 +445,11 @@
 </div>
 <p>The Ant build.xml can be used with most IDEs to build the Jar
     targets. All HyperSQL source files are supplied ready to compile. It is
-    therefore possible to compile the sources without using Ant
-    directly.</p>
+    therefore possible to compile the sources without using Ant direcly. If
+    compilation with Java 6 is required, you should run the Ant switchtojdk6
+    target before compiling to modify the files that have code blocks specific
+    to Java 8 or above (these are listed in the jdkcodeswitch.list
+    file).</p>
 </div>
 <div class="section">
 <div class="titlepage">
@@ -453,17 +460,18 @@
 </div>
 </div>
 </div>
-<p>CodeSwitcher is a tool to manage conditional compilation of Java
-    source code. It is something like a precompiler in C but it works directly
-    on the source code and does not create intermediate output or extra
-    files.</p>
+<p>CodeSwitcher is a tool to manage different version of Java source
+    code. It allows to compile HyperSQL for different JDKs. It is something
+    like a precompiler in C but it works directly on the source code and does
+    not create intermediate output or extra files.</p>
+<p>CodeSwitcher is used internally in the Ant build. You do not have
+    to invoke it separately to compile HyperSQL.</p>
 <p>CodeSwitcher reads the source code of a file, removes comments
     where appropriate and comments out the blocks that are not used for a
     particular version of the file. This operation is done for all files of a
-    defined directory, and all subdirectories. The current version (2.7.3) of
-    HSQLDB does not use the CodeSwitcher.</p>
+    defined directory, and all subdirectories.</p>
 <div class="example">
-<a name="N18175"></a>
+<a name="N17C7B"></a>
 <p class="title">
 <b>Example&nbsp;C.2.&nbsp;Example source code before CodeSwitcher is run</b>
 </p>
@@ -491,7 +499,7 @@
 <br class="example-break">
 <p>The next step is to run CodeSwitcher.</p>
 <div class="example">
-<a name="N1817C"></a>
+<a name="N17C82"></a>
 <p class="title">
 <b>Example&nbsp;C.3.&nbsp;CodeSwitcher command line invocation</b>
 </p>
@@ -505,7 +513,7 @@
     subdirectories are processed recursively). <code class="literal">-JAVA8</code> means
     the code labelled with JAVA8 must be switched off.</p>
 <div class="example">
-<a name="N18186"></a>
+<a name="N17C8C"></a>
 <p class="title">
 <b>Example&nbsp;C.4.&nbsp;Source code after CodeSwitcher processing</b>
 </p>
@@ -545,8 +553,6 @@
 </div>
 </div>
 </div>
-<p>Java 11 is the only supported JDK for building the
-    documentation.</p>
 <p>The JavaDoc can be built simply by invoking the javadoc
     task/target with Gradle or Ant.</p>
 <p>The two Guides (the one you are reading now plus the Utilities user
@@ -583,7 +589,7 @@
           <code class="filename">build</code> directory about where to obtain these
           things and how to hook them in. The same Gradle task
           <code class="literal">installDbImages</code> explained above can download and
-          install the entire style sheet bundle (this option is offered the
+          install the entire stylesheet bundle (this option is offered the
           first time that you run the <code class="literal">installDbImages</code>
           task).</li>
 </ul>
@@ -639,11 +645,12 @@
 </ul>
 </div>
 <p>See the file <code class="filename">doc-src/readme-docauthors.txt</code>
-    for details about our DocBook build system.</p>
+    for details about our DocBook build system (though as I write this it is
+    somewhat out of date).</p>
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

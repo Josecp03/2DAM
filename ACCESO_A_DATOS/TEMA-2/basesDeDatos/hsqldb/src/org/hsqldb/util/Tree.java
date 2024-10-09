@@ -1,7 +1,7 @@
 /*
  * For work developed by the HSQL Development Group:
  *
- * Copyright (c) 2001-2024, The HSQL Development Group
+ * Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,8 +114,7 @@ class Tree extends Panel {
     private int    iRowCount;
 
     // scrolling
-    private Scrollbar sbHoriz;
-    private Scrollbar sbVert;
+    private Scrollbar sbHoriz, sbVert;
     private int       iSbWidth, iSbHeight;
 
     static {
@@ -327,24 +326,17 @@ class Tree extends Panel {
 
                 int rgb = Integer.parseInt(s[3]);
 
-                gImage.setColor(rgb == 0
-                                ? Color.white
-                                : new Color(rgb));
+                gImage.setColor(rgb == 0 ? Color.white
+                                         : new Color(rgb));
                 gImage.fillRect(x + iIndentWidth - 3, y - 3, 7, 7);
                 gImage.setColor(Color.black);
                 gImage.drawRect(x + iIndentWidth - 4, y - 4, 8, 8);
-                gImage.drawLine(
-                    x + iIndentWidth - 2,
-                    y,
-                    x + iIndentWidth + 2,
-                    y);
+                gImage.drawLine(x + iIndentWidth - 2, y,
+                                x + iIndentWidth + 2, y);
 
                 if (folder.equals("+")) {
-                    gImage.drawLine(
-                        x + iIndentWidth,
-                        y - 2,
-                        x + iIndentWidth,
-                        y + 2);
+                    gImage.drawLine(x + iIndentWidth, y - 2,
+                                    x + iIndentWidth, y + 2);
                 }
             } else {
                 px -= iIndentWidth;

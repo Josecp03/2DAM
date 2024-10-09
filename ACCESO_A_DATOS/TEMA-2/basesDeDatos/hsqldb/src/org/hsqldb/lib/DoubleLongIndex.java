@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,12 +41,12 @@ import java.util.NoSuchElementException;
  * The table is sorted on key column.<p>
  *
  * findXXX() methods return the array index into the list
- * pair containing a matching key or value, or -1 if not found.<p>
+ * pair containing a matching key or value, or  or -1 if not found.<p>
  *
  * Based on org.hsqldb.lib.DoubleIntIndex
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.8.0
  */
 public final class DoubleLongIndex implements LongLookup {
@@ -61,6 +61,7 @@ public final class DoubleLongIndex implements LongLookup {
     private long targetSearchValue;
 
     public DoubleLongIndex(int capacity) {
+
         this.capacity = capacity;
         keys          = new long[capacity];
         values        = new long[capacity];
@@ -211,9 +212,8 @@ public final class DoubleLongIndex implements LongLookup {
 
         int index = findFirstGreaterEqualSlotIndex(value);
 
-        return index == count
-               ? -1
-               : index;
+        return index == count ? -1
+                              : index;
     }
 
     /**
@@ -316,13 +316,12 @@ public final class DoubleLongIndex implements LongLookup {
             }
         }
 
-        return found == count
-               ? -1
-               : found;
+        return found == count ? -1
+                              : found;
     }
 
     /**
-     * Returns the index of the lowest element {@code >=} the given search target, or
+     * Returns the index of the lowest element >= the given search target, or
      * count
      *
      * @return the index or count
@@ -549,7 +548,12 @@ public final class DoubleLongIndex implements LongLookup {
      * @return true or false
      */
     private boolean lessThan(int i, int j) {
-        return keys[i] < keys[j];
+
+        if (keys[i] < keys[j]) {
+            return true;
+        }
+
+        return false;
     }
 
     private void moveRows(int fromIndex, int toIndex, int rows) {
@@ -558,12 +562,14 @@ public final class DoubleLongIndex implements LongLookup {
     }
 
     private void doubleCapacity() {
+
         keys     = (long[]) ArrayUtil.resizeArray(keys, capacity * 2);
         values   = (long[]) ArrayUtil.resizeArray(values, capacity * 2);
         capacity *= 2;
     }
 
     public void copyTo(DoubleLongIndex other) {
+
         System.arraycopy(keys, 0, other.keys, 0, count);
         System.arraycopy(values, 0, other.values, 0, count);
         other.setSize(count);

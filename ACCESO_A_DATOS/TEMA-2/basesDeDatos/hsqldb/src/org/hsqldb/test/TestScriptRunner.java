@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,21 @@
 
 package org.hsqldb.test;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.io.File;
+import java.io.Reader;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.FileReader;
 import java.util.List;
 import java.util.Map;
-
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.lang.reflect.Method;
+import org.hsqldb.test.TestUtil;
 import org.hsqldb.util.RCData;
 
 /**
@@ -79,7 +80,7 @@ class TestScriptRunner {
     /**
      * Executes specified SQL test scripts.
      *
-     * Run {@code java org.hsqldb.util.TestScriptRunner} with no
+     * Run <CODE>java org.hsqldb.util.TestScriptRunner</CODE> with no
      * args to display syntax help.
      *
      * The TestCacheSize database population uses the database details
@@ -140,7 +141,7 @@ class TestScriptRunner {
                 scriptFileMap.put(sa[i], currentUrlid);
             }
             if (currentUrlid == null) throw new IllegalArgumentException();
-            if (scriptFileMap.isEmpty()) {
+            if (scriptFileMap.size() < 1) {
                 scriptFileMap.put("-", currentUrlid);
             }
         } catch (IllegalArgumentException e) {

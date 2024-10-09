@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import org.hsqldb.server.ServerConstants;
  * Parses a connection URL into parts.
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since 1.8.0
  */
 
@@ -65,7 +65,11 @@ public final class DatabaseURL {
      * Returns true if type represents an in-process connection to database.
      */
     public static boolean isInProcessDatabaseType(String type) {
-        return S_FILE.equals(type) || S_RES.equals(type) || S_MEM.equals(type);
+
+        if (S_FILE.equals(type) || S_RES.equals(type) || S_MEM.equals(type)) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -98,17 +102,15 @@ public final class DatabaseURL {
      *
      * @return null returned if the part that should represent the port is not
      *   an integer or the part for database name is empty. Empty
-     *   HsqlProperties returned if url does not begin with valid protocol
+     *   HsqlProperties returned if if url does not begin with valid protocol
      *   and could refer to another JDBC driver.
      * @param url String
      * @param hasPrefix indicates URL prefix is present
      * @param noPath indicates empty path and verbatim use of path elements as
      * database
      */
-    public static HsqlProperties parseURL(
-            String url,
-            boolean hasPrefix,
-            boolean noPath) {
+    public static HsqlProperties parseURL(String url, boolean hasPrefix,
+                                          boolean noPath) {
 
         String         urlImage   = url.toLowerCase(Locale.ENGLISH);
         HsqlProperties props      = new HsqlProperties();
@@ -153,9 +155,8 @@ public final class DatabaseURL {
                 break;
             }
 
-            url = url.substring(
-                0,
-                replacePos) + varValue + url.substring(endPos + 1);
+            url = url.substring(0, replacePos) + varValue
+                  + url.substring(endPos + 1);
             urlImage = url.toLowerCase(Locale.ENGLISH);
         }
 
@@ -172,11 +173,8 @@ public final class DatabaseURL {
         if (semiPos > -1) {
             arguments  = url.substring(semiPos + 1, urlImage.length());
             postUrlPos = semiPos;
-            extraProps = HsqlProperties.delimitedArgPairsToProps(
-                arguments,
-                "=",
-                ";",
-                null);
+            extraProps = HsqlProperties.delimitedArgPairsToProps(arguments,
+                    "=", ";", null);
 
             // validity checks are performed by engine
             props.addProperties(extraProps);
@@ -270,11 +268,8 @@ public final class DatabaseURL {
                     colPos = -1;
                 }
 
-                hostSeg = urlImage.substring(
-                    pos,
-                    (colPos > 0)
-                    ? colPos
-                    : endPos);
+                hostSeg = urlImage.substring(pos, (colPos > 0) ? colPos
+                                                               : endPos);
             }
 
             // At this point, the entire url has been parsed into
@@ -306,8 +301,9 @@ public final class DatabaseURL {
                 int lastSlashPos = pathSeg.lastIndexOf('/');
 
                 if (lastSlashPos < 1) {
-                    path     = "/";
-                    database = pathSeg.substring(1).toLowerCase(Locale.ENGLISH);
+                    path = "/";
+                    database =
+                        pathSeg.substring(1).toLowerCase(Locale.ENGLISH);
                 } else {
                     path     = pathSeg.substring(0, lastSlashPos);
                     database = pathSeg.substring(lastSlashPos + 1);
@@ -326,7 +322,7 @@ public final class DatabaseURL {
             if (!noPath && extraProps != null) {
                 String filePath = extraProps.getProperty("filepath");
 
-                if (filePath != null && database.length() > 0) {
+                if (filePath != null && database.length() != 0) {
                     database += ";" + filePath;
                 } else {
                     if (url.indexOf(S_MEM) == postUrlPos + 1

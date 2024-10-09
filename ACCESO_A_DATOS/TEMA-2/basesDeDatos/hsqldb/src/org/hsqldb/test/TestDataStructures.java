@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,6 @@ public class TestDataStructures extends TestCase {
                     } catch (Exception ex) {
                         vectorException = true;
                     }
-
                     compareLists(arrayList, deque, vector);
                     break;
 
@@ -166,7 +165,6 @@ public class TestDataStructures extends TestCase {
                     } catch (Exception ex) {
                         vectorException = true;
                     }
-
                     break;
 
                 case REMOVE :
@@ -193,7 +191,6 @@ public class TestDataStructures extends TestCase {
                     } catch (Exception ex) {
                         vectorException = true;
                     }
-
                     break;
 
                 case SET :
@@ -219,7 +216,6 @@ public class TestDataStructures extends TestCase {
                     } catch (Exception ex) {
                         vectorException = true;
                     }
-
                     compareLists(arrayList, deque, vector);
                     break;
 
@@ -233,7 +229,7 @@ public class TestDataStructures extends TestCase {
                     if (getRandomInt(0, 5) == 4) {    // to limit the frequency of this call
                         listCommandsCalled.addElement("Remove all");
 
-                        if (vector.isEmpty()) {
+                        if (vector.size() == 0) {
                             break;
                         }
 
@@ -244,7 +240,6 @@ public class TestDataStructures extends TestCase {
 
                         vector.removeAllElements();
                     }
-
                     break;
 
                 default :
@@ -253,8 +248,7 @@ public class TestDataStructures extends TestCase {
             if (arrayListException || dequeException || vectorException) {
 
                 // if an exception is thrown in vector but not one of the lists or vice versa
-                if (!(arrayListException
-                        && dequeException
+                if (!(arrayListException && dequeException
                         && vectorException)) {
                     if (!(arrayListException && vectorException)) {
                         System.out.println(
@@ -275,8 +269,7 @@ public class TestDataStructures extends TestCase {
                 return;
             }
 
-            if (!objectEquals(linkedListObject,
-                              arrayListObject,
+            if (!objectEquals(linkedListObject, arrayListObject,
                               vectorObject)) {
                 System.out.println("Objects returned inconsistent");
                 this.printListCommandsCalled(listCommandsCalled);
@@ -293,10 +286,8 @@ public class TestDataStructures extends TestCase {
      * Compare contents of lists to the vector.  Print out stuff if they are
      * inconsistent and exit.
      */
-    public void compareLists(
-            HsqlArrayList arrayList,
-            HsqlDeque linkedList,
-            Vector vector) {
+    public void compareLists(HsqlArrayList arrayList, HsqlDeque linkedList,
+                             Vector vector) {
 
         boolean arrayListError  = false;
         boolean linkedListError = false;
@@ -333,10 +324,8 @@ public class TestDataStructures extends TestCase {
     }
 
     /** Returns whether three objects are equal */
-    private boolean objectEquals(
-            Object lObject,
-            Object aObject,
-            Object vObject) {
+    private boolean objectEquals(Object lObject, Object aObject,
+                                 Object vObject) {
 
         if (lObject == null && aObject == null && vObject == null) {
             return true;
@@ -361,6 +350,7 @@ public class TestDataStructures extends TestCase {
 
     /** Returns a random integer in the range of the lowBound and highBound */
     private int getRandomInt(int lowBound, int highBound) {
+
         double random = randomGenerator.nextDouble();
 
         return ((int) (((highBound - lowBound) * random) + .5)) + lowBound;
@@ -371,8 +361,7 @@ public class TestDataStructures extends TestCase {
      * Integer.MAX_VALUE
      */
     private Integer getRandomInteger() {
-        return Integer.valueOf(
-            getRandomInt(0, (int) (Integer.MAX_VALUE / 100.0)));
+        return Integer.valueOf(getRandomInt(0, (int) (Integer.MAX_VALUE / 100.0)));
     }
 
     /** Tells whether the given list contains the same data as the vector */
@@ -382,10 +371,10 @@ public class TestDataStructures extends TestCase {
             return false;
         }
 
-        Iterator    listElements   = list.iterator();
-        Enumeration vectorElements = vector.elements();
-        Object      listObj        = null;
-        Object      vectorObj      = null;
+        Iterator listElements   = list.iterator();
+        Enumeration             vectorElements = vector.elements();
+        Object                  listObj        = null;
+        Object                  vectorObj      = null;
 
         while (listElements.hasNext()) {
             listObj   = listElements.next();
@@ -445,8 +434,7 @@ public class TestDataStructures extends TestCase {
         HsqlArrayList arrayList     = new HsqlArrayList(TEST_RUNS);
         ArrayList     utilArrayList = new ArrayList(TEST_RUNS);
         Vector        vector        = new Vector(TEST_RUNS);
-        Integer       value         = Integer.valueOf(
-            randomGenerator.nextInt());
+        Integer       value         = Integer.valueOf(randomGenerator.nextInt());
         Integer       INT_0         = Integer.valueOf(0);
         StopWatch     sw            = new StopWatch();
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import org.hsqldb.map.BaseHashMap;
 /**
  * A list which is also a set of long primitives which maintains the insertion
  * order of the elements and allows access by index. Iterators return the keys
- * or values in the index order.
+ * or values in the index order.<p>
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  * @version 2.6.0
@@ -48,21 +48,17 @@ public class OrderedLongHashSet extends BaseHashMap {
         this(8);
     }
 
-    public OrderedLongHashSet(
-            int initialCapacity)
-            throws IllegalArgumentException {
+    public OrderedLongHashSet(int initialCapacity)
+    throws IllegalArgumentException {
 
-        super(
-            initialCapacity,
-            BaseHashMap.longKeyOrValue,
-            BaseHashMap.noKeyOrValue,
-            false);
+        super(initialCapacity, BaseHashMap.longKeyOrValue,
+              BaseHashMap.noKeyOrValue, false);
 
         isList = true;
     }
 
     public boolean contains(long key) {
-        return super.containsLongKey(key);
+        return super.containsKey(key);
     }
 
     public boolean add(long key) {
@@ -74,10 +70,8 @@ public class OrderedLongHashSet extends BaseHashMap {
         return oldSize != size();
     }
 
-    public boolean insert(
-            int index,
-            long key)
-            throws IndexOutOfBoundsException {
+    public boolean insert(int index,
+                          long key) throws IndexOutOfBoundsException {
 
         if (index < 0 || index > size()) {
             throw new IndexOutOfBoundsException();
@@ -95,6 +89,7 @@ public class OrderedLongHashSet extends BaseHashMap {
     }
 
     public boolean remove(long key) {
+
         return (Boolean) super.remove(key, 0, null, null, false, true);
     }
 
@@ -108,6 +103,7 @@ public class OrderedLongHashSet extends BaseHashMap {
     }
 
     public long get(int index) {
+
         checkRange(index);
 
         return longKeyTable[index];
@@ -122,7 +118,7 @@ public class OrderedLongHashSet extends BaseHashMap {
         int i = 0;
 
         for (; i < array.length; i++) {
-            if (!super.containsLongKey(array[i])) {
+            if (!super.containsKey(array[i])) {
                 break;
             }
         }
@@ -177,6 +173,7 @@ public class OrderedLongHashSet extends BaseHashMap {
     }
 
     private void checkRange(int i) {
+
         if (i < 0 || i >= size()) {
             throw new IndexOutOfBoundsException();
         }

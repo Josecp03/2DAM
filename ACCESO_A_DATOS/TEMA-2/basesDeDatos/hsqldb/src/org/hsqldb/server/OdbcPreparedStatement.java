@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,8 +50,8 @@ class OdbcPreparedStatement {
     public String  handle, query;
     public Result  ackResult;
     public Session session;
-    private Map<String, OdbcPreparedStatement> containingMap;
-    private List<StatementPortal> portals = new ArrayList<StatementPortal>();
+    private Map    containingMap;
+    private List   portals = new ArrayList();
 
     protected OdbcPreparedStatement(OdbcPreparedStatement other) {
         this.handle    = other.handle;
@@ -59,11 +59,11 @@ class OdbcPreparedStatement {
     }
 
     /**
-     * Instantiates a proxy OdbcPreparedStatement object for the
+     * Instantiates an proxy OdbcPreparedStatement object for the
      * Connection Session, and adds the new instance to the specified map.
      */
     public OdbcPreparedStatement(String handle, String query,
-                                 Map<String, OdbcPreparedStatement> containingMap,
+                                 Map containingMap,
                                  Session session)
                                  throws RecoverableOdbcFailure {
 
@@ -106,7 +106,7 @@ class OdbcPreparedStatement {
         containingMap.remove(handle);
 
         while (portals.size() > 0) {
-            portals.remove(1).close();
+            ((StatementPortal) portals.remove(1)).close();
         }
     }
 

@@ -44,12 +44,12 @@
 </div>
 </div>
 <div>
-<p class="releaseinfo">$Revision: 6752 $</p>
+<p class="releaseinfo">$Revision: 6369 $</p>
 </div>
 <div>
 <div class="legalnotice">
 <a name="N100D0"></a>
-<p>Copyright 2002-2024 Fred Toussi. Permission is granted to
+<p>Copyright 2002-2021 Fred Toussi. Permission is granted to
       distribute this document without any alteration under the terms of the
       HSQLDB license. Additional permission is granted to the HSQL Development
       Group to distribute this document with or without alterations under the
@@ -57,7 +57,7 @@
 </div>
 </div>
 <div>
-<p class="pubdate">2024-06-01</p>
+<p class="pubdate">2021-10-21</p>
 </div>
 </div>
 </div>
@@ -127,20 +127,20 @@
 </div>
 </div>
 <p>HyperSQL Database (HSQLDB) is a modern relational database system.
-    Version 2.7.3 is the latest release of the all-new version 2 code. Written
-    from ground up to follow the international ISO SQL:2023 standard, it
-    supports the complete set of the classic features of the SQL Standard,
-    together with optional features such as stored procedures and
-    triggers.</p>
-<p>HyperSQL version 2.7.3 is compatible with Java 11 or later and
+    Version 2.6.1 is the latest release of the all-new version 2 code. Written
+    from ground up to follow the international ISO SQL:2016 standard, it
+    supports the complete set of the classic features, together with optional
+    features such as stored procedures and triggers.</p>
+<p>HyperSQL version 2.6.1 is compatible with Java 11 or later and
     supports the Java module system. A version of the HSQLDB jar compiled with
-    JDK 8 is also included in the download zip package.</p>
+    JDK 8 is also included in the download zip package. A version of the jar
+    compiled with JDK 6 is also available at hsqldb.org, numbered 2.3.9 to
+    distinguish the JDBC API capability differences.</p>
 <p>HyperSQL is used for development, testing and deployment of database
     applications.</p>
 <p>SQL Standard compliance is the most unique characteristic of
-    HyperSQL.</p>
-<p>There are several other distinctive features. HyperSQL can provide
-    database access within the user's application process, within an
+    HyperSQL. There are several other distinctive features. HyperSQL can
+    provide database access within the user's application process, within an
     application server, or as a separate server process. HyperSQL can run
     entirely in memory using a fast memory structure. HyperSQL can use disk
     persistence in a flexible way, with reliable crash-recovery. HyperSQL is
@@ -196,7 +196,7 @@
 <p>The HyperSQL RDBMS and JDBC Driver provide the core functionality.
     DatabaseManagerSwing is a database access tool that can be used with any
     database engine that has a JDBC driver.</p>
-<p>An additional jar, sqltool.jar, contains SqlTool, a command line
+<p>An additional jar, sqltool.jar, contains Sql Tool, a command line
     database access tool that can also be used with other database
     engines.</p>
 </div>
@@ -374,12 +374,11 @@
 <p>The database file path format can be specified using forward slashes
     in Windows hosts as well as Linux hosts. So relative paths or paths that
     refer to the same directory on the same drive can be identical. For
-    example if your database directory in Linux is
-    <code class="filename">/opt/db/</code> containing a database testdb (with files
-    named <code class="filename">testdb.*</code>), then the database file path is
-    <code class="filename">/opt/db/testdb</code>. If you create an identical directory
-    structure on the <code class="literal">C:</code> drive of a Windows host, you can
-    use the same URL in both Windows and Linux:</p>
+    example if your database directory in Linux is <code class="filename">/opt/db/
+    containing a database testdb (with files named testdb.*), then the
+    database file path is /opt/db/testdb.</code> If you create an
+    identical directory structure on the <code class="literal">C:</code> drive of a
+    Windows host, you can use the same URL in both Windows and Linux:</p>
 <pre class="programlisting"> Connection c = DriverManager.getConnection("jdbc:hsqldb:file:/opt/db/testdb", "SA", "");</pre>
 <p>When using relative paths, these paths will be taken relative to the
     directory in which the shell command to start the Java Virtual Machine was
@@ -501,7 +500,7 @@
 <pre class="screen"> java -cp ../lib/hsqldb.jar org.hsqldb.server.WebServer --database.0 file:mydb --dbname.0 xdb</pre>
 </div>
 <p>The command line argument <code class="literal">--help</code> can be used to
-      get a list of available arguments. Connections are made using an http:
+      get a list of available arguments. Connections are made using an httpl:
       URL.</p>
 <pre class="programlisting"> Connection c = DriverManager.getConnection("jdbc:hsqldb:http://localhost/xdb", "SA", "");</pre>
 </div>
@@ -549,7 +548,7 @@
       used for the <em class="glossterm">hsql:</em> protocol on the same
       machine:</p>
 <div class="example">
-<a name="N1023E"></a>
+<a name="N10236"></a>
 <p class="title">
 <b>Example&nbsp;1.1.&nbsp;Java code to connect to the local hsql Server</b>
 </p>
@@ -569,7 +568,7 @@
 <p>If the HyperSQL HTTP server is used, the protocol is
       <em class="glossterm">http:</em> and the URL will be different:</p>
 <div class="example">
-<a name="N10248"></a>
+<a name="N10240"></a>
 <p class="title">
 <b>Example&nbsp;1.2.&nbsp;Java code to connect to the local http Server</b>
 </p>
@@ -594,7 +593,7 @@
 </div>
 </div>
 </div>
-<a name="N10257" class="indexterm"></a>
+<a name="N1024F" class="indexterm"></a>
 <p>When a HyperSQL server is run, network access should be adequately
       protected. Source IP addresses may be restricted by use of our <a class="link" href="listeners-chapt.html#lsc_acl" title="Network Access Control">Access Control List feature</a>, network
       filtering software, firewall software, or standalone firewalls. Only
@@ -609,7 +608,7 @@
       be specified when running the Server or WebServer. On the client, the
       URL to connect to an SSL server is slightly different:</p>
 <div class="example">
-<a name="N1026C"></a>
+<a name="N10264"></a>
 <p class="title">
 <b>Example&nbsp;1.3.&nbsp;Java code to connect to the local secure SSL hsqls: and
           https: Servers</b>
@@ -703,14 +702,14 @@
     <code class="methodname">rollback(Savepoint name)</code> method performs a
     <code class="literal">ROLLBACK TO SAVEPOINT &lt;name&gt;</code> SQL
     statement.</p>
-<p>The Javadoc for <code class="classname"><a class="classname" href="filelinks-app.html#JDBCConnection.html-link">JDBCConnection</a></code>,
-    <code class="classname"><a class="classname" href="filelinks-app.html#JDBCDriver.html-link">JDBCDriver</a></code>,
-    <code class="classname"><a class="classname" href="filelinks-app.html#JDBCDatabaseMetaData.html-link">JDBCDatabaseMetadata</a></code>,
-    <code class="classname"><a class="classname" href="filelinks-app.html#JDBCResultSet.html-link">JDBCResultSet</a></code>,
-    <code class="classname"><a class="classname" href="filelinks-app.html#JDBCStatement.html-link">JDBCStatement</a></code>,
-    <code class="classname"><a class="classname" href="filelinks-app.html#JDBCPreparedStatement.html-link">JDBCPreparedStatement</a></code>
-    list all the supported JDBC methods together with information that is
-    specific to HSQLDB.</p>
+<p>The Javadoc for <code class="classname"><a class="classname" href="filelinks-app.html#JDBCConnection.html-link">
+    JDBCConnection</a></code>, <code class="classname"><a class="classname" href="filelinks-app.html#JDBCDriver.html-link">
+    JDBCDriver</a></code>, <code class="classname"><a class="classname" href="filelinks-app.html#JDBCDatabaseMetaData.html-link">
+    JDBCDatabaseMetadata</a></code> <code class="classname"><a class="classname" href="filelinks-app.html#JDBCResultSet.html-link"> JDBCResultSet</a></code>,
+    <code class="classname"><a class="classname" href="filelinks-app.html#JDBCStatement.html-link">
+    JDBCStatement</a></code>, <code class="classname"><a class="classname" href="filelinks-app.html#JDBCPreparedStatement.html-link">
+    JDBCPreparedStatement</a></code> list all the supported JDBC methods
+    together with information that is specific to HSQLDB.</p>
 </div>
 <div class="section">
 <div class="titlepage">
@@ -740,7 +739,7 @@
     to the database (the connection that opens the database) to force a
     shutdown when the last connection closes.</p>
 <div class="example">
-<a name="N10312"></a>
+<a name="N1030A"></a>
 <p class="title">
 <b>Example&nbsp;1.4.&nbsp;specifying a connection property to shutdown the database when
         the last connection is closed</b>
@@ -782,7 +781,7 @@
     <code class="methodname">getConnection()</code> method will throw an
     exception.</p>
 <div class="example">
-<a name="N1032F"></a>
+<a name="N10327"></a>
 <p class="title">
 <b>Example&nbsp;1.5.&nbsp;specifying a connection property to disallow creating a new
         database</b>
@@ -801,7 +800,7 @@
 </div>
 </div>
 <HR xmlns:xi="http://www.w3.org/2001/XInclude">
-<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6752 $</P>
+<P xmlns:xi="http://www.w3.org/2001/XInclude" class="svnrev">$Revision: 6369 $</P>
 <div class="navfooter">
 <hr>
 <table summary="Navigation footer" width="100%">

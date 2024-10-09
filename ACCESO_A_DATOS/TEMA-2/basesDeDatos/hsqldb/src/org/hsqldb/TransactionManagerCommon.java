@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import org.hsqldb.lib.HashMap;
 import org.hsqldb.lib.HsqlArrayList;
 import org.hsqldb.lib.Iterator;
 import org.hsqldb.lib.LongDeque;
+import org.hsqldb.lib.LongKeyHashMap;
 import org.hsqldb.lib.MultiValueHashMap;
 import org.hsqldb.lib.OrderedHashSet;
 
@@ -50,7 +51,7 @@ import org.hsqldb.lib.OrderedHashSet;
  * Shared code for TransactionManager classes
  *
  * @author Fred Toussi (fredt@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.6.0
  * @since 2.0.0
  */
 class TransactionManagerCommon {
@@ -67,25 +68,25 @@ class TransactionManagerCommon {
     // functional unit - sessions involved in live transactions
 
     /** live transactions keeping committed transactions from being merged */
-    LongDeque liveTransactionSCNs = new LongDeque();
+    LongDeque liveTransactionTimestamps = new LongDeque();
 
     /** global timestamp for database */
-    AtomicLong systemChangeNumber = new AtomicLong(1);
+    AtomicLong globalChangeTimestamp = new AtomicLong(1);
 
     //
     AtomicInteger transactionCount = new AtomicInteger();
 
     //
-    HashMap<HsqlName, Session> tableWriteLocks = new HashMap<>();
-    MultiValueHashMap<HsqlName, Session> tableReadLocks =
-        new MultiValueHashMap<>();
+    HashMap           tableWriteLocks = new HashMap();
+    MultiValueHashMap tableReadLocks  = new MultiValueHashMap();
 
-    /**
-     * Normally false. When SET DATABASE TRANSACTION CONTROL is used to change
-     * the transaction control model, the old instance of TransactionManager
-     * is set as expired.
-     */
+    //
     volatile boolean hasExpired;
+
+    // functional unit - cached table transactions
+
+    /** Map : rowID -> RowAction */
+    public LongKeyHashMap rowActionMap;
 
     TransactionManagerCommon(Database database) {
         this.database   = database;
@@ -108,7 +109,7 @@ class TransactionManagerCommon {
 
                 case TransactionManager.MVCC :
                 case TransactionManager.MVLOCKS :
-                    if (liveTransactionSCNs.size() != 1) {
+                    if (liveTransactionTimestamps.size() != 1) {
                         throw Error.error(ErrorCode.X_25001);
                     }
             }
@@ -116,63 +117,62 @@ class TransactionManagerCommon {
             switch (mode) {
 
                 case TransactionManager.MVCC : {
-                    TransactionManagerMVCC txMan = new TransactionManagerMVCC(
-                        database);
+                    TransactionManagerMVCC txMan =
+                        new TransactionManagerMVCC(database);
 
-                    txMan.liveTransactionSCNs.addLast(session.transactionSCN);
+                    txMan.liveTransactionTimestamps.addLast(
+                        session.transactionTimestamp);
 
                     txMan.catalogWriteSession = session;
                     txMan.isLockedMode        = true;
 
-                    OrderedHashSet<Session> set = session.waitingSessions;
+                    OrderedHashSet set = session.waitingSessions;
 
                     for (int i = 0; i < set.size(); i++) {
-                        Session current = set.get(i);
+                        Session current = (Session) set.get(i);
 
                         current.waitedSessions.add(session);
                     }
 
                     manager = txMan;
+
                     break;
                 }
-
                 case TransactionManager.MVLOCKS : {
                     manager = new TransactionManagerMV2PL(database);
 
-                    manager.liveTransactionSCNs.addLast(session.transactionSCN);
+                    manager.liveTransactionTimestamps.addLast(
+                        session.transactionTimestamp);
 
-                    OrderedHashSet<Session> set = session.waitingSessions;
+                    OrderedHashSet set = session.waitingSessions;
 
                     for (int i = 0; i < set.size(); i++) {
-                        Session current = set.get(i);
+                        Session current = (Session) set.get(i);
 
                         current.waitedSessions.clear();
                     }
 
                     break;
                 }
-
                 case TransactionManager.LOCKS : {
                     manager = new TransactionManager2PL(database);
 
-                    OrderedHashSet<Session> set = session.waitingSessions;
+                    OrderedHashSet set = session.waitingSessions;
 
                     for (int i = 0; i < set.size(); i++) {
-                        Session current = set.get(i);
+                        Session current = (Session) set.get(i);
 
                         current.waitedSessions.clear();
                     }
 
                     break;
                 }
-
                 default :
-                    throw Error.runtimeError(
-                        ErrorCode.U_S0500,
-                        "TransactionManagerCommon");
+                    throw Error.runtimeError(ErrorCode.U_S0500,
+                                             "TransactionManagerCommon");
             }
 
-            manager.systemChangeNumber.set(systemChangeNumber.get());
+            manager.globalChangeTimestamp.set(globalChangeTimestamp.get());
 
             manager.transactionCount = transactionCount;
             hasExpired               = true;
@@ -182,24 +182,24 @@ class TransactionManagerCommon {
         }
     }
 
-    final void beginTransactionCommon(Session session) {
+    void beginTransactionCommon(Session session) {
 
-        session.actionSCN        = getNextSystemChangeNumber();
-        session.actionStartSCN   = session.actionSCN;
-        session.transactionSCN   = session.actionSCN;
-        session.isPreTransaction = false;
-        session.isTransaction    = true;
+        session.actionTimestamp      = getNextGlobalChangeTimestamp();
+        session.actionStartTimestamp = session.actionTimestamp;
+        session.transactionTimestamp = session.actionTimestamp;
+        session.isPreTransaction     = false;
+        session.isTransaction        = true;
 
         transactionCount.incrementAndGet();
     }
 
-    final void adjustLobUsage(Session session) {
+    void adjustLobUsage(Session session) {
 
         int  limit               = session.rowActionList.size();
-        long lastActionTimestamp = session.actionSCN;
+        long lastActionTimestamp = session.actionTimestamp;
 
         for (int i = 0; i < limit; i++) {
-            RowAction action = session.rowActionList.get(i);
+            RowAction action = (RowAction) session.rowActionList.get(i);
 
             if (action.type == RowActionBase.ACTION_NONE) {
                 continue;
@@ -216,17 +216,13 @@ class TransactionManagerCommon {
                 switch (type) {
 
                     case RowActionBase.ACTION_INSERT :
-                        session.sessionData.adjustLobUsageCount(
-                            action.table,
-                            row.getData(),
-                            1);
+                        session.sessionData.adjustLobUsageCount(action.table,
+                                row.getData(), 1);
                         break;
 
                     case RowActionBase.ACTION_DELETE :
-                        session.sessionData.adjustLobUsageCount(
-                            action.table,
-                            row.getData(),
-                            -1);
+                        session.sessionData.adjustLobUsageCount(action.table,
+                                row.getData(), -1);
                         break;
 
                     case RowActionBase.ACTION_INSERT_DELETE :
@@ -239,44 +235,37 @@ class TransactionManagerCommon {
 
         if (newLimit > limit) {
             for (int i = limit; i < newLimit; i++) {
-                RowAction lobAction = session.rowActionList.get(i);
+                RowAction lobAction = (RowAction) session.rowActionList.get(i);
 
                 lobAction.commit(session);
             }
         }
-
-        session.sessionData.newLobFloor = SessionData.noLobFloor;
     }
 
-    final Statement updateCurrentStatement(Session session, Statement cs) {
+    Statement updateCurrentStatement(Session session, Statement cs) {
 
         if (cs.getCompileTimestamp()
                 < database.schemaManager.getSchemaChangeTimestamp()) {
             cs = session.statementManager.getStatement(cs);
-
-            if (cs == null) {
-                session.sessionContext.invalidStatement = true;
-            } else {
-                session.sessionContext.currentStatement = cs;
-            }
+            session.sessionContext.currentStatement = cs;
         }
 
         return cs;
     }
 
-    final void persistCommit(Session session) {
+    void persistCommit(Session session) {
 
         int     limit       = session.rowActionList.size();
         boolean writeCommit = false;
 
         for (int i = 0; i < limit; i++) {
-            RowAction action = session.rowActionList.get(i);
+            RowAction action = (RowAction) session.rowActionList.get(i);
 
             if (action.type == RowActionBase.ACTION_NONE) {
                 continue;
             }
 
-            int type = action.getCommitTypeOn(session.actionSCN);
+            int type = action.getCommitTypeOn(session.actionTimestamp);
             Row row  = action.memoryRow;
 
             if (row == null) {
@@ -312,11 +301,7 @@ class TransactionManagerCommon {
         }
     }
 
-    final void finaliseRows(
-            Session session,
-            Object[] list,
-            int start,
-            int limit) {
+    void finaliseRows(Session session, Object[] list, int start, int limit) {
 
         for (int i = start; i < limit; i++) {
             RowAction action = (RowAction) list[i];
@@ -328,14 +313,11 @@ class TransactionManagerCommon {
     /**
      * merge a transaction committed at a given timestamp.
      */
-    final void mergeTransaction(
-            RowAction[] list,
-            int start,
-            int limit,
-            long timestamp) {
+    void mergeTransaction(Object[] list, int start, int limit,
+                          long timestamp) {
 
         for (int i = start; i < limit; i++) {
-            RowAction rowact = list[i];
+            RowAction rowact = (RowAction) list[i];
 
             rowact.mergeToTimestamp(timestamp);
         }
@@ -344,18 +326,16 @@ class TransactionManagerCommon {
     /**
      * gets the next timestamp for an action
      */
-    public final long getNextSystemChangeNumber() {
-        return systemChangeNumber.incrementAndGet();
+    public long getNextGlobalChangeTimestamp() {
+        return globalChangeTimestamp.incrementAndGet();
     }
 
-    static boolean checkDeadlock(
-            Session session,
-            OrderedHashSet<Session> newWaits) {
+    boolean checkDeadlock(Session session, OrderedHashSet newWaits) {
 
         int size = session.waitingSessions.size();
 
         for (int i = 0; i < size; i++) {
-            Session current = session.waitingSessions.get(i);
+            Session current = (Session) session.waitingSessions.get(i);
 
             if (newWaits.contains(current)) {
                 return false;
@@ -369,12 +349,12 @@ class TransactionManagerCommon {
         return true;
     }
 
-    final boolean checkDeadlock(Session session, Session other) {
+    boolean checkDeadlock(Session session, Session other) {
 
         int size = session.waitingSessions.size();
 
         for (int i = 0; i < size; i++) {
-            Session current = session.waitingSessions.get(i);
+            Session current = (Session) session.waitingSessions.get(i);
 
             if (current == other) {
                 return false;
@@ -388,13 +368,13 @@ class TransactionManagerCommon {
         return true;
     }
 
-    final void getTransactionSessions(Session session) {
+    void getTransactionSessions(Session session) {
 
-        OrderedHashSet<Session> set = session.tempSet;
-        Session[] sessions          = database.sessionManager.getAllSessions();
+        OrderedHashSet set      = session.tempSet;
+        Session[]      sessions = database.sessionManager.getAllSessions();
 
         for (int i = 0; i < sessions.length; i++) {
-            long timestamp = sessions[i].transactionSCN;
+            long timestamp = sessions[i].transactionTimestamp;
 
             if (session != sessions[i] && sessions[i].isTransaction) {
                 set.add(sessions[i]);
@@ -402,14 +382,14 @@ class TransactionManagerCommon {
         }
     }
 
-    final void getTransactionAndPreSessions(Session session) {
+    void getTransactionAndPreSessions(Session session) {
 
-        OrderedHashSet<Session> set = session.tempSet;
-        Session[] sessions          = database.sessionManager.getAllSessions();
-
-        set.clear();
+        OrderedHashSet set      = session.tempSet;
+        Session[]      sessions = database.sessionManager.getAllSessions();
 
         for (int i = 0; i < sessions.length; i++) {
+            long timestamp = sessions[i].transactionTimestamp;
+
             if (session == sessions[i]) {
                 continue;
             }
@@ -422,14 +402,17 @@ class TransactionManagerCommon {
         }
     }
 
-    final void endActionTPL(Session session) {
+    void endActionTPL(Session session) {
 
         if (session.isolationLevel == SessionInterface.TX_REPEATABLE_READ
-                || session.isolationLevel == SessionInterface.TX_SERIALIZABLE) {
+                || session.isolationLevel
+                   == SessionInterface.TX_SERIALIZABLE) {
             return;
         }
 
-        if (session.sessionContext.invalidStatement) {
+        if (session.sessionContext.currentStatement == null) {
+
+            // after java function / proc with db access
             return;
         }
 
@@ -463,6 +446,7 @@ class TransactionManagerCommon {
             for (int i = 0; i < readLocks.length; i++) {
                 if (tableWriteLocks.get(readLocks[i]) != session) {
                     canUnlock = true;
+
                     break;
                 }
             }
@@ -474,24 +458,27 @@ class TransactionManagerCommon {
             canUnlock = false;
 
             for (int i = 0; i < waitingCount; i++) {
-                Session current = session.waitingSessions.get(i);
+                Session current = (Session) session.waitingSessions.get(i);
 
                 if (current.abortTransaction) {
                     canUnlock = true;
+
                     break;
                 }
 
                 Statement currentStatement =
                     current.sessionContext.currentStatement;
 
-                if (current.sessionContext.invalidStatement) {
+                if (currentStatement == null) {
                     canUnlock = true;
+
                     break;
                 }
 
-                if (ArrayUtil.containsAny(readLocks,
-                                          currentStatement.getTableNamesForWrite())) {
+                if (ArrayUtil.containsAny(
+                        readLocks, currentStatement.getTableNamesForWrite())) {
                     canUnlock = true;
+
                     break;
                 }
             }
@@ -521,27 +508,25 @@ class TransactionManagerCommon {
         resetLatches(session);
     }
 
-    final void resetLocks(Session session) {
+    void resetLocks(Session session) {
 
         final int waitingCount = session.waitingSessions.size();
 
         for (int i = 0; i < waitingCount; i++) {
-            Session current = session.waitingSessions.get(i);
+            Session current = (Session) session.waitingSessions.get(i);
 
             current.tempUnlocked = false;
 
             long count = current.latch.getCount();
 
             if (count == 1) {
-                boolean canProceed = setWaitedSessionsTPL(
-                    current,
+                boolean canProceed = setWaitedSessionsTPL(current,
                     current.sessionContext.currentStatement);
 
                 if (canProceed) {
                     if (current.tempSet.isEmpty()) {
-                        lockTablesTPL(
-                            current,
-                            current.sessionContext.currentStatement);
+                        lockTablesTPL(current,
+                                      current.sessionContext.currentStatement);
 
                         current.tempUnlocked = true;
                     }
@@ -550,7 +535,7 @@ class TransactionManagerCommon {
         }
 
         for (int i = 0; i < waitingCount; i++) {
-            Session current = session.waitingSessions.get(i);
+            Session current = (Session) session.waitingSessions.get(i);
 
             if (current.tempUnlocked) {
 
@@ -561,35 +546,34 @@ class TransactionManagerCommon {
             } else {
 
                 // this can introduce additional waits for the sessions
-                setWaitedSessionsTPL(
-                    current,
-                    current.sessionContext.currentStatement);
+                setWaitedSessionsTPL(current,
+                                     current.sessionContext.currentStatement);
             }
         }
     }
 
-    final void resetLatches(Session session) {
+    void resetLatches(Session session) {
 
         final int waitingCount = session.waitingSessions.size();
 
         for (int i = 0; i < waitingCount; i++) {
-            Session current     = session.waitingSessions.get(i);
+            Session current     = (Session) session.waitingSessions.get(i);
             boolean monitorCode = false;
 
             if (monitorCode) {
                 if (!current.abortTransaction && current.tempSet.isEmpty()) {
 
                     // test code valid only for top level statements
-                    boolean hasLocks = hasLocks(
-                        current,
-                        current.sessionContext.currentStatement);
+                    boolean hasLocks =
+                        hasLocks(current,
+                                 current.sessionContext.currentStatement);
 
                     if (!hasLocks) {
                         System.out.println("tx graph");
 
-                        hasLocks = hasLocks(
-                            current,
-                            current.sessionContext.currentStatement);
+                        hasLocks =
+                            hasLocks(current,
+                                     current.sessionContext.currentStatement);
                     }
                 }
             }
@@ -601,7 +585,7 @@ class TransactionManagerCommon {
         session.latch.setCount(0);
     }
 
-    final void resetLatchesMidTransaction(Session session) {
+    void resetLatchesMidTransaction(Session session) {
 
         session.tempSet.clear();
         session.tempSet.addAll(session.waitingSessions);
@@ -610,23 +594,23 @@ class TransactionManagerCommon {
         final int waitingCount = session.tempSet.size();
 
         for (int i = 0; i < waitingCount; i++) {
-            Session current     = session.tempSet.get(i);
+            Session current     = (Session) session.tempSet.get(i);
             boolean monitorCode = false;
 
             if (monitorCode) {
                 if (!current.abortTransaction && current.tempSet.isEmpty()) {
 
                     // test code valid for top level statements
-                    boolean hasLocks = hasLocks(
-                        current,
-                        current.sessionContext.currentStatement);
+                    boolean hasLocks =
+                        hasLocks(current,
+                                 current.sessionContext.currentStatement);
 
                     if (!hasLocks) {
                         System.out.println("tx graph");
 
-                        hasLocks = hasLocks(
-                            current,
-                            current.sessionContext.currentStatement);
+                        hasLocks =
+                            hasLocks(current,
+                                     current.sessionContext.currentStatement);
                     }
                 }
             }
@@ -637,7 +621,7 @@ class TransactionManagerCommon {
         session.tempSet.clear();
     }
 
-    final boolean setWaitedSessionsTPL(Session session, Statement cs) {
+    boolean setWaitedSessionsTPL(Session session, Statement cs) {
 
         session.tempSet.clear();
 
@@ -662,16 +646,16 @@ class TransactionManagerCommon {
                 continue;
             }
 
-            Session holder = tableWriteLocks.get(name);
+            Session holder = (Session) tableWriteLocks.get(name);
 
             if (holder != null && holder != session) {
                 session.tempSet.add(holder);
             }
 
-            Iterator<Session> it = tableReadLocks.getValuesIterator(name);
+            Iterator it = tableReadLocks.getValuesIterator(name);
 
             while (it.hasNext()) {
-                holder = it.next();
+                holder = (Session) it.next();
 
                 if (holder != session) {
                     session.tempSet.add(holder);
@@ -694,7 +678,7 @@ class TransactionManagerCommon {
                 continue;
             }
 
-            Session holder = tableWriteLocks.get(name);
+            Session holder = (Session) tableWriteLocks.get(name);
 
             if (holder != null && holder != session) {
                 session.tempSet.add(holder);
@@ -716,17 +700,14 @@ class TransactionManagerCommon {
         return false;
     }
 
-    final void setWaitingSessionTPL(Session session) {
+    void setWaitingSessionTPL(Session session) {
 
-        int count      = session.tempSet.size();
-        int latchCount = session.latch.getCount();
+        int count = session.tempSet.size();
 
-        if (latchCount > count + 1) {
-            System.out.println("latch count " + latchCount);
-        }
+        assert session.latch.getCount() <= count + 1;
 
         for (int i = 0; i < count; i++) {
-            Session current = session.tempSet.get(i);
+            Session current = (Session) session.tempSet.get(i);
 
             current.waitingSessions.add(session);
         }
@@ -735,7 +716,7 @@ class TransactionManagerCommon {
         session.latch.setCount(count);
     }
 
-    final void lockTablesTPL(Session session, Statement cs) {
+    void lockTablesTPL(Session session, Statement cs) {
 
         if (cs == null || session.abortTransaction) {
             return;
@@ -772,12 +753,12 @@ class TransactionManagerCommon {
         }
     }
 
-    final void unlockTablesTPL(Session session) {
+    void unlockTablesTPL(Session session) {
 
-        Iterator<Session> it = tableWriteLocks.values().iterator();
+        Iterator it = tableWriteLocks.values().iterator();
 
         while (it.hasNext()) {
-            Session s = it.next();
+            Session s = (Session) it.next();
 
             if (s == session) {
                 it.remove();
@@ -787,7 +768,7 @@ class TransactionManagerCommon {
         it = tableReadLocks.values().iterator();
 
         while (it.hasNext()) {
-            Session s = it.next();
+            Session s = (Session) it.next();
 
             if (s == session) {
                 it.remove();
@@ -795,13 +776,14 @@ class TransactionManagerCommon {
         }
     }
 
-    final void unlockReadTablesTPL(Session session, HsqlName[] locks) {
+    void unlockReadTablesTPL(Session session, HsqlName[] locks) {
+
         for (int i = 0; i < locks.length; i++) {
             tableReadLocks.remove(locks[i], session);
         }
     }
 
-    final boolean hasLocks(Session session, Statement cs) {
+    boolean hasLocks(Session session, Statement cs) {
 
         if (cs == null) {
             return true;
@@ -816,16 +798,16 @@ class TransactionManagerCommon {
                 continue;
             }
 
-            Session holder = tableWriteLocks.get(name);
+            Session holder = (Session) tableWriteLocks.get(name);
 
             if (holder != null && holder != session) {
                 return false;
             }
 
-            Iterator<Session> it = tableReadLocks.getValuesIterator(name);
+            Iterator it = tableReadLocks.getValuesIterator(name);
 
             while (it.hasNext()) {
-                holder = it.next();
+                holder = (Session) it.next();
 
                 if (holder != session) {
                     return false;
@@ -842,7 +824,7 @@ class TransactionManagerCommon {
                 continue;
             }
 
-            Session holder = tableWriteLocks.get(name);
+            Session holder = (Session) tableWriteLocks.get(name);
 
             if (holder != null && holder != session) {
                 return false;
@@ -852,19 +834,19 @@ class TransactionManagerCommon {
         return true;
     }
 
-    final long getFirstLiveTransactionTimestamp() {
+    long getFirstLiveTransactionTimestamp() {
 
-        if (liveTransactionSCNs.isEmpty()) {
+        if (liveTransactionTimestamps.isEmpty()) {
             return Long.MAX_VALUE;
         }
 
-        return liveTransactionSCNs.get(0);
+        return liveTransactionTimestamps.get(0);
     }
 
     /**
      * Return an array of all row actions sorted by System Change No.
      */
-    final RowAction[] getRowActionList() {
+    RowAction[] getRowActionList() {
 
         writeLock.lock();
 
@@ -894,11 +876,12 @@ class TransactionManagerCommon {
                     int tSize = sessions[i].getTransactionSize();
 
                     if (tIndex[i] < tSize) {
-                        RowAction current = sessions[i].rowActionList.get(
-                            tIndex[i]);
+                        RowAction current =
+                            (RowAction) sessions[i].rowActionList.get(
+                                tIndex[i]);
 
-                        if (current.actionSCN < minChangeNo) {
-                            minChangeNo  = current.actionSCN;
+                        if (current.actionTimestamp < minChangeNo) {
+                            minChangeNo  = current.actionTimestamp;
                             sessionIndex = i;
                         }
 
@@ -910,18 +893,19 @@ class TransactionManagerCommon {
                     break;
                 }
 
-                HsqlArrayList<RowAction> currentList =
+                HsqlArrayList currentList =
                     sessions[sessionIndex].rowActionList;
 
-                while (tIndex[sessionIndex] < currentList.size()) {
-                    RowAction current = currentList.get(tIndex[sessionIndex]);
+                for (; tIndex[sessionIndex] < currentList.size(); ) {
+                    RowAction current =
+                        (RowAction) currentList.get(tIndex[sessionIndex]);
 
-                    // if the next change not is in this session, continue adding
-                    if (current.actionSCN == minChangeNo + 1) {
+                    // if the next change no is in this session, continue adding
+                    if (current.actionTimestamp == minChangeNo + 1) {
                         minChangeNo++;
                     }
 
-                    if (current.actionSCN == minChangeNo) {
+                    if (current.actionTimestamp == minChangeNo) {
                         rowActions[rowActionCount++] = current;
 
                         tIndex[sessionIndex]++;
@@ -937,11 +921,8 @@ class TransactionManagerCommon {
         }
     }
 
-    void resetSession(
-            Session session,
-            Session targetSession,
-            long statementTimestamp,
-            int mode) {
+    void resetSession(Session session, Session targetSession,
+                      long statementTimestamp, int mode) {
 
         writeLock.lock();
 
@@ -956,7 +937,6 @@ class TransactionManagerCommon {
                     if (!targetSession.isInMidTransaction()) {
                         targetSession.sessionData.closeAllNavigators();
                     }
-
                     break;
 
                 case TransactionManager.resetSessionTables :
@@ -965,9 +945,9 @@ class TransactionManagerCommon {
                     }
 
                     if (!targetSession.isInMidTransaction()) {
-                        targetSession.sessionData.persistentStoreCollection.clearAllTables();
+                        targetSession.sessionData.persistentStoreCollection
+                            .clearAllTables();
                     }
-
                     break;
 
                 case TransactionManager.resetSessionResetAll :
@@ -978,10 +958,13 @@ class TransactionManagerCommon {
                     if (!targetSession.isInMidTransaction()) {
                         targetSession.resetSession();
                     }
-
                     break;
 
                 case TransactionManager.resetSessionRollback :
+                    if (session == targetSession) {
+                        break;
+                    }
+
                     if (targetSession.isInMidTransaction()) {
                         prepareReset(targetSession);
 
@@ -993,11 +976,12 @@ class TransactionManagerCommon {
                             targetSession.rollbackNoCheck(true);
                         }
                     }
-
                     break;
 
                 case TransactionManager.resetSessionStatement :
-                    if (statementTimestamp != targetSession.statementStartSCN) {
+
+                    if (statementTimestamp
+                            != targetSession.statementStartTimestamp) {
                         break;
                     }
 
@@ -1010,7 +994,6 @@ class TransactionManagerCommon {
                             targetSession.latch.setCount(0);
                         }
                     }
-
                     break;
 
                 case TransactionManager.resetSessionClose :
@@ -1022,7 +1005,6 @@ class TransactionManagerCommon {
                         targetSession.rollbackNoCheck(true);
                         targetSession.close();
                     }
-
                     break;
             }
         } finally {
@@ -1030,12 +1012,12 @@ class TransactionManagerCommon {
         }
     }
 
-    final void prepareReset(Session session) {
+    void prepareReset(Session session) {
 
-        OrderedHashSet<Session> waitedSessions = session.waitedSessions;
+        OrderedHashSet waitedSessions = session.waitedSessions;
 
         for (int i = 0; i < waitedSessions.size(); i++) {
-            Session current = waitedSessions.get(i);
+            Session current = (Session) waitedSessions.get(i);
 
             current.waitingSessions.remove(session);
         }

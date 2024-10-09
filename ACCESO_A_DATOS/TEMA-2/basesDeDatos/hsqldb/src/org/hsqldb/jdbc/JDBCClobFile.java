@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,17 +47,14 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.IllegalCharsetNameException;
-
 import java.sql.Clob;
 import java.sql.SQLException;
-
 import java.util.Scanner;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -77,7 +74,7 @@ import org.hsqldb.lib.List;
  *
  * <!-- start Release-specific documentation -->
  * <div class="ReleaseSpecificDocumentation">
- * <p class="rshead">HSQLDB-Specific Information:</p>
+ * <h1>HSQLDB-Specific Information:</h1> <p>
  *
  * Starting with 2.1, in addition to HSQLDB driver support for both client-side
  * in-memory and remote SQL CLOB data implementations, this class is provided
@@ -94,23 +91,23 @@ import org.hsqldb.lib.List;
  * </div>
  * <!-- end release-specific documentation -->
  * @author Campbell Burnet (campbell-burnet@users dot sourceforge.net)
- * @version 2.7.3
+ * @version 2.5.0
  * @since HSQLDB 2.1
  */
 public class JDBCClobFile implements java.sql.Clob {
 
-    private static final FrameworkLogger LOG = FrameworkLogger.getLog(
-        JDBCClobFile.class);
+    private static final FrameworkLogger LOG =
+        FrameworkLogger.getLog(JDBCClobFile.class);
 
     /**
      * Retrieves the number of characters
-     * in the {@code CLOB} value
-     * designated by this {@code Clob} object.
+     * in the <code>CLOB</code> value
+     * designated by this <code>Clob</code> object.
      *
-     * @return length of the {@code CLOB} in characters
-     * @throws SQLException if there is an error accessing the
-     *            length of the {@code CLOB} value
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @return length of the <code>CLOB</code> in characters
+     * @exception SQLException if there is an error accessing the
+     *            length of the <code>CLOB</code> value
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since JDK 1.2
      */
@@ -139,35 +136,32 @@ public class JDBCClobFile implements java.sql.Clob {
 
     /**
      * Retrieves a copy of the specified substring
-     * in the {@code CLOB} value
-     * designated by this {@code Clob} object.
+     * in the <code>CLOB</code> value
+     * designated by this <code>Clob</code> object.
      * The substring begins at position
-     * {@code pos} and has up to {@code length} consecutive
+     * <code>pos</code> and has up to <code>length</code> consecutive
      * characters.
      *
      * @param pos the first character of the substring to be extracted.
      *            The first character is at position 1.
      * @param length the number of consecutive characters to be copied;
      * the value for length must be 0 or greater
-     * @return a {@code String} that is the specified substring in
-     *         the {@code CLOB} value designated by this {@code Clob} object
-     * @throws SQLException if there is an error accessing the
-     *            {@code CLOB} value; if pos is less than 1 or length is
+     * @return a <code>String</code> that is the specified substring in
+     *         the <code>CLOB</code> value designated by this <code>Clob</code> object
+     * @exception SQLException if there is an error accessing the
+     *            <code>CLOB</code> value; if pos is less than 1 or length is
      * less than 0
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since JDK 1.2
      */
-    public String getSubString(
-            final long pos,
-            final int length)
-            throws SQLException {
+    public String getSubString(final long pos,
+                               final int length) throws SQLException {
 
         Reader          reader = null;
         CharArrayWriter writer;
-        final int initialCapacity = Math.min(
-            InOutUtil.DEFAULT_COPY_BUFFER_SIZE,
-            length);
+        final int initialCapacity =
+            Math.min(InOutUtil.DEFAULT_COPY_BUFFER_SIZE, length);
 
         try {
             reader = getCharacterStream(pos, length);
@@ -184,15 +178,15 @@ public class JDBCClobFile implements java.sql.Clob {
     }
 
     /**
-     * Retrieves the {@code CLOB} value designated by this {@code Clob}
-     * object as a {@code java.io.Reader} object (or as a stream of
+     * Retrieves the <code>CLOB</code> value designated by this <code>Clob</code>
+     * object as a <code>java.io.Reader</code> object (or as a stream of
      * characters).
      *
-     * @return a {@code java.io.Reader} object containing the
-     *         {@code CLOB} data
-     * @throws SQLException if there is an error accessing the
-     *            {@code CLOB} value
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @return a <code>java.io.Reader</code> object containing the
+     *         <code>CLOB</code> data
+     * @exception SQLException if there is an error accessing the
+     *            <code>CLOB</code> value
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @see #setCharacterStream
      * @since JDK 1.2
@@ -202,31 +196,28 @@ public class JDBCClobFile implements java.sql.Clob {
     }
 
     /**
-     * Retrieves the {@code CLOB} value designated by this {@code Clob}
+     * Retrieves the <code>CLOB</code> value designated by this <code>Clob</code>
      * object as an ASCII stream.
      *
-     * @return a {@code java.io.InputStream} object containing the
-     *         {@code CLOB} data
-     * @throws SQLException if there is an error accessing the
-     *            {@code CLOB} value
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @return a <code>java.io.InputStream</code> object containing the
+     *         <code>CLOB</code> data
+     * @exception SQLException if there is an error accessing the
+     *            <code>CLOB</code> value
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @see #setAsciiStream
      * @since JDK 1.2
      */
     public InputStream getAsciiStream() throws SQLException {
 
-        InputStream        stream;
-        final List<Object> streams = m_streams;
+        InputStream stream;
 
         try {
-            stream = new JDBCBlobFile.InputStreamAdapter(
-                m_file,
-                0,
-                Long.MAX_VALUE) {
+            stream = new JDBCBlobFile.InputStreamAdapter(m_file, 0,
+                    Long.MAX_VALUE) {
 
-                private boolean     closed;
-                private InputStream self = this;
+                private boolean closed;
+
                 public synchronized void close() throws IOException {
 
                     if (closed) {
@@ -238,7 +229,7 @@ public class JDBCClobFile implements java.sql.Clob {
                     try {
                         super.close();
                     } finally {
-                        streams.remove(self);
+                        m_streams.remove(this);
                     }
                 }
             };
@@ -254,31 +245,29 @@ public class JDBCClobFile implements java.sql.Clob {
             throw JDBCUtil.sqlException(ex);
         }
 
-        streams.add(stream);
+        m_streams.add(stream);
 
         return stream;
     }
 
     /**
      * Retrieves the character position at which the specified char[]
-     * {@code pattern} appears in the {@code CLOB} value
-     * represented by this {@code Clob} object.  The search
-     * begins at position {@code start}.
+     * <code>pattern</code> appears in the <code>CLOB</code> value
+     * represented by this <code>Clob</code> object.  The search
+     * begins at position <code>start</code>.
      *
      * @param pattern the substring for which to search
      * @param start the position at which to begin searching; the first position
      *              is 1
      * @return the position at which the substring appears or -1 if it is not
      *         present; the first position is 1
-     * @throws SQLException if there is an error accessing the
-     *            {@code CLOB} value or if pos is less than 1
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception SQLException if there is an error accessing the
+     *            <code>CLOB</code> value or if pos is less than 1
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      */
-    public long position(
-            final char[] pattern,
-            final long start)
-            throws SQLException {
+    public long position(final char[] pattern,
+                         final long start) throws SQLException {
 
         if (start < 1) {
             throw JDBCUtil.outOfRangeArgument("start: " + start);
@@ -288,8 +277,7 @@ public class JDBCClobFile implements java.sql.Clob {
 
         long length = this.length();
 
-        if (start > length
-                || pattern.length > length
+        if (start > length || pattern.length > length
                 || start > length - pattern.length) {
             return -1;
         }
@@ -299,22 +287,20 @@ public class JDBCClobFile implements java.sql.Clob {
 
     /**
      * Retrieves the character position at which the specified
-     * {@code pattern} appears in the SQL {@code CLOB} value
-     * represented by this {@code Clob} object. The search begins at
-     * position {@code start}.
+     * <code>pattern</code> appears in the SQL <code>CLOB</code> value
+     * represented by this <code>Clob</code> object. The search begins at
+     * position <code>start</code>.
      *
      * @param pattern for which to search
      * @param start   position at which to begin searching; the first
      *                position is 1
      * @return the position at which the substring appears or -1 if it is not
      *         present; the first position is 1
-     * @throws SQLException if there is an error accessing the
-     * {@code CLOB} value or if start is less than 1
+     * @exception SQLException if there is an error accessing the
+     * <code>CLOB</code> value or if start is less than 1
      */
-    private long position0(
-            final String pattern,
-            final long start)
-            throws SQLException {
+    private long position0(final String pattern,
+                           final long start) throws SQLException {
 
         Pattern literal;
 
@@ -353,9 +339,9 @@ public class JDBCClobFile implements java.sql.Clob {
 
         try {
             if (scanner.hasNext()) {
-                final boolean found = (null != scanner.findWithinHorizon(
-                    literal,
-                    0));
+                final boolean found = (null
+                                       != scanner.findWithinHorizon(literal,
+                                           0));
 
                 if (found) {
                     MatchResult match = scanner.match();
@@ -373,18 +359,18 @@ public class JDBCClobFile implements java.sql.Clob {
 
     /**
      * Retrieves the character position at which the specified substring
-     * {@code searchstr} appears in the SQL {@code CLOB} value
-     * represented by this {@code Clob} object.  The search
-     * begins at position {@code start}.
+     * <code>searchstr</code> appears in the SQL <code>CLOB</code> value
+     * represented by this <code>Clob</code> object.  The search
+     * begins at position <code>start</code>.
      *
      * @param searchstr the substring for which to search
      * @param start the position at which to begin searching; the first position
      *              is 1
      * @return the position at which the substring appears or -1 if it is not
      *         present; the first position is 1
-     * @throws  SQLException if there is an error accessing the
-     *            {@code CLOB} value or if pos is less than 1
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception  SQLException if there is an error accessing the
+     *            <code>CLOB</code> value or if pos is less than 1
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since JDK 1.2
      */
@@ -399,8 +385,7 @@ public class JDBCClobFile implements java.sql.Clob {
         final long length          = this.length();
         final int  searchstrLength = searchstr.length();
 
-        if (start > length
-                || searchstrLength > length
+        if (start > length || searchstrLength > length
                 || start > length - searchstrLength) {
             return -1;
         }
@@ -410,43 +395,39 @@ public class JDBCClobFile implements java.sql.Clob {
 
     /**
      * Retrieves the character position at which the specified
-     * {@code Clob} object {@code searchstr} appears in this
-     * {@code Clob} object.  The search begins at position
-     * {@code start}.
+     * <code>Clob</code> object <code>searchstr</code> appears in this
+     * <code>Clob</code> object.  The search begins at position
+     * <code>start</code>.
      *
-     * @param pattern the {@code Clob} object for which to search
+     * @param pattern the <code>Clob</code> object for which to search
      * @param start the position at which to begin searching; the first
      *              position is 1
-     * @return the position at which the {@code Clob} object appears
+     * @return the position at which the <code>Clob</code> object appears
      *              or -1 if it is not present; the first position is 1
-     * @throws SQLException if there is an error accessing the
-     *            {@code CLOB} value or if start is less than 1
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception SQLException if there is an error accessing the
+     *            <code>CLOB</code> value or if start is less than 1
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since JDK 1.2
      */
-    public long position(
-            final Clob pattern,
-            final long start)
-            throws SQLException {
+    public long position(final Clob pattern,
+                         final long start) throws SQLException {
 
         long patternLength;
 
         if (start < 1) {
             throw JDBCUtil.outOfRangeArgument("start: " + start);
-        } else if ((patternLength = pattern == null
-                                    ? 0
-                                    : pattern.length()) == 0) {
+        } else if ((patternLength = pattern == null ? 0
+                                                    : pattern.length()) == 0) {
             return -1L;
         } else if (patternLength > Integer.MAX_VALUE) {
-            throw JDBCUtil.outOfRangeArgument(
-                "pattern.length(): " + patternLength);
+            throw JDBCUtil.outOfRangeArgument("pattern.length(): "
+                                              + patternLength);
         }
 
         long length = this.length();
 
-        if (start > length
-                || patternLength > length
+        if (start > length || patternLength > length
                 || start > length - patternLength) {
             return -1;
         }
@@ -480,80 +461,71 @@ public class JDBCClobFile implements java.sql.Clob {
     //---------------------------- jdbc 3.0 -----------------------------------
 
     /**
-     * Writes the given Java {@code String} to the {@code CLOB}
-     * value that this {@code Clob} object designates at the position
-     * {@code pos}. The string will overwrite the existing characters
-     * in the {@code Clob} object starting at the position
-     * {@code pos}.  If the end of the {@code Clob} value is reached
-     * while writing the given string, then the length of the {@code Clob}
+     * Writes the given Java <code>String</code> to the <code>CLOB</code>
+     * value that this <code>Clob</code> object designates at the position
+     * <code>pos</code>. The string will overwrite the existing characters
+     * in the <code>Clob</code> object starting at the position
+     * <code>pos</code>.  If the end of the <code>Clob</code> value is reached
+     * while writing the given string, then the length of the <code>Clob</code>
      * value will be increased to accommodate the extra characters.
      * <p>
-     * <b>Note:</b> If the value specified for {@code pos}
-     * is greater than the length+1 of the {@code CLOB} value then the
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the
      * behavior is undefined. Some JDBC drivers may throw a
-     * {@code SQLException} while other drivers may support this
+     * <code>SQLException</code> while other drivers may support this
      * operation.
      *
-     * @param pos the position at which to start writing to the {@code CLOB}
-     *         value that this {@code Clob} object represents;
+     * @param pos the position at which to start writing to the <code>CLOB</code>
+     *         value that this <code>Clob</code> object represents;
      * The first position is 1
-     * @param str the string to be written to the {@code CLOB}
-     *        value that this {@code Clob} designates
+     * @param str the string to be written to the <code>CLOB</code>
+     *        value that this <code>Clob</code> designates
      * @return the number of characters written
-     * @throws SQLException if there is an error accessing the
-     * {@code CLOB} value or if pos is less than 1
+     * @exception SQLException if there is an error accessing the
+     * <code>CLOB</code> value or if pos is less than 1
      *
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since JDK 1.4
      */
-    public int setString(final long pos, final String str) throws SQLException {
-
-        return setString(
-            pos,
-            str,
-            0,
-            str == null
-            ? 0
-            : str.length());
+    public int setString(final long pos,
+                         final String str) throws SQLException {
+        return setString(pos, str, 0, str == null ? 0
+                                                  : str.length());
     }
 
     /**
-     * Writes {@code len} characters of {@code str}, starting
-     * at character {@code offset}, to the {@code CLOB} value
-     * that this {@code Clob} represents.  The string will overwrite the existing characters
-     * in the {@code Clob} object starting at the position
-     * {@code pos}. If the end of the {@code Clob} value is reached
-     * while writing the given string, then the length of the {@code Clob}
+     * Writes <code>len</code> characters of <code>str</code>, starting
+     * at character <code>offset</code>, to the <code>CLOB</code> value
+     * that this <code>Clob</code> represents.  The string will overwrite the existing characters
+     * in the <code>Clob</code> object starting at the position
+     * <code>pos</code>. If the end of the <code>Clob</code> value is reached
+     * while writing the given string, then the length of the <code>Clob</code>
      * value will be increased to accommodate the extra characters.
      * <p>
-     * <b>Note:</b> If the value specified for {@code pos}
-     * is greater than the length+1 of the {@code CLOB} value then the
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the
      * behavior is undefined. Some JDBC drivers may throw a
-     * {@code SQLException} while other drivers may support this
+     * <code>SQLException</code> while other drivers may support this
      * operation.
      *
      * @param pos    the position at which to start writing to this
-     *               {@code CLOB} object; The first position is 1
-     * @param str the string to be written to the {@code CLOB}
-     *        value that this {@code Clob} object represents
-     * @param offset the offset into {@code str} to start reading
+     *               <code>CLOB</code> object; The first position is 1
+     * @param str the string to be written to the <code>CLOB</code>
+     *        value that this <code>Clob</code> object represents
+     * @param offset the offset into <code>str</code> to start reading
      *        the characters to be written
      * @param len    the number of characters to be written
      * @return the number of characters written
-     * @throws SQLException if there is an error accessing the
-     * {@code CLOB} value or if pos is less than 1
+     * @exception SQLException if there is an error accessing the
+     * <code>CLOB</code> value or if pos is less than 1
      *
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since JDK 1.4
      */
-    public int setString(
-            final long pos,
-            final String str,
-            final int offset,
-            final int len)
-            throws SQLException {
+    public int setString(final long pos, final String str, final int offset,
+                         final int len) throws SQLException {
 
         checkClosed();
 
@@ -606,10 +578,8 @@ public class JDBCClobFile implements java.sql.Clob {
      * @param endPos exclusive
      * @throws SQLException exception
      */
-    private void fillSpace(
-            final long startPos,
-            long endPos)
-            throws SQLException {
+    private void fillSpace(final long startPos,
+                           long endPos) throws SQLException {
 
         Writer writer = null;
 
@@ -630,26 +600,26 @@ public class JDBCClobFile implements java.sql.Clob {
 
     /**
      * Retrieves a stream to be used to write Ascii characters to the
-     * {@code CLOB} value that this {@code Clob} object represents,
-     * starting at position {@code pos}. Characters written to the stream
+     * <code>CLOB</code> value that this <code>Clob</code> object represents,
+     * starting at position <code>pos</code>. Characters written to the stream
      * will overwrite the existing characters
-     * in the {@code Clob} object starting at the position
-     * {@code pos}.  If the end of the {@code Clob} value is reached
-     * while writing characters to the stream, then the length of the {@code Clob}
+     * in the <code>Clob</code> object starting at the position
+     * <code>pos</code>.  If the end of the <code>Clob</code> value is reached
+     * while writing characters to the stream, then the length of the <code>Clob</code>
      * value will be increased to accommodate the extra characters.
      * <p>
-     * <b>Note:</b> If the value specified for {@code pos}
-     * is greater than the length+1 of the {@code CLOB} value then the
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the
      * behavior is undefined. Some JDBC drivers may throw a
-     * {@code SQLException} while other drivers may support this
+     * <code>SQLException</code> while other drivers may support this
      * operation.
      *
      * @param pos the position at which to start writing to this
-     *            {@code CLOB} object; The first position is 1
+     *            <code>CLOB</code> object; The first position is 1
      * @return the stream to which ASCII encoded characters can be written
-     * @throws SQLException if there is an error accessing the
-     * {@code CLOB} value or if pos is less than 1
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception SQLException if there is an error accessing the
+     * <code>CLOB</code> value or if pos is less than 1
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @see #getAsciiStream
      *
@@ -703,35 +673,35 @@ public class JDBCClobFile implements java.sql.Clob {
 
     /**
      * Retrieves a stream to be used to write a stream of Unicode characters
-     * to the {@code CLOB} value that this {@code Clob} object
-     * represents, at position {@code pos}. Characters written to the stream
+     * to the <code>CLOB</code> value that this <code>Clob</code> object
+     * represents, at position <code>pos</code>. Characters written to the stream
      * will overwrite the existing characters
-     * in the {@code Clob} object starting at the position
-     * {@code pos}.  If the end of the {@code Clob} value is reached
-     * while writing characters to the stream, then the length of the {@code Clob}
+     * in the <code>Clob</code> object starting at the position
+     * <code>pos</code>.  If the end of the <code>Clob</code> value is reached
+     * while writing characters to the stream, then the length of the <code>Clob</code>
      * value will be increased to accommodate the extra characters.
      * <p>
-     * <b>Note:</b> If the value specified for {@code pos}
-     * is greater than the length+1 of the {@code CLOB} value then the
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the
      * behavior is undefined. Some JDBC drivers may throw a
-     * {@code SQLException} while other drivers may support this
+     * <code>SQLException</code> while other drivers may support this
      * operation.
      *
      * <!-- start release-specific documentation -->
      * <div class="ReleaseSpecificDocumentation">
-     * <p class="rshead">HSQLDB-Specific Information:</p>
+     * <h1>HSQLDB-Specific Information:</h1> <p>
      *
-     * When the value specified for {@code pos} is greater then the
-     * length+1, an  {@code SQLException} is thrown.
+     * When the value specified for <code>pos</code> is greater then the
+     * length+1, an  <code>SQLException</code> is thrown.
      * </div>
      *
      * @param pos the position at which to start writing to the
-     *            {@code CLOB} value; The first position is 1
+     *            <code>CLOB</code> value; The first position is 1
      *
      * @return a stream to which Unicode encoded characters can be written
-     * @throws SQLException if there is an error accessing the
-     * {@code CLOB} value or if pos is less than 1
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception SQLException if there is an error accessing the
+     * <code>CLOB</code> value or if pos is less than 1
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @see #getCharacterStream
      *
@@ -780,22 +750,22 @@ public class JDBCClobFile implements java.sql.Clob {
     }
 
     /**
-     * Truncates the {@code CLOB} value that this {@code Clob}
-     * designates to have a length of {@code len}
+     * Truncates the <code>CLOB</code> value that this <code>Clob</code>
+     * designates to have a length of <code>len</code>
      * characters.
      * <p>
-     * <b>Note:</b> If the value specified for {@code pos}
-     * is greater than the length+1 of the {@code CLOB} value then the
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the
      * behavior is undefined. Some JDBC drivers may throw a
-     * {@code SQLException} while other drivers may support this
+     * <code>SQLException</code> while other drivers may support this
      * operation.
      *
-     * @param len the length, in characters, to which the {@code CLOB} value
+     * @param len the length, in characters, to which the <code>CLOB</code> value
      *        should be truncated
-     * @throws SQLException if there is an error accessing the
-     * {@code CLOB} value or if len is less than 0
+     * @exception SQLException if there is an error accessing the
+     * <code>CLOB</code> value or if len is less than 0
      *
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since JDK 1.4
      */
@@ -831,19 +801,19 @@ public class JDBCClobFile implements java.sql.Clob {
     }
 
     /**
-     * This method frees the {@code Clob} object and releases the resources
-     * that it holds.  The object is invalid once the {@code free} method
+     * This method frees the <code>Clob</code> object and releases the resources the resources
+     * that it holds.  The object is invalid once the <code>free</code> method
      * is called.
      * <p>
-     * After {@code free} has been called, any attempt to invoke a
-     * method other than {@code free} will result in a {@code SQLException}
-     * being thrown.  If {@code free} is called multiple times, the subsequent
-     * calls to {@code free} are treated as a no-op.
-     *
+     * After <code>free</code> has been called, any attempt to invoke a
+     * method other than <code>free</code> will result in a <code>SQLException</code>
+     * being thrown.  If <code>free</code> is called multiple times, the subsequent
+     * calls to <code>free</code> are treated as a no-op.
+     * <p>
      * @throws SQLException if an error occurs releasing
      * the Clob's resources
      *
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since JDK 1.4
      */
@@ -855,13 +825,11 @@ public class JDBCClobFile implements java.sql.Clob {
 
         m_closed = true;
 
-        final List<Object> streams = m_streams;
+        final List streams = m_streams;
 
         m_streams = null;
 
-        Iterator<Object> itr = streams.iterator();
-
-        while (itr.hasNext()) {
+        for (Iterator itr = streams.iterator(); itr.hasNext(); ) {
             final Object stream = itr.next();
 
             closeSafely(stream);
@@ -875,25 +843,23 @@ public class JDBCClobFile implements java.sql.Clob {
     }
 
     /**
-     * Returns a {@code Reader} object that contains a partial {@code Clob} value, starting
+     * Returns a <code>Reader</code> object that contains a partial <code>Clob</code> value, starting
      * with the character specified by pos, which is length characters in length.
      *
      * @param pos    the offset to the first character of the partial value to
      * be retrieved.  The first character in the Clob is at position 1.
      * @param length the length in characters of the partial value to be retrieved.
-     * @return {@code Reader} through which the partial {@code Clob} value can be read.
+     * @return <code>Reader</code> through which the partial <code>Clob</code> value can be read.
      * @throws SQLException if pos is less than 1 or if pos is greater than the number of
-     * characters in the {@code Clob} or if pos + length is greater than the number of
-     * characters in the {@code Clob}
+     * characters in the <code>Clob</code> or if pos + length is greater than the number of
+     * characters in the <code>Clob</code>
      *
-     * @throws java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
+     * @exception java.sql.SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
      * @since 1.6
      */
-    public Reader getCharacterStream(
-            long pos,
-            long length)
-            throws SQLException {
+    public Reader getCharacterStream(long pos,
+                                     long length) throws SQLException {
 
         if (pos < 1) {
             throw JDBCUtil.outOfRangeArgument("pos: " + pos);
@@ -903,8 +869,7 @@ public class JDBCClobFile implements java.sql.Clob {
             throw JDBCUtil.outOfRangeArgument("length: " + length);
         }
 
-        Reader             reader;
-        final List<Object> streams = m_streams;
+        Reader reader;
 
         try {
             reader = new ReaderAdapter(m_file, pos - 1, length) {
@@ -914,7 +879,7 @@ public class JDBCClobFile implements java.sql.Clob {
                     try {
                         super.close();
                     } finally {
-                        streams.remove(this);
+                        m_streams.remove(this);
                     }
                 }
             };
@@ -924,13 +889,13 @@ public class JDBCClobFile implements java.sql.Clob {
             throw JDBCUtil.sqlException(ex);
         }
 
-        streams.add(reader);
+        m_streams.add(reader);
 
         return reader;
     }
 
     /**
-     * Retrieves the canonical {@code File} object denoting the file that
+     * Retrieves the canonical <code>File</code> object denoting the file that
      * backs this CLOB.
      *
      * @return the file that backs this CLOB.
@@ -987,12 +952,12 @@ public class JDBCClobFile implements java.sql.Clob {
     private CharsetEncoder m_encoder;
     private boolean        m_fixedWidthCharset;
     private int            m_maxCharWidth;
-    private List<Object>   m_streams = new HsqlArrayList<>();
+    private List           m_streams = new HsqlArrayList();
 
     /**
      * Convenience constructor for {@link
      * #JDBCClobFile(java.lang.String)
-     * JDBCClobFile((String)null)}.
+     * JDBCClobFile((String)null)}. <p>
      *
      * @throws SQLException if the platform encoding is unsupported,
      *         the temp file cannot be created or some other
@@ -1004,7 +969,7 @@ public class JDBCClobFile implements java.sql.Clob {
     }
 
     /**
-     * Constructs a new JDBCClobFile instance backed by a File object
+     * Constructs a new JDBCClobFile instance backed by an File object
      * created by File.createTempFile(TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX),
      * using the given encoding to read and write file content.
      *
@@ -1015,8 +980,8 @@ public class JDBCClobFile implements java.sql.Clob {
      *
      * @throws SQLException if the given encoding is unsupported,
      *         the backing temp file could not be created or if a security
-     *         manager exists and its {@code {@link
-     *         java.lang.SecurityManager#checkWrite(java.lang.String)}}
+     *         manager exists and its <code>{@link
+     *         java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
      *         method does not allow a file to be created.
      */
     public JDBCClobFile(String encoding) throws SQLException {
@@ -1044,7 +1009,7 @@ public class JDBCClobFile implements java.sql.Clob {
      *         construction of the canonical pathname may require
      *         file-system queries; a required system property value
      *         cannot be accessed; a security manager exists and its
-     *         {@code {@link java.lang.SecurityManager#checkRead}}
+     *         <code>{@link java.lang.SecurityManager#checkRead}</code>
      *         method denies read access to the file
      */
     public JDBCClobFile(File file) throws SQLException {
@@ -1066,7 +1031,7 @@ public class JDBCClobFile implements java.sql.Clob {
      *         construction of the canonical pathname may require
      *         file-system queries; a required system property value
      *         cannot be accessed; a security manager exists and its
-     *         {@code {@link java.lang.SecurityManager#checkRead}}
+     *         <code>{@link java.lang.SecurityManager#checkRead}</code>
      *         method denies read access to the file
      */
     public JDBCClobFile(File file, String encoding) throws SQLException {
@@ -1090,20 +1055,18 @@ public class JDBCClobFile implements java.sql.Clob {
         }
     }
 
-    protected final void setEncoding(
-            final String encoding)
-            throws UnsupportedEncodingException {
+    protected final void setEncoding(final String encoding)
+    throws UnsupportedEncodingException {
 
-        final Charset charSet             = charsetForName(encoding);
-        final CharsetEncoder encoder = charSet.newEncoder()
-                .onMalformedInput(CodingErrorAction.REPLACE)
-                .onUnmappableCharacter(CodingErrorAction.REPLACE);
-        final float   maxBytesPerChar     = encoder.maxBytesPerChar();
-        final float   averageBytesPerChar = encoder.averageBytesPerChar();
-        final boolean fixedWidthCharset = (maxBytesPerChar == Math.round(
-            maxBytesPerChar))
-                                          && (maxBytesPerChar
-                                              == averageBytesPerChar);
+        final Charset charSet = charsetForName(encoding);
+        final CharsetEncoder encoder = charSet.newEncoder().onMalformedInput(
+            CodingErrorAction.REPLACE).onUnmappableCharacter(
+            CodingErrorAction.REPLACE);
+        final float maxBytesPerChar     = encoder.maxBytesPerChar();
+        final float averageBytesPerChar = encoder.averageBytesPerChar();
+        final boolean fixedWidthCharset =
+            (maxBytesPerChar == Math.round(maxBytesPerChar))
+            && (maxBytesPerChar == averageBytesPerChar);
 
         //
         m_fixedWidthCharset = fixedWidthCharset;
@@ -1113,9 +1076,8 @@ public class JDBCClobFile implements java.sql.Clob {
         m_encoding          = m_charset.name();
     }
 
-    protected static Charset charsetForName(
-            final String charsetName)
-            throws UnsupportedEncodingException {
+    protected static Charset charsetForName(final String charsetName)
+    throws UnsupportedEncodingException {
 
         String csn = charsetName;
 
@@ -1134,9 +1096,8 @@ public class JDBCClobFile implements java.sql.Clob {
         throw new UnsupportedEncodingException(csn);
     }
 
-    protected final void checkIsFile(
-            final boolean checkExists)
-            throws SQLException {
+    protected final void checkIsFile(final boolean checkExists)
+    throws SQLException {
 
         boolean exists = false;
         boolean isFile = false;
@@ -1165,6 +1126,7 @@ public class JDBCClobFile implements java.sql.Clob {
     }
 
     protected void checkClosed() throws SQLException {
+
         if (m_closed) {
             throw JDBCUtil.sqlException(ErrorCode.X_07501);
         }
@@ -1285,13 +1247,12 @@ public class JDBCClobFile implements java.sql.Clob {
 
         protected final Writer m_writer;
 
-        protected WriterAdapter(
-                final File file,
-                final long pos)
-                throws IOException,
-                       SecurityException,
-                       NullPointerException,
-                       IllegalArgumentException {
+        protected WriterAdapter(final File file,
+                                final long pos)
+                                throws FileNotFoundException, IOException,
+                                       SecurityException,
+                                       NullPointerException,
+                                       IllegalArgumentException {
 
             if (file == null) {
                 throw new NullPointerException("file");
@@ -1328,9 +1289,9 @@ public class JDBCClobFile implements java.sql.Clob {
 
             final OutputStreamAdapter osa = new OutputStreamAdapter(raf);
 
-            m_writer = m_encoding == null
-                       ? new OutputStreamWriter(osa)
-                       : new OutputStreamWriter(osa, m_charset);
+            m_writer = m_encoding == null ? new OutputStreamWriter(osa)
+                                          : new OutputStreamWriter(osa,
+                                          m_charset);
         }
 
         public void flush() throws IOException {
@@ -1358,14 +1319,12 @@ public class JDBCClobFile implements java.sql.Clob {
         private ByteBuffer   m_byteBuffer;
         private CharBuffer   m_charBuffer;
 
-        protected ReaderAdapter(
-                final File file,
-                final long pos,
-                final long length)
-                throws IOException,
-                       NullPointerException,
-                       IllegalArgumentException,
-                       SecurityException {
+        protected ReaderAdapter(final File file, final long pos,
+                                final long length)
+                                throws FileNotFoundException, IOException,
+                                       NullPointerException,
+                                       IllegalArgumentException,
+                                       SecurityException {
 
             if (file == null) {
                 throw new NullPointerException("file");
@@ -1379,10 +1338,10 @@ public class JDBCClobFile implements java.sql.Clob {
                 throw new IllegalArgumentException("length: " + length);
             }
 
-            long fileLength     = file.length();
+            long fileLength = file.length();
             long maxCharsLength = m_fixedWidthCharset
-                                  ? Math.round(
-                                      fileLength / (double) m_maxCharWidth)
+                                  ? Math.round(fileLength
+                                               / (double) m_maxCharWidth)
                                   : fileLength;
 
             if (maxCharsLength - pos < 0) {
@@ -1404,8 +1363,7 @@ public class JDBCClobFile implements java.sql.Clob {
                 fis = new FileInputStream(file);
 
                 final BufferedInputStream bis = new BufferedInputStream(fis);
-                final InputStreamReader isr = new InputStreamReader(
-                    bis,
+                final InputStreamReader isr = new InputStreamReader(bis,
                     m_charset);
 
                 m_reader = isr;
@@ -1437,11 +1395,8 @@ public class JDBCClobFile implements java.sql.Clob {
             m_remaining = length;
         }
 
-        public int read(
-                final char[] cbuf,
-                final int off,
-                int len)
-                throws IOException {
+        public int read(final char[] cbuf, final int off,
+                        int len) throws IOException {
 
             final long l_remaining = m_remaining;
 
@@ -1469,13 +1424,13 @@ public class JDBCClobFile implements java.sql.Clob {
             } else {
                 final boolean reallocate = (charsRead
                                             > m_charBuffer.capacity());
-                final CharBuffer cb      = reallocate
-                                           ? CharBuffer.allocate(charsRead)
-                                           : m_charBuffer;
-                final ByteBuffer bb      = reallocate
-                                           ? ByteBuffer.allocate(
-                                               charsRead * m_maxCharWidth)
-                                           : m_byteBuffer;
+                final CharBuffer cb = reallocate
+                                      ? CharBuffer.allocate(charsRead)
+                                      : m_charBuffer;
+                final ByteBuffer bb = reallocate
+                                      ? ByteBuffer.allocate(charsRead
+                                          * m_maxCharWidth)
+                                      : m_byteBuffer;
 
                 //
                 cb.clear();

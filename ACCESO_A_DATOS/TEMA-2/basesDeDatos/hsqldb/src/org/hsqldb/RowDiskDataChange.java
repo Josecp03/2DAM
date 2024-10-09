@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2024, The HSQL Development Group
+/* Copyright (c) 2001-2021, The HSQL Development Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,9 @@ public class RowDiskDataChange extends RowAVLDisk {
     public static final int COL_POS_IS_UPDATE   = 5;
 
     //
-    static final Type[] arrayType = new Type[]{ new ArrayType(
-        Type.SQL_INTEGER,
-        ArrayType.defaultLargeArrayCardinality) };
+    static final Type[] arrayType = new Type[]{
+        new ArrayType(Type.SQL_INTEGER,
+                      ArrayType.defaultLargeArrayCardinality) };
     Table    targetTable;
     Object[] updateData;
     int[]    updateColMap;
@@ -68,11 +68,9 @@ public class RowDiskDataChange extends RowAVLDisk {
      * @param t table
      * @param data row data
      */
-    public RowDiskDataChange(
-            TableBase t,
-            Object[] data,
-            PersistentStore store,
-            Table targetTable) {
+    public RowDiskDataChange(TableBase t, Object[] data,
+                             PersistentStore store, Table targetTable) {
+
         super(t, data, store);
 
         this.targetTable = targetTable;
@@ -85,19 +83,15 @@ public class RowDiskDataChange extends RowAVLDisk {
      * @param store store
      * @param in data source
      */
-    public RowDiskDataChange(
-            Session session,
-            PersistentStore store,
-            RowInputInterface in) {
+    public RowDiskDataChange(Session session, PersistentStore store,
+                             RowInputInterface in) {
 
         super(store, in);
 
-        targetTable = store.getTable().database.schemaManager
-                           .findTable(
-                               session,
-                               (String) rowData[COL_POS_TABLE_NAME],
-                               (String) rowData[COL_POS_SCHEMA_NAME],
-                               null);
+        targetTable =
+            store.getTable().database.schemaManager.findTable(session,
+                (String) rowData[COL_POS_TABLE_NAME],
+                (String) rowData[COL_POS_SCHEMA_NAME], null);
 
         if ((Boolean) rowData[COL_POS_IS_UPDATE]) {
             updateData = in.readData(targetTable.colTypes);
@@ -125,12 +119,8 @@ public class RowDiskDataChange extends RowAVLDisk {
             if (updateData != null) {
                 Type[] targetTypes = targetTable.colTypes;
 
-                out.writeData(
-                    targetTypes.length,
-                    targetTypes,
-                    updateData,
-                    null,
-                    null);
+                out.writeData(targetTypes.length, targetTypes, updateData,
+                              null, null);
 
                 RowOutputBinary bout = (RowOutputBinary) out;
 
@@ -173,10 +163,8 @@ public class RowDiskDataChange extends RowAVLDisk {
         int             size = out.getSize(this);
 
         if (updateData != null) {
-            size += bout.getSize(
-                updateData,
-                targetTable.getColumnCount(),
-                targetTable.getColumnTypes());
+            size += bout.getSize(updateData, targetTable.getColumnCount(),
+                                 targetTable.getColumnTypes());
 
             if (updateColMap != null) {
                 size += bout.getSize(updateColMap);
