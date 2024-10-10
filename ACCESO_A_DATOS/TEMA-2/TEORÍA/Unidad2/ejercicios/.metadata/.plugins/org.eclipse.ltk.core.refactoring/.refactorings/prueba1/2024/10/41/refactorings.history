@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Extract method &apos;private static void consultadepartamentos(Connection conexion) throws SQLException &apos; from &apos;prueba1.Principal.main(...)&apos; to &apos;prueba1.Principal&apos;&#x0D;&#x0A;- Original project: &apos;prueba1&apos;&#x0D;&#x0A;- Method name: &apos;consultadepartamentos&apos;&#x0D;&#x0A;- Destination type: &apos;prueba1.Principal&apos;&#x0D;&#x0A;- Declared visibility: &apos;private&apos;" comments="false" description="Extract method &apos;consultadepartamentos&apos;" destination="0" exceptions="false" flags="786434" id="org.eclipse.jdt.ui.extract.method" input="/src&lt;prueba1{Principal.java" name="consultadepartamentos" replace="false" selection="935 598" stamp="1728570988095" version="1.0" visibility="2"/>
+</session>
