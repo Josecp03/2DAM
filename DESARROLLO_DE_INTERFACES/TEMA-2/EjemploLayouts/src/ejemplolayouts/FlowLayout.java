@@ -9,12 +9,12 @@ package ejemplolayouts;
  *
  * @author josec
  */
-public class AbsoluteLayout extends javax.swing.JFrame {
+public class FlowLayout extends javax.swing.JFrame {
 
     /**
-     * Creates new form AbsoluteLayout
+     * Creates new form FlowLayout
      */
-    public AbsoluteLayout() {
+    public FlowLayout() {
         initComponents();
     }
 
@@ -28,33 +28,39 @@ public class AbsoluteLayout extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 50, -1, -1));
-
-        jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jButton1.setText("jButton1");
-        jPanel2.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 70, -1, -1));
+        jPanel1.add(jButton1);
 
         jButton2.setText("jButton2");
-        jPanel2.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 160, -1, -1));
+        jPanel1.add(jButton2);
 
         jButton3.setText("jButton3");
-        jPanel2.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 50, 80, 160));
+        jPanel1.add(jButton3);
 
         jButton4.setText("jButton4");
-        jPanel2.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 110, -1, -1));
+        jPanel1.add(jButton4);
 
-        getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 400, 300));
+        jButton5.setText("jButton5");
+        jPanel1.add(jButton5);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 611, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 357, Short.MAX_VALUE)
+        );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -76,20 +82,20 @@ public class AbsoluteLayout extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AbsoluteLayout.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FlowLayout.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AbsoluteLayout.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FlowLayout.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AbsoluteLayout.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FlowLayout.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AbsoluteLayout.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FlowLayout.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new AbsoluteLayout().setVisible(true);
+                new FlowLayout().setVisible(true);
             }
         });
     }
@@ -99,7 +105,7 @@ public class AbsoluteLayout extends javax.swing.JFrame {
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     // End of variables declaration//GEN-END:variables
 }
