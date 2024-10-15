@@ -1,0 +1,16 @@
+ El volumen de la unidad D es Disco duro 2
+ El n£mero de serie del volumen es: 3883-FB48
+
+ Directorio de D:\2DAM\PROGRAMACION_DE_SERVICIOS_Y_PROCESOS\WORKSPACE-TEMA-1\CreacionProcesos
+
+15/10/2024  14:50    <DIR>          .
+15/10/2024  14:11    <DIR>          ..
+15/10/2024  14:11               396 .classpath
+15/10/2024  14:11                 6 .gitignore
+15/10/2024  14:11               392 .project
+15/10/2024  14:11    <DIR>          .settings
+15/10/2024  14:14    <DIR>          bin
+15/10/2024  14:50                 0 error.txt
+15/10/2024  14:12    <DIR>          src
+               4 archivos            794 bytes
+               5 dirs  860.122.447.872 bytes libres

@@ -1,0 +1,24 @@
+Microsoft Windows [Versi¢n 10.0.22631.4317]
+(c) Microsoft Corporation. Todos los derechos reservados.
+
+D:\2DAM\PROGRAMACION_DE_SERVICIOS_Y_PROCESOS\WORKSPACE-TEMA-1\CreacionProcesos>mkdir nuevo
+
+D:\2DAM\PROGRAMACION_DE_SERVICIOS_Y_PROCESOS\WORKSPACE-TEMA-1\CreacionProcesos>cd nuevo
+
+D:\2DAM\PROGRAMACION_DE_SERVICIOS_Y_PROCESOS\WORKSPACE-TEMA-1\CreacionProcesos\nuevo>echo creo fichero > Mifichero.txt
+
+D:\2DAM\PROGRAMACION_DE_SERVICIOS_Y_PROCESOS\WORKSPACE-TEMA-1\CreacionProcesos\nuevo>dir
+ El volumen de la unidad D es Disco duro 2
+ El n£mero de serie del volumen es: 3883-FB48
+
+ Directorio de D:\2DAM\PROGRAMACION_DE_SERVICIOS_Y_PROCESOS\WORKSPACE-TEMA-1\CreacionProcesos\nuevo
+
+15/10/2024  15:00    <DIR>          .
+15/10/2024  15:00    <DIR>          ..
+15/10/2024  15:00                15 Mifichero.txt
+               1 archivos             15 bytes
+               2 dirs  860.082.135.040 bytes libres
+
+D:\2DAM\PROGRAMACION_DE_SERVICIOS_Y_PROCESOS\WORKSPACE-TEMA-1\CreacionProcesos\nuevo>dirr
+
+D:\2DAM\PROGRAMACION_DE_SERVICIOS_Y_PROCESOS\WORKSPACE-TEMA-1\CreacionProcesos\nuevo>¨M s? 
