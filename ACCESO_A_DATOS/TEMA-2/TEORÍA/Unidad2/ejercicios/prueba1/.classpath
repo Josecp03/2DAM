@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="C:/Alicia/CompartidaAlicia_2425/Unidad2/conectores24/mysql-connector-java-5.1.49.jar"/>
 	<classpathentry kind="lib" path="C:/Alicia/CompartidaAlicia_2425/Unidad2/conectores24/ojdbc8.jar"/>
 	<classpathentry kind="lib" path="C:/Alicia/CompartidaAlicia_2425/Unidad2/conectores24/sqlite-jdbc-3.46.1.3.jar"/>
+	<classpathentry kind="lib" path="C:/Alicia/CompartidaAlicia_2425/Unidad2/conectores24/mariadb-java-client-3.4.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

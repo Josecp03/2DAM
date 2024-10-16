@@ -1,0 +1,139 @@
+package pruebaMaven;
+
+import java.sql.*;
+
+import java.util.Scanner;
+
+public class Databasemetadata {
+
+	public static void main(String[] args) {
+		
+		try {
+			Connection conexion = null;
+			Scanner sc = new Scanner(System.in);
+			int opcion = 0;
+
+			do {
+				mostrarMenu();
+				opcion = sc.nextInt();
+				switch (opcion) {
+				case 1:
+					// Mysql
+					System.out.println("Prueba Mysql!");
+					Class.forName("com.mysql.jdbc.Driver");
+					conexion = DriverManager.getConnection("jdbc:mysql://localhost:3307/ejemplo25", "root", "");
+			        //catalogo, esquema, patronDeTabla, tipos[]
+					vermetadatos(conexion,"ejemplo", null, null, null);
+					conexion.close();
+
+					break;
+				case 2:
+					System.out.println("Prueba Derby!");
+					Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+					conexion = DriverManager.getConnection("jdbc:derby:.\\basedatos\\bdderby\\ejemplo");
+					   vermetadatos(conexion);
+					conexion.close();
+					break;
+				case 3:
+					System.out.println("Prueba HSQLDB!");
+					Class.forName("org.hsqldb.jdbcDriver" );
+					//Class.forName("org.hsqldb.JDBCDriver");
+					//Class.forName("org.hsqldb.jdbc.JDBCDriver");
+					//org.hsqldb.jdbc.JDBCDriver
+					//conexion = DriverManager.getConnection("jdbc:hsqldb:file:.\\hsqldb\\ejemplo\\ejemplo");
+					conexion = DriverManager.getConnection("jdbc:hsqldb:.\\hsqldb\\ejemplo\\ejemplo");
+					   vermetadatos(conexion);
+					
+					conexion.close();
+					break;
+				case 4:
+					System.out.println("Prueba SQLITE!");
+					Class.forName("org.sqlite.JDBC");
+					conexion = DriverManager.getConnection("jdbc:sqlite:.\\basedatos\\ejemplo.db");
+					   vermetadatos(conexion);
+					conexion.close();
+					break;
+
+				case 5:
+					System.out.println("Prueba Oracle!");
+					Class.forName("oracle.jdbc.driver.OracleDriver");
+					conexion = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE", 
+							"ejemplo25","ejemplo25");
+					   vermetadatos(conexion);
+					conexion.close();
+					break;
+
+				case 6:
+					System.out.println("Prueba MariaDB!");
+					Class.forName ("org.mariadb.jdbc.Driver");	
+					conexion = DriverManager.getConnection   
+							("jdbc:mariadb://localhost:3306/ejemplo", "root", "");  
+         
+					   vermetadatos(conexion);
+					conexion.close();
+					break;
+					
+				case 0:
+					System.out.println("FIN DE MENÚ!");
+					break;
+				default:
+					System.out.println("Seleccione una opción válida!");
+					break;
+				}
+			} while (opcion != 0);
+
+			sc.close();
+
+		} catch (ClassNotFoundException cn) {
+			cn.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+
+	}
+	private static void vermetadatos(Connection conexion) {
+		
+		DatabaseMetaData dbmd;
+		try {
+			dbmd = conexion.getMetaData();
+		
+	      ResultSet resul = null;
+			  
+	  	String nombre  = dbmd.getDatabaseProductName();
+	  	String driver  = dbmd.getDriverName();
+	  	String url     = dbmd.getURL(); 
+	  	String usuario = dbmd.getUserName() ;
+			 		 
+	  	System.out.println("INFORMACIÓN SOBRE LA BASE DE DATOS:");
+	  	System.out.println("===================================");
+	  	System.out.printf("Nombre : %s %n", nombre );
+	  	System.out.printf("Driver : %s %n", driver );
+	  	System.out.printf("URL    : %s %n", url );
+	  	System.out.printf("Usuario: %s %n", usuario );
+	  	
+		System.out.printf("MajorVersion: %s %n", dbmd.getDatabaseMajorVersion() );	
+	
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
+	private static void mostrarMenu() {
+		System.out.println("------------------------------------------------------");
+		System.out.println("OPERACIONES DATABASEMETADATA");
+		System.out.println("  1. Prueba mysql.");
+		System.out.println("  2. Prueba Derby.");
+		System.out.println("  3. Prueba HSQLDB.");
+		System.out.println("  4. Prueba Sqlite.");
+		System.out.println("  5. Prueba Oracle.");
+		System.out.println("  6. Prueba MariaDB.");
+		System.out.println("  0. Salir");
+		System.out.println("------------------------------------------------------");
+	}
+
+}

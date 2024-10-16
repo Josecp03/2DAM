@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Thu Oct 10 16:50:05 CEST 2024:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0192-76e8-8f7e-00000f59bf88 
+Thu Oct 10 17:13:23 CEST 2024:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0192-76fd-e241-00000f482e28 
 on database directory C:\Alicia\CompartidaAlicia_2425\Unidad2\ejercicios\prueba1\basedatos\bdderby\ejemplo with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@61e4705b 
 Loaded from file:/C:/Alicia/CompartidaAlicia_2425/Unidad2/conectores24/derby.jar
 java.vendor=Eclipse Adoptium

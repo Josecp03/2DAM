@@ -56,6 +56,15 @@ public class Principal {
 					conexion.close();
 					break;
 
+				case 6:
+					System.out.println("Prueba MariaDB!");
+					Class.forName ("org.mariadb.jdbc.Driver");	
+					conexion = DriverManager.getConnection   
+							("jdbc:mariadb://localhost:3306/ejemplo", "root", "");  
+         			consultadepartamentos(conexion);
+					conexion.close();
+					break;
+					
 				case 0:
 					System.out.println("FIN DE MENÚ!");
 					break;
@@ -83,6 +92,7 @@ public class Principal {
 		System.out.println("  3. Prueba HSQLDB.");
 		System.out.println("  4. Prueba Sqlite.");
 		System.out.println("  5. Prueba Oracle.");
+		System.out.println("  6. Prueba MariaDB.");
 		System.out.println("  0. Salir");
 		System.out.println("------------------------------------------------------");
 	}
