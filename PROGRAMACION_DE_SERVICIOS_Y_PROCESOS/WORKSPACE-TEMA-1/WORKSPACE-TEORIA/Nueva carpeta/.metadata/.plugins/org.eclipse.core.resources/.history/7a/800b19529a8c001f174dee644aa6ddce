@@ -1,0 +1,14 @@
+package ejercicioBinario;
+
+import java.util.Scanner;
+
+public class Binario {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Introduce un número decimal: ");
+        int numero = scanner.nextInt();
+        String binario = Integer.toBinaryString(numero);
+        System.out.println("El número en binario es: " + binario);
+    }
+}
+
