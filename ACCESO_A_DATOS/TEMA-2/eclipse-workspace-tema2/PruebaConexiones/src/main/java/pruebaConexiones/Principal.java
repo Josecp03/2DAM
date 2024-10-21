@@ -51,7 +51,7 @@ public class Principal {
 					System.out.println("Prueba Oracle!");
 					Class.forName("oracle.jdbc.driver.OracleDriver");
 					conexion = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE", 
-							"ejemplo25","ejemplo25");
+							"ejemplo","dam");
 					consultadepartamentos(conexion);
 					conexion.close();
 					break;

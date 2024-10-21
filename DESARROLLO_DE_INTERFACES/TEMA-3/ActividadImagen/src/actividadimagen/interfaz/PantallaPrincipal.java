@@ -19,7 +19,7 @@ public class PantallaPrincipal extends javax.swing.JFrame {
      */
     public PantallaPrincipal() {
         initComponents();
-        this.setIconImage(new ImageIcon(getClass().getResource("/actividadimagen/interfaz/imgs/Acceso.png")).getImage());
+        this.setIconImage(new ImageIcon(getClass().getResource("/actividadimagen/interfaz/imgs/logoEmpresa.png")).getImage());
     }
 
     /**
@@ -55,6 +55,7 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(178, 190, 220));
 
