@@ -2,6 +2,7 @@
 <section name="Workbench">
 	<section name="MavenProjectWizardLocationPage">
 		<list key="location">
+			<item value="D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2\PruebaConexiones\src\main\java\pruebaConexiones\Principal.java"/>
 			<item value="D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2"/>
 		</list>
 		<list key="projectNameTemplate">
@@ -44,11 +45,13 @@
 	</section>
 	<section name="MavenProjectWizardArtifactPage">
 		<list key="groupId">
+			<item value="aaa"/>
 			<item value="aaaa"/>
 		</list>
 		<list key="name">
 		</list>
 		<list key="artifactId">
+			<item value="CONEXIONES_BD_JOSE"/>
 			<item value="PruebaConexiones"/>
 			<item value="Prueba"/>
 		</list>

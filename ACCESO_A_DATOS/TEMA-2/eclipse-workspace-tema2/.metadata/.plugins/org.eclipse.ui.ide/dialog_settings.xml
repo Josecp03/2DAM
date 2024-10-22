@@ -10,6 +10,10 @@
 		<item key="SmartImportRootWizardPage.STORE_NESTED_PROJECTS" value="true"/>
 		<item key="SmartImportRootWizardPage.STORE_CONFIGURE_NATURES" value="true"/>
 		<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+			<item value="C:\Users\josec\Desktop\REPOSITORIO MANU\ENVIAR JOSE\PRUEBA_TABLAS"/>
+			<item value="C:\Users\josec\Desktop\REPOSITORIO MANU\ENVIAR JOSE\PRACTICAS_BD_EMB_PROPIAS"/>
+			<item value="C:\Users\josec\Desktop\REPOSITORIO MANU\ENVIAR JOSE\CONEXIONES_MAVEN"/>
+			<item value="C:\Users\josec\Desktop\REPOSITORIO MANU\ENVIAR JOSE\CONEXIONES_BD"/>
 			<item value="D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2"/>
 		</list>
 		<section name="SmartImportWizard.dialogBounds">
