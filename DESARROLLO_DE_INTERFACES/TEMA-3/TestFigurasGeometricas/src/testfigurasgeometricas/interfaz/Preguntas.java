@@ -353,6 +353,7 @@ public class Preguntas extends javax.swing.JDialog {
         jButtonEnviar.setFont(new java.awt.Font("Impact", 0, 18)); // NOI18N
         jButtonEnviar.setForeground(new java.awt.Color(255, 255, 255));
         jButtonEnviar.setText("ENVIAR RESPUESTAS");
+        jButtonEnviar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         jButtonEnviar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonEnviarActionPerformed(evt);
