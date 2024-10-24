@@ -1,0 +1,1 @@
+El numero en binario es: 100001
