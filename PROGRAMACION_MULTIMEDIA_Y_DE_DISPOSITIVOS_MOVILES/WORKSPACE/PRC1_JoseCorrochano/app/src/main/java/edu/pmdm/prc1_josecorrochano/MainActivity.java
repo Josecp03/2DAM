@@ -19,32 +19,26 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 /**
- * MainActivity is the entry point of the application. It manages the user interface and the logic for a
- * workout timer application, including work and rest timers with user-defined parameters.
+ * MainActivity
  */
 public class MainActivity extends AppCompatActivity {
 
     // UI and Class variables
-    EditText edtWork;
-    EditText edtRest;
-    EditText edtSets;
-    ImageButton ibPlay;
-    TextView txtTime;
-    TextView txtAction;
-    TextView txtSeriesLeft;
-    TextView txtTitleSeriesLeft;
-    CountDownTimer workTimer;
-    CountDownTimer restTimer;
-    ConstraintLayout constraintLayout;
-    int remainingSets;
+    private EditText edtWork = null;
+    private EditText edtRest = null;
+    private EditText edtSets = null;
+    private ImageButton ibPlay = null;
+    private TextView txtTime = null;
+    private TextView txtAction = null;
+    private TextView txtSeriesLeft = null;
+    private TextView txtTitleSeriesLeft = null;
+    private ConstraintLayout constraintLayout = null;
+    private CountDownTimer workTimer;
+    private CountDownTimer restTimer;
+    int remainingSets = 0;
 
     /**
-     * Called when the activity is first created. This is where you should perform one-time
-     * initialization such as setting up the layout and initializing views.
-     *
-     * @param savedInstanceState If the activity is being re-initialized after previously being shut down
-     *                           then this Bundle contains the data it most recently supplied in
-     *                           {@link #onSaveInstanceState(Bundle)}. Note: Otherwise it is null.
+     * Method to create the activity
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,20 +65,7 @@ public class MainActivity extends AppCompatActivity {
         constraintLayout = findViewById(R.id.constraintLayout);
 
         /**
-         * Sets up an onClick listener for the ibPlay button. When the button is pressed,
-         * the method performs the following actions:
-         * <ul>
-         *     <li>Checks the input values of the EditText fields by calling {@link #checkEdt()}.</li>
-         *     <li>If the input values are incorrect, calls {@link #showAlert()} to display an alert.</li>
-         *     <li>If the input values are valid, disables the button to prevent multiple clicks
-         *         that may cause counter overlap.</li>
-         *     <li>Retrieves the work time from the edtWork field and converts it to a long value
-         *         which is passed to the {@link #startWorkTimer(long)} method.</li>
-         *     <li>Retrieves the remaining sets from the edtSets field and assigns it to the
-         *         remainingSets variable.</li>
-         *     <li>Updates the txtSeriesLeft TextView to display the number of remaining sets.</li>
-         *     <li>Starts the work timer using the retrieved work time value.</li>
-         * </ul>
+         * Method that starts when the button is pressed
          */
         ibPlay.setOnClickListener(new View.OnClickListener() {
 
@@ -93,23 +74,51 @@ public class MainActivity extends AppCompatActivity {
 
                 // Check the value of the editTextView
                 if (checkEdt()) {
-                    showAlert(); // Method to show an alert when edt values are incorrect
+
+                    // Show error alert
+                    showAlert("Invalid inputs");
+
                 } else {
 
-                    // Disable the button to not chain counters
-                    ibPlay.setEnabled(false);
+                    // Set the values of the edit text in a variable
+                    int numberTimeWork = Integer.parseInt(edtWork.getText().toString());
+                    int numberTimeRest = Integer.parseInt(edtRest.getText().toString());
+                    int numberSets = Integer.parseInt(edtSets.getText().toString());
 
-                    // Assign the work time value of type long to the counter method
-                    long timeWork = Long.parseLong(edtWork.getText().toString());
+                    // Check the duration of the times
+                    if (numberTimeRest > numberTimeWork) {
 
-                    // Assign the remaining sets to a variable
-                    remainingSets = Integer.parseInt(edtSets.getText().toString());
+                        // Show error alert
+                        showAlert("Rest time cannot be longer than work time");
 
-                    // Set the corresponding remaining series in the txtSeriesLeft
-                    txtSeriesLeft.setText(String.valueOf(remainingSets));
+                    } else {
 
-                    // Launch de work timer
-                    startWorkTimer(timeWork);
+                        // Check the size of the values
+                        if (numberTimeRest > 1000 || numberTimeWork > 1000 || numberSets > 1000) {
+
+                            // Show error alert
+                            showAlert("Values too large");
+
+                        } else {
+
+                            // Disable the button to not chain counters
+                            ibPlay.setEnabled(false);
+
+                            // Assign the work time value of type long to the counter method
+                            long timeWork = Long.parseLong(edtWork.getText().toString());
+
+                            // Assign the remaining sets to a variable
+                            remainingSets = Integer.parseInt(edtSets.getText().toString());
+
+                            // Set the corresponding remaining series in the txtSeriesLeft
+                            txtSeriesLeft.setText(String.valueOf(remainingSets));
+
+                            // Launch de work timer
+                            startWorkTimer(timeWork);
+
+                        }
+
+                    }
 
                 }
             }
@@ -121,13 +130,13 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Displays an alert dialog when input values are invalid.
      */
-    private void showAlert() {
+    private void showAlert(String message) {
 
         // Create a constructor for an AlertDialog associated with the current activity
         AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
 
         // Set the message to be displayed in the dialog
-        alert.setMessage("Invalid Input")
+        alert.setMessage(message)
 
                 // Set the positive button and its behavior when clicked
                 .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
@@ -155,8 +164,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Starts the work timer countdown.
-     *
-     * @param timeWork The duration of the work phase in seconds.
      */
     private void startWorkTimer(long timeWork) {
 
@@ -206,9 +213,6 @@ public class MainActivity extends AppCompatActivity {
                     // Change the background color to indicate completion.
                     constraintLayout.setBackgroundColor(Color.parseColor("#1C1C1C"));
 
-                    // Update the action text to indicate that the work session has finished.
-                    txtAction.setText("FINISHED!");
-
                     // Play a gong sound to signal the end.
                     playGong();
 
@@ -226,8 +230,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Starts the rest timer countdown.
-     *
-     * @param timeRest The duration of the rest phase in seconds.
      */
     private void startRestTimer(long timeRest) {
 
@@ -296,8 +298,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Checks if the user input in the EditText fields is valid.
-     *
-     * @return true if any of the fields are empty or contain the value "0"; false otherwise.
      */
     public boolean checkEdt() {
 
@@ -312,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Changes the text color of the input fields and labels to white.
+     * Change the components as they were at the beginning
      */
     public void changeInitColor() {
 
@@ -327,6 +327,15 @@ public class MainActivity extends AppCompatActivity {
         txtTime.setTextColor(white);
         txtSeriesLeft.setTextColor(white);
         txtTitleSeriesLeft.setTextColor(white);
+
+        // Set the initials values
+        edtSets.setText("");
+        edtWork.setText("");
+        edtRest.setText("");
+        txtAction.setText("WORK/REST");
+        txtSeriesLeft.setText("");
+        txtTime.setText("");
+
 
     }
 
