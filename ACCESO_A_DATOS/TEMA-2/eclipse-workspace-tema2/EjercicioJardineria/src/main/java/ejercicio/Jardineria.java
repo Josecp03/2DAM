@@ -9,7 +9,20 @@ import java.util.Scanner;
 
 public class Jardineria {
 
-	public static void main(String[] args) {
+	// Atributo de conexion para poder acceder a ello en cualquier sitio de la clase
+	private static Connection conexion;
+
+	// Bloque estático para inicializar la conexión al iniciar la clase
+	static {
+		try {
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			conexion = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE", "jardineriaad", "dam");
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) throws SQLException {
 
 		Scanner sc = new Scanner(System.in);
 		int op = -1;
@@ -53,10 +66,10 @@ public class Jardineria {
 
 				insertarEmpleado(nombre, primerApellido, segundoApellido, extension, email, codigoOficina, codigoJefe,
 						puesto);
-				// insertarEmpleado(nombre2, primerApellido2, segundoApellido2, extension2,
-				//		email2, codigoOficina2, codigoJefe2, puesto2);
-				// insertarEmpleado(nombre3, primerApellido3, segundoApellido3, extension3,
-				//		email3, codigoOficina3, codigoJefe3, puesto3);
+//				 insertarEmpleado(nombre2, primerApellido2, segundoApellido2, extension2,
+//				 email2, codigoOficina2, codigoJefe2, puesto2);
+//				 insertarEmpleado(nombre3, primerApellido3, segundoApellido3, extension3,
+//				 email3, codigoOficina3, codigoJefe3, puesto3);
 				break;
 			case 2:
 
@@ -97,105 +110,118 @@ public class Jardineria {
 	}
 
 	private static void insertarEmpleado(String nombre, String primerApellido, String segundoApellido, String extension,
-			String email, String codigoOficina, int codigoJefe, String puesto) {
+			String email, String codigoOficina, int codigoJefe, String puesto) throws SQLException {
 
-		try {
+		// Obtener el código del empleado
+		int codigoEmpleado = obtenerCodigoEmpleado();
 
-			// Realizamos la conexión a Oracle
-			Class.forName("oracle.jdbc.driver.OracleDriver");
-			Connection conexion = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE", "jardineriaad",
-					"dam");
+		// Si existe el jefe se sigue con el proceso de inserción
+		if (existeJefe(codigoJefe)) {
 
-			// Primera consulta para saber el codigo del nuevo empleado
-			Statement sentencia = conexion.createStatement();
-			String sql = "SELECT MAX(CODIGOEMPLEADO)+1 FROM EMPLEADOS";
-			ResultSet resul = sentencia.executeQuery(sql);
+			// Si existe la oficina se sigue con el proceso de inserción
+			if (existeOficina(codigoOficina)) {
 
-			// Obtener el código del empleado
-			resul.next();
-			int codigoEmpleado = resul.getInt(1);
+				// Realizar la inserción
+				Statement sentencia4 = conexion.createStatement();
+				String sql4 = "insert into empleados values (" + "    " + codigoEmpleado + "," + "    '" + nombre + "',"
+						+ "    '" + primerApellido + "'," + "    '" + segundoApellido + "'," + "    '" + extension
+						+ "'," + "    '" + email + "'," + "    '" + codigoOficina + "'," + "    " + codigoJefe + ","
+						+ "    '" + puesto + "'" + ")";
+				ResultSet resul4 = sentencia4.executeQuery(sql4);
 
-			// Cerrar consulta
-			resul.close();
-			sentencia.close();
+				// Cerrar consulta
+				resul4.close();
+				sentencia4.close();
 
-			// Segunda consulta para verificar si existe el jefe
-			Statement sentencia2 = conexion.createStatement();
-			String sql2 = "select codigojefe from empleados";
-			ResultSet resul2 = sentencia2.executeQuery(sql2);
-
-			// Inicializar una variable booleana
-			boolean existeJefe = false;
-
-			// Recorrer todos los códigos de los jefes
-			while (resul2.next()) {
-
-				// Compararlo con el código pasado como parámetro
-				if (resul2.getInt(1) == codigoJefe) {
-					existeJefe = true;
-				}
-
-			}
-
-			// Cerrar consulta
-			resul2.close();
-			sentencia2.close();
-
-			// Tercera consulta para comprobar que exista la oficina
-			Statement sentencia3 = conexion.createStatement();
-			String sql3 = "select codigooficina from oficinas";
-			ResultSet resul3 = sentencia3.executeQuery(sql3);
-
-			// Inicializar una variable booleana
-			boolean existeOficina = false;
-
-			// Recorrer todos los códigos de los jefes
-			while (resul3.next()) {
-
-				// Compararlo con el código pasado como parámetro
-				if (resul3.getString(1).equals(codigoOficina)) {
-					existeOficina = true;
-				}
-
-			}
-
-			// Cerrar consulta
-			resul3.close();
-			sentencia3.close();
-
-			// Si existe el jefe se sigue con el proceso de inserción
-			if (existeJefe) {
-
-				// Si existe la oficina se sigue con el proceso de inserción
-				if (existeOficina) {
-
-					// Realizar la inserción
-					Statement sentencia4 = conexion.createStatement();
-					String sql4 = "insert into empleados values (" + "    " + codigoEmpleado + "," + "    '" + nombre
-							+ "'," + "    '" + primerApellido + "'," + "    '" + segundoApellido + "'," + "    '"
-							+ extension + "'," + "    '" + email + "'," + "    '" + codigoOficina + "'," + "    "
-							+ codigoJefe + "," + "    '" + puesto + "'" + ")";
-					ResultSet resul4 = sentencia4.executeQuery(sql4);
-
-					// Cerrar consulta
-					resul4.close();
-					sentencia4.close();
-
-				} else {
-					System.out.println("No existe la oficina");
-				}
+				// Mostrar mensaje de confirmación
+				System.out.println("Se ha insertado el empleado número " + codigoEmpleado + " con éxito");
 
 			} else {
-				System.out.println("No existe el jefe");
+				System.out.println("No se ha insertado el empleado. No existe la oficina");
 			}
 
-			// Cerrar conexion
-			conexion.close();
-
-		} catch (ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
+		} else {
+			System.out.println("No se ha insertado el empleado. No existe el jefe");
 		}
 
+		// Cerrar conexion
+		conexion.close();
+
+	}
+
+	private static boolean existeOficina(String codigoOficina) throws SQLException {
+
+		// Tercera consulta para comprobar que exista la oficina
+		Statement sentencia3 = conexion.createStatement();
+		String sql3 = "select codigooficina from oficinas";
+		ResultSet resul3 = sentencia3.executeQuery(sql3);
+
+		// Inicializar una variable booleana
+		boolean existeOficina = false;
+
+		// Recorrer todos los códigos de los jefes
+		while (resul3.next()) {
+
+			// Compararlo con el código pasado como parámetro
+			if (resul3.getString(1).equals(codigoOficina)) {
+				existeOficina = true;
+			}
+
+		}
+
+		// Cerrar consulta
+		resul3.close();
+		sentencia3.close();
+
+		// Devolver el valor booleano
+		return existeOficina;
+	}
+
+	private static boolean existeJefe(int codigoJefe) throws SQLException {
+
+		// Segunda consulta para verificar si existe el jefe
+		Statement sentencia2 = conexion.createStatement();
+		String sql2 = "select codigojefe from empleados";
+		ResultSet resul2 = sentencia2.executeQuery(sql2);
+
+		// Inicializar una variable booleana
+		boolean existeJefe = false;
+
+		// Recorrer todos los códigos de los jefes
+		while (resul2.next()) {
+
+			// Compararlo con el código pasado como parámetro
+			if (resul2.getInt(1) == codigoJefe) {
+				existeJefe = true;
+			}
+
+		}
+
+		// Cerrar consulta
+		resul2.close();
+		sentencia2.close();
+
+		// Devolver el valor booleano
+		return existeJefe;
+	}
+
+	private static int obtenerCodigoEmpleado() throws SQLException {
+
+		// Primera consulta para saber el codigo del nuevo empleado
+		Statement sentencia = conexion.createStatement();
+		String sql = "SELECT MAX(CODIGOEMPLEADO)+1 FROM EMPLEADOS";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Obtener el código del empleado
+		resul.next();
+		int codigoEmpleado = resul.getInt(1);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el código del empleado
+		return codigoEmpleado;
 	}
 
 	private static void probarConexion() {
