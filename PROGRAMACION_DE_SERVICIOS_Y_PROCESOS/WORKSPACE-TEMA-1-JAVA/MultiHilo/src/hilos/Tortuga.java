@@ -2,20 +2,24 @@ package hilos;
 
 public class Tortuga implements Runnable {
     
-    public Tortuga() { }
+    private String nombre;
+
+    public Tortuga(String nombre) {
+        this.nombre = nombre;
+    }
 
     public void run() {
         int i = 0;
-        System.out.println("Empieza la tortuga");
+        System.out.println("Empieza la " + nombre);
         while (i < 5) {
             try {
                 Thread.sleep(5000);
-                System.out.print("T ");
+                System.out.print(nombre + " ");
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
             i++;
         }
-        System.out.println("La tortuga llega a la meta");
+        System.out.println(nombre + " llega a la meta");
     }
 }

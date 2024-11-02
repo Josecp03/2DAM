@@ -1,6 +1,7 @@
 package ejercicio;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,6 +9,27 @@ import java.sql.Statement;
 import java.util.Scanner;
 
 public class Jardineria {
+
+	// Atributos para los métodos
+	private int codigoPedidoMaximo;
+	private Date fechaPedidoMaximo;
+
+	// Getters y Setters
+	public int getCodigoPedidoMaximo() {
+		return codigoPedidoMaximo;
+	}
+
+	public void setCodigoPedidoMaximo(int codigoPedidoMaximo) {
+		this.codigoPedidoMaximo = codigoPedidoMaximo;
+	}
+
+	public Date getFechaPedidoMaximo() {
+		return fechaPedidoMaximo;
+	}
+
+	public void setFechaPedidoMaximo(Date fechaPedidoMaximo) {
+		this.fechaPedidoMaximo = fechaPedidoMaximo;
+	}
 
 	// Atributo de conexion para poder acceder a ello en cualquier sitio de la clase
 	private static Connection conexion;
@@ -70,15 +92,31 @@ public class Jardineria {
 //				 email2, codigoOficina2, codigoJefe2, puesto2);
 //				 insertarEmpleado(nombre3, primerApellido3, segundoApellido3, extension3,
 //				 email3, codigoOficina3, codigoJefe3, puesto3);
+
 				break;
+
 			case 2:
 
-				break;
-			case 3:
+				// Caso Correcto
+				int codigoCliente = 4;
 
+//				// No existe cliente
+//				int codigoCliente2 = 999;
+
+//				// Cliente no tiene pedidos
+//				int codigoCliente3 = 12
+
+				visualizarPedidosCliente(codigoCliente);
+//				visualizarPedidosCliente(codigoCliente2);
+//				visualizarPedidosCliente(codigoCliente3);
+
+				break;
+
+			case 3:
+				clientesSinPedidos();
 				break;
 			case 4:
-
+				actualizarEmpleados();
 				break;
 			case 5:
 
@@ -87,7 +125,7 @@ public class Jardineria {
 
 				break;
 			case 7:
-
+				visualizarPedidosClientes();
 				break;
 			case 8:
 
@@ -109,6 +147,571 @@ public class Jardineria {
 
 	}
 
+	private static void visualizarPedidosClientes() throws SQLException {
+
+		// Inicializar variables
+		int codigoClienteActual = 0;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select codigocliente from clientes";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Recorrer todos los clientes
+		while (resul.next()) {
+
+			// Asignar a una variable el número de clientes que tiene el empleado actual
+			codigoClienteActual = resul.getInt(1);
+
+			// Visualizar todos los pedidos de todos los clientes
+			visualizarPedidosCliente(codigoClienteActual);
+
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static void actualizarEmpleados() throws SQLException {
+
+		// Comprobar que ya se haya actualizado
+		if (!comprobarActualizaciones()) {
+
+			// Creo la nueva columna en la tabla empleados
+			crearNuevaColumna();
+
+			// Actualizar el contenido de la columna
+			actualizarNumClientes();
+
+			System.out.println("Tabla de Empleados actualizada con éxito");
+
+		} else {
+
+			// Mostrar mensaje de error
+			System.out.println("Ya se ha actualizado la tabla empleados");
+
+		}
+
+	}
+
+	private static void actualizarNumClientes() throws SQLException {
+
+		// Inicializar variables
+		int codigoEmpleadoActual = 0;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select codigoempleado from empleados";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Recorrer todos los clientes
+		while (resul.next()) {
+
+			// Asignar a una variable el número de clientes que tiene el empleado actual
+			codigoEmpleadoActual = resul.getInt(1);
+
+			// Insertar los datos actualizados
+			insertarNumeroClientes(codigoEmpleadoActual);
+
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static void insertarNumeroClientes(int codigoEmpleadoActual) throws SQLException {
+
+		// Inicializar variables
+		int numeroClientes = 0;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select count(*) from clientes where codigoempleadorepventas = " + codigoEmpleadoActual;
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Pasar a la siguiente línea para poder leer los datos
+		resul.next();
+
+		// Asignar el dato en una variable
+		numeroClientes = resul.getInt(1);
+
+		// Insertar el dato en la tabla
+		actualizarDato(numeroClientes, codigoEmpleadoActual);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static void actualizarDato(int numeroClientes, int codigoEmpleadoActual) throws SQLException {
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "update empleados set numclientes = " + numeroClientes + " where codigoempleado = "
+				+ codigoEmpleadoActual;
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static void crearNuevaColumna() throws SQLException {
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "alter table empleados add numclientes number(10,2)";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static boolean comprobarActualizaciones() throws SQLException {
+
+		// Inicializar variables
+		int numeroColumnasEncontradas = 0;
+		boolean datosActualizados = false;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select count(*) from all_tab_columns where owner = 'jardineriaad' and table_name = 'empleados' and column_name = 'numclientes'";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Saltar de línea
+		resul.next();
+
+		// Asignar el numero de coumnas encontradas
+		numeroColumnasEncontradas = resul.getInt(1);
+
+		// Comprobar si se ha encontrado la columna buscada
+		if (numeroColumnasEncontradas > 0) {
+
+			// Comprobar que exista la columna
+			datosActualizados = true;
+
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el valor booleano
+		return datosActualizados;
+	}
+
+	private static void clientesSinPedidos() throws SQLException {
+
+		// Inicializar variables
+		int codigoCliente = 0;
+		String nombreCliente = "";
+		String nombreContacto = "";
+		String apellidoContacto = "";
+		String telefono = "";
+		String fax = "";
+		String lineaDireccion1 = "";
+		String lineaDireccion2 = "";
+		String ciudad = "";
+		String region = "";
+		String pais = "";
+		String codigoPostal = "";
+		int codigoEmpleadoRepVentas = 0;
+		int limiteCredito = 0;
+
+		// Preparamos la consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select * from clientes";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Comprobar que existan clientes sin pedidos
+		if (existenClientesSinPedidos()) {
+
+			// Crear la tabla de clientes sin pedidos
+			crearTablaClientesSinPedidos();
+
+			while (resul.next()) {
+
+				// Asignar variables del cliente
+				codigoCliente = resul.getInt(1);
+				nombreCliente = resul.getString(2);
+				nombreContacto = resul.getString(3);
+				apellidoContacto = resul.getString(4);
+				telefono = resul.getString(5);
+				fax = resul.getString(6);
+				lineaDireccion1 = resul.getString(7);
+				lineaDireccion2 = resul.getString(8);
+				ciudad = resul.getString(9);
+				region = resul.getString(10);
+				pais = resul.getString(11);
+				codigoPostal = resul.getString(12);
+				codigoEmpleadoRepVentas = resul.getInt(13);
+				limiteCredito = resul.getInt(14);
+
+				// Comprobar que tenga pedidos
+				if (!tienePedidos(codigoCliente)) {
+
+					// Borrar el cliente de la tabla clientes
+					borrarCliente(codigoCliente);
+
+					// Insertar el cliente en la tabla de clientes sin pedidos
+					insertarClienteSinPedidos(codigoCliente, nombreCliente, nombreContacto, apellidoContacto, telefono,
+							fax, lineaDireccion1, lineaDireccion2, ciudad, region, pais, codigoPostal,
+							codigoEmpleadoRepVentas, limiteCredito);
+
+				}
+
+			}
+
+			// Mostrar mensaje de confirmación
+			System.out.println("Se ha creado la tabla ClientesSinPedidos con éxito");
+
+		} else {
+
+			// Mostrar mensaje de error
+			System.out.println("No existen clientes sin pedidos en la tabla CLIENTES");
+
+		}
+
+		resul.close(); // Cerrar ResultSet
+		sentencia.close(); // Cerrar Statement
+
+	}
+
+	private static void insertarClienteSinPedidos(int codigoCliente, String nombreCliente, String nombreContacto,
+			String apellidoContacto, String telefono, String fax, String lineaDireccion1, String lineaDireccion2,
+			String ciudad, String region, String pais, String codigoPostal, int codigoEmpleadoRepVentas,
+			int limiteCredito) throws SQLException {
+
+		// Realizar la inserción
+		Statement sentencia = conexion.createStatement();
+		String sql = "insert into ClientesSinPedidos values (" + "    " + codigoCliente + "," + "    '" + nombreCliente
+				+ "'," + "    '" + nombreContacto + "'," + "    '" + apellidoContacto + "'," + "    '" + telefono + "',"
+				+ "    '" + fax + "'," + "    '" + lineaDireccion1 + "'," + "    '" + lineaDireccion2 + "'," + "    '"
+				+ ciudad + "'," + "    '" + region + "'," + "    '" + pais + "'," + "    '" + codigoPostal + "'" + ","
+				+ codigoEmpleadoRepVentas + "," + limiteCredito + ")";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static void borrarCliente(int codigoCliente) throws SQLException {
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "delete from clientes where codigocliente = " + codigoCliente;
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Saltar de línea
+		resul.next();
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static void crearTablaClientesSinPedidos() throws SQLException {
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "		CREATE TABLE ClientesSinPedidos (" + "				  CodigoCliente number(6) NOT NULL,"
+				+ "				  NombreCliente varchar2(50) NOT NULL,"
+				+ "				  NombreContacto varchar2(30) DEFAULT NULL,"
+				+ "				  ApellidoContacto varchar2(30) DEFAULT NULL,"
+				+ "				  Telefono varchar2(15) NOT NULL," + "				  Fax varchar2(15) NOT NULL,"
+				+ "				  LineaDireccion1 varchar2(50) NOT NULL,"
+				+ "				  LineaDireccion2 varchar2(50) DEFAULT NULL,"
+				+ "				  Ciudad varchar2(50) NOT NULL," + "				  Region varchar2(50) DEFAULT NULL,"
+				+ "				  Pais varchar2(50) DEFAULT NULL,"
+				+ "				  CodigoPostal varchar2(10) DEFAULT NULL,"
+				+ "				  CodigoEmpleadoRepVentas number(6) DEFAULT NULL,"
+				+ "				  LimiteCredito number(15,2) DEFAULT NULL,"
+				+ "				  PRIMARY KEY (CodigoCliente),"
+				+ "				  CONSTRAINT ClientesSinPedidos_EmpleadosFK FOREIGN KEY (CodigoEmpleadoRepVentas) REFERENCES Empleados (CodigoEmpleado)"
+				+ "				)";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static boolean existenClientesSinPedidos() throws SQLException {
+
+		// Inicializar variables
+		boolean existenClientesSinPedidos = false;
+		int numeroClientesSinPedidos = 0;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select count(*) from clientes where codigocliente not in (select codigocliente from pedidos)";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Saltar de línea
+		resul.next();
+
+		// Saltar a la siguiente línea para poder leerlo bien
+		numeroClientesSinPedidos = resul.getInt(1);
+
+		// Comprobar si son 0 los clientes sin pedidos
+		if (numeroClientesSinPedidos > 0) {
+			existenClientesSinPedidos = true;
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el número de línea del producto de ese pedido en concreto
+		return existenClientesSinPedidos;
+
+	}
+
+	private static void visualizarPedidosCliente(int codigoCliente) throws SQLException {
+
+		// Comprobar que exista el cliente
+		if (existeCliente(codigoCliente)) {
+
+			// Comprobar que el cliente tenga pedidos
+			if (tienePedidos(codigoCliente)) {
+
+				// Mostrar los datos del cliente (Encabezado)
+				mostrarDatosCliente(codigoCliente);
+				mostrarDatosPedidosCliente(codigoCliente);
+
+			} else {
+
+				// Mostrar mensaje de error
+				System.out.println("El cliente " + codigoCliente + " no tiene pedidos");
+
+			}
+
+		} else {
+
+			// Mostrar mensaje de error
+			System.out.println("No existe el cliente");
+
+		}
+
+	}
+
+	private static void mostrarDatosPedidosCliente(int codigoCliente) throws SQLException {
+
+		// Inicializar variables
+		int importeMaximo = 0;
+		int importeTotalPedidoActual = 0;
+		Jardineria j = new Jardineria();
+		int cantidadMaxima = 0;
+		String nombreProductoMasVendido = "";
+		String codigoProductoMasVendido = "";
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select * from pedidos where codigocliente = " + codigoCliente;
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		System.out.println(
+				"----------------------------------------------------------------------------------------------------------------------------------");
+
+		// Recorremos todos los pedidos que tiene el cliente
+		while (resul.next()) {
+
+			int codigoPedido = resul.getInt(1);
+			Date fechaPedido = resul.getDate(2);
+			String estado = resul.getString(5);
+
+			if (pedidoTieneProductos(codigoPedido)) {
+
+				// Mostrar los datos del pedido
+				System.out.printf("%n COD-PEDIDO: %-10s FECHA-PEDIDO: %-15s ESTADO DEL PEDIDO: %-15s %n%n",
+						codigoPedido, fechaPedido, estado);
+
+				// Inicializar variables
+				int importeTotalPedido = 0;
+
+				// Mostrar la cabecera
+				System.out.printf("\t%-15s %-15s %-50s %-10s %-15s %-10s %n", "NUM-LINEA", "COD-PROD",
+						"NOMBRE PRODUCTO", "CANTIDAD", "PREC-UNID", "IMPORTE");
+				System.out.printf("\t%-15s %-15s %-50s %-10s %-15s %-10s %n", "--------------", "--------------",
+						"---------------------------------------", "---------", "--------------", "---------");
+
+				// Realizar consulta
+				Statement sentencia2 = conexion.createStatement();
+				String sql2 = "select * from productos where codigoproducto in (select codigoproducto from detallepedidos where codigopedido = "
+						+ codigoPedido + ")";
+				ResultSet resul2 = sentencia2.executeQuery(sql2);
+
+				while (resul2.next()) {
+
+					// Asignar datos producto
+					String codigoProducto = resul2.getString(1);
+					String nombre = resul2.getString(2);
+					int cantidad = resul2.getInt(7);
+					int precioUnidad = resul2.getInt(8);
+					int importe = cantidad * precioUnidad;
+					int numeroLinea = numeroLineaPedidoProducto(codigoPedido, codigoProducto);
+
+					// Ir sumando el importe de cada producto para obtener el importe total
+					importeTotalPedido += importe;
+
+					// Comprobar el producto con mayor cantidad
+					if (cantidad > cantidadMaxima) {
+						cantidadMaxima = cantidad;
+						nombreProductoMasVendido = nombre;
+						codigoProductoMasVendido = codigoProducto;
+					}
+
+					// Mostrar los datos
+					System.out.printf("\t%-15s %-15s %-50s %-10s %-15s %-10s %n", numeroLinea, codigoProducto, nombre,
+							cantidad, precioUnidad, importe);
+
+				}
+
+				// Asignar el importe total
+				importeTotalPedidoActual = importeTotalPedido;
+
+				// Cerrar consulta
+				resul2.close();
+				sentencia2.close();
+
+				// Comprobar cual es el importe máximo
+				if (importeTotalPedidoActual > importeMaximo) {
+					j.setCodigoPedidoMaximo(codigoPedido);
+					j.setFechaPedidoMaximo(fechaPedido);
+				}
+
+			}
+
+		}
+
+		System.out.println(
+				"----------------------------------------------------------------------------------------------------------------------------------");
+		System.out.println("COD de PEDIDO y FECHA PEDIDO CON TOTAL IMPORTE MÁXIMO: " + j.getCodigoPedidoMaximo() + " | "
+				+ j.getFechaPedidoMaximo());
+		System.out.println("COD PRODUCTO y NOMBRE PRODUCTO, del producto más comprado (producto con CANTIDAD Máxima): "
+				+ codigoProductoMasVendido + " | " + nombreProductoMasVendido);
+		System.out.println(
+				"----------------------------------------------------------------------------------------------------------------------------------\n");
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static boolean pedidoTieneProductos(int codigoPedido) throws SQLException {
+
+		// Inicializar variable booleana
+		boolean tieneProductos = false;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select count(*) from detallepedidos where codigopedido = " + codigoPedido;
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Saltar de línea
+		resul.next();
+
+		// Comprobar el número de pedidos que tiene
+		if (resul.getInt(1) > 0) {
+			tieneProductos = true;
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el valor booleano
+		return tieneProductos;
+	}
+
+	private static int numeroLineaPedidoProducto(int codigoPedido, String codigoProducto) throws SQLException {
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select numerolinea from detallepedidos where codigopedido = " + codigoPedido
+				+ " and codigoproducto = '" + codigoProducto + "'";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Saltar de línea
+		resul.next();
+
+		// Saltar a la siguiente línea para poder leerlo bien
+		int numeroLinea = resul.getInt(1);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el número de línea del producto de ese pedido en concreto
+		return numeroLinea;
+	}
+
+	private static void mostrarDatosCliente(int codigoCliente) throws SQLException {
+
+		// Calcular el número de pedidos que tiene el cliente
+		int numeroPedidos = numeroPedidosCliente(codigoCliente);
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select * from clientes where codigocliente = " + codigoCliente;
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Pasar a la linea correcta para poder leer los datos de la consulta
+		resul.next();
+
+		// Asignar los datos al cliente
+		String nombre = resul.getString(2);
+		String direccion = resul.getString(7);
+
+		// Encabezado de cliente
+		System.out.println(
+				"----------------------------------------------------------------------------------------------------------------------------------");
+		System.out.printf("COD-CLIENTE: %-30s NOMBRE: %-50s %n", codigoCliente, nombre);
+		System.out.printf("DIRECCIÓN1: %-31s NÚMERO PEDIDOS: %-10s %n", direccion, numeroPedidos);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+	}
+
+	private static int numeroPedidosCliente(int codigoCliente) throws SQLException {
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select count(*) from pedidos where codigocliente = " + codigoCliente;
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Inicialar la variable
+		int numeroPedidosCliente = 0;
+
+		// Pasar a la linea correcta para poder leer los datos de la consulta
+		resul.next();
+
+		// Asignar el número de pedidos que tiene el cliente
+		numeroPedidosCliente = resul.getInt(1);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el valor booleano
+		return numeroPedidosCliente;
+
+	}
+
 	private static void insertarEmpleado(String nombre, String primerApellido, String segundoApellido, String extension,
 			String email, String codigoOficina, int codigoJefe, String puesto) throws SQLException {
 
@@ -122,16 +725,16 @@ public class Jardineria {
 			if (existeOficina(codigoOficina)) {
 
 				// Realizar la inserción
-				Statement sentencia4 = conexion.createStatement();
-				String sql4 = "insert into empleados values (" + "    " + codigoEmpleado + "," + "    '" + nombre + "',"
+				Statement sentencia = conexion.createStatement();
+				String sql = "insert into empleados values (" + "    " + codigoEmpleado + "," + "    '" + nombre + "',"
 						+ "    '" + primerApellido + "'," + "    '" + segundoApellido + "'," + "    '" + extension
 						+ "'," + "    '" + email + "'," + "    '" + codigoOficina + "'," + "    " + codigoJefe + ","
 						+ "    '" + puesto + "'" + ")";
-				ResultSet resul4 = sentencia4.executeQuery(sql4);
+				ResultSet resul = sentencia.executeQuery(sql);
 
 				// Cerrar consulta
-				resul4.close();
-				sentencia4.close();
+				resul.close();
+				sentencia.close();
 
 				// Mostrar mensaje de confirmación
 				System.out.println("Se ha insertado el empleado número " + codigoEmpleado + " con éxito");
@@ -152,54 +755,108 @@ public class Jardineria {
 	private static boolean existeOficina(String codigoOficina) throws SQLException {
 
 		// Tercera consulta para comprobar que exista la oficina
-		Statement sentencia3 = conexion.createStatement();
-		String sql3 = "select codigooficina from oficinas";
-		ResultSet resul3 = sentencia3.executeQuery(sql3);
+		Statement sentencia = conexion.createStatement();
+		String sql = "select codigooficina from oficinas";
+		ResultSet resul = sentencia.executeQuery(sql);
 
 		// Inicializar una variable booleana
 		boolean existeOficina = false;
 
 		// Recorrer todos los códigos de los jefes
-		while (resul3.next()) {
+		while (resul.next()) {
 
 			// Compararlo con el código pasado como parámetro
-			if (resul3.getString(1).equals(codigoOficina)) {
+			if (resul.getString(1).equals(codigoOficina)) {
 				existeOficina = true;
 			}
 
 		}
 
 		// Cerrar consulta
-		resul3.close();
-		sentencia3.close();
+		resul.close();
+		sentencia.close();
 
 		// Devolver el valor booleano
 		return existeOficina;
 	}
 
+	private static boolean existeCliente(int codigoCliente) throws SQLException {
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select codigocliente from clientes";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Inicializar una variable booleana
+		boolean existeEmpleado = false;
+
+		// Recorrer todos los códigos de los jefes
+		while (resul.next()) {
+
+			// Compararlo con el código pasado como parámetro
+			if (resul.getInt(1) == codigoCliente) {
+				existeEmpleado = true;
+			}
+
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el valor booleano
+		return existeEmpleado;
+	}
+
+	private static boolean tienePedidos(int codigoCliente) throws SQLException {
+
+		// // Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select count(*) from pedidos where codigocliente = " + codigoCliente;
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Inicializar una variable booleana
+		boolean tienePedidos = false;
+
+		// Pasar a la linea correcta para poder leer los datos de la consulta
+		resul.next();
+
+		// Comprobar el número que nos da la consulta
+		if (resul.getInt(1) > 0) {
+			tienePedidos = true;
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el valor booleano
+		return tienePedidos;
+	}
+
 	private static boolean existeJefe(int codigoJefe) throws SQLException {
 
 		// Segunda consulta para verificar si existe el jefe
-		Statement sentencia2 = conexion.createStatement();
-		String sql2 = "select codigojefe from empleados";
-		ResultSet resul2 = sentencia2.executeQuery(sql2);
+		Statement sentencia = conexion.createStatement();
+		String sql = "select codigojefe from empleados";
+		ResultSet resul = sentencia.executeQuery(sql);
 
 		// Inicializar una variable booleana
 		boolean existeJefe = false;
 
 		// Recorrer todos los códigos de los jefes
-		while (resul2.next()) {
+		while (resul.next()) {
 
 			// Compararlo con el código pasado como parámetro
-			if (resul2.getInt(1) == codigoJefe) {
+			if (resul.getInt(1) == codigoJefe) {
 				existeJefe = true;
 			}
 
 		}
 
 		// Cerrar consulta
-		resul2.close();
-		sentencia2.close();
+		resul.close();
+		sentencia.close();
 
 		// Devolver el valor booleano
 		return existeJefe;
