@@ -119,19 +119,16 @@ public class Jardineria {
 				actualizarEmpleados();
 				break;
 			case 5:
-
+				actualizarProductos();
 				break;
 			case 6:
-
+				
 				break;
 			case 7:
 				visualizarPedidosClientes();
 				break;
 			case 8:
 
-				break;
-			case 9:
-				probarConexion();
 				break;
 			case 0:
 				System.out.println("\nHASTA PRONTO\n");
@@ -147,6 +144,205 @@ public class Jardineria {
 
 	}
 
+	private static void actualizarProductos() throws SQLException {
+		
+		// Comprobar que no exista la tabla StockActualizado
+		if (!comprobarActualizacionProductos()) {
+			
+			// Creo la nueva columna en la tabla empleados
+			crearNuevaColumnaProductos();
+		
+			// Mostrar por pantalla los productos que se necesitan reponer
+			System.out.println("Los productos que necesitan reponerse son los siguientes: \n");
+			System.out.printf("%-20s %-20s %-20s %n", "COD-PRODUCTO", "CANTIDAD-EN-STOCK", "STOCK-ACTUALIZADO");
+			System.out.printf("%-20s %-20s %-20s %n", "-------------------", "-------------------", "-------------------");
+			
+			// Actualizar el contenido de la columna
+			actualizarStock();
+			
+			// Mostrar mensaje de confirmación
+			System.out.println("\nTabla de Productos actualizada con éxito");
+			
+		} else {
+			
+			// Mostrar mensaje de error
+			System.out.println("Error. La tabla productos ya ha sido actualizada anteriormente");
+			
+		}
+		
+	}
+
+	private static void actualizarStock() throws SQLException {
+		
+		// Inicializar variables
+		String codigoPedidoActual = "";
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select codigoproducto from productos";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Recorrer todos los clientes
+		while (resul.next()) {
+
+			// Asignar a una variable el número de clientes que tiene el empleado actual
+			codigoPedidoActual = resul.getString(1);
+
+			// Insertar los datos actualizados
+			insertarStockActualizado(codigoPedidoActual);
+
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+	}
+
+	private static void insertarStockActualizado(String codigoProductoActual) throws SQLException {
+		
+		// Inicializar variables
+		int cantidadStockActualizada = 0;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select cantidadenstock from productos where codigoproducto = '" + codigoProductoActual + "'";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Pasar a la siguiente línea para poder leer los datos
+		resul.next();
+
+		// Asignar el dato en una variable
+		cantidadStockActualizada = resul.getInt(1) - cantidadProductoVendida(codigoProductoActual);
+		
+		// Insertar el dato en la tabla
+		actualizarDatoStock(cantidadStockActualizada, codigoProductoActual);
+		
+		// Mostrar los datos de los productos a reponer
+		mostrarProductosParaReponer(codigoProductoActual, cantidadStockActualizada);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+			
+	}
+
+	private static void mostrarProductosParaReponer(String codigoProductoActual, int cantidadStockActualizada) throws SQLException {
+		
+		// Incializar variables
+		int cantidadEnStock = 0;
+		
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select cantidadenstock from productos where codigoproducto = '"+codigoProductoActual+"'";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Pasar a la sigueinte línea
+		resul.next();
+		
+		// Asignar valor a la variable
+		cantidadEnStock = resul.getInt(1);
+		
+		// Comprobar primero q el stockactualizado sea mayor que 5
+		if (cantidadStockActualizada < 5) {
+			
+			// Mostrar los datos del producto
+			System.out.printf("%-20s %-20s %-20s %n", codigoProductoActual, cantidadEnStock, cantidadStockActualizada);
+		}
+		
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+	}
+
+	private static void actualizarDatoStock(int cantidadStockActualizada, String codigoProductoActual) throws SQLException {
+		
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "update productos set stockactualizado = " + cantidadStockActualizada + " where codigoproducto = '"
+				+ codigoProductoActual + "'";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+		
+	}
+
+	private static int cantidadProductoVendida(String codigoProductoActual) throws SQLException {
+		
+		// Inicializar variables
+		int cantidadVendidaProducto = 0;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "select sum(cantidad) from detallepedidos where codigoproducto = '" + codigoProductoActual + "'";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Pasar a la siguiente línea para poder leer los datos
+		resul.next();
+
+		// Asignar el dato en una variable
+		cantidadVendidaProducto = resul.getInt(1);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+		// Devolver el valor entero
+		return cantidadVendidaProducto;
+	}
+
+	private static void crearNuevaColumnaProductos() throws SQLException {
+		
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "alter table productos add stockactualizado number(6,2)";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+		
+	}
+
+	private static boolean comprobarActualizacionProductos() throws SQLException {
+		
+		// Inicializar variables
+		int numeroColumnasEncontradas = 0;
+		boolean datosActualizados = false;
+
+		// Realizar consulta
+		Statement sentencia = conexion.createStatement();
+		String sql = "SELECT COUNT(*) FROM all_tab_columns WHERE owner = 'JARDINERIAAD' AND table_name = 'PRODUCTOS' AND column_name = 'STOCKACTUALIZADO'";
+		ResultSet resul = sentencia.executeQuery(sql);
+
+		// Saltar de línea
+		resul.next();
+
+		// Asignar el numero de coumnas encontradas
+		numeroColumnasEncontradas = resul.getInt(1);
+
+		// Comprobar si se ha encontrado la columna buscada
+		if (numeroColumnasEncontradas > 0) {
+
+			// Comprobar que exista la columna
+			datosActualizados = true;
+
+		}
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+
+		// Devolver el valor booleano
+		return datosActualizados;
+		
+	}
+
 	private static void visualizarPedidosClientes() throws SQLException {
 
 		// Inicializar variables
@@ -154,7 +350,7 @@ public class Jardineria {
 
 		// Realizar consulta
 		Statement sentencia = conexion.createStatement();
-		String sql = "select codigocliente from clientes";
+		String sql = "select codigocliente from clientes where codigocliente in (select codigocliente from pedidos)";
 		ResultSet resul = sentencia.executeQuery(sql);
 
 		// Recorrer todos los clientes
@@ -190,7 +386,7 @@ public class Jardineria {
 		} else {
 
 			// Mostrar mensaje de error
-			System.out.println("Ya se ha actualizado la tabla empleados");
+			System.out.println("Error. La tabla empleados ya ha sido actualizada anteriormente");
 
 		}
 
@@ -879,33 +1075,6 @@ public class Jardineria {
 
 		// Devolver el código del empleado
 		return codigoEmpleado;
-	}
-
-	private static void probarConexion() {
-		try {
-			Class.forName("oracle.jdbc.driver.OracleDriver");
-			Connection conexion = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE", "jardineriaad",
-					"dam");
-			// Preparamos la consulta
-			Statement sentencia = conexion.createStatement();
-			String sql = "SELECT * FROM detallepedidos";
-			ResultSet resul = sentencia.executeQuery(sql);
-
-			// Recorremos el resultado para visualizar cada fila
-
-			// Se hace un bucle mientras haya registros y se van mostrando
-
-			while (resul.next()) {
-				System.out.printf("%d, %s, %d, %d, %d %n", resul.getInt(1), resul.getString(2), resul.getInt(3),
-						resul.getInt(4), resul.getInt(5));
-			}
-			resul.close(); // Cerrar ResultSet
-			sentencia.close(); // Cerrar Statement
-			conexion.close(); // Cerrar conexión
-		} catch (ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
-		}
-
 	}
 
 	private static void menu() {
