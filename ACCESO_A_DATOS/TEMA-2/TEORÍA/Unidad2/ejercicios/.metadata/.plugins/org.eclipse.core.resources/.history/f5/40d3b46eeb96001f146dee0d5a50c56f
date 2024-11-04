@@ -1,0 +1,16 @@
+package pruebaProcedimientos;
+
+import java.sql.Connection;
+
+public class UsarFuncionCreada {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		Connection conexion = Conexiones.getOracle("EJEMPLO25", "ejemplo25");
+
+		
+		
+	}
+
+}

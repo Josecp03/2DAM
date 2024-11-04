@@ -1,0 +1,80 @@
+package pruebaJtable;
+
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+import javax.swing.JLabel;
+import java.awt.Font;
+import java.awt.Color;
+import javax.swing.SwingConstants;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+public class Principal extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					Principal frame = new Principal();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public Principal() {
+		setTitle("PRUEBA JTABLE");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 450, 300);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		JLabel lblNewLabel = new JLabel("PRUEBAS JTABLE-RESULTSEMETADATA");
+		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel.setForeground(Color.BLUE);
+		lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+		lblNewLabel.setBounds(29, 11, 357, 42);
+		contentPane.add(lblNewLabel);
+		
+		JButton btnVerempleados = new JButton("Ver empleados");
+		btnVerempleados.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				
+			}
+		});
+		btnVerempleados.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnVerempleados.setBounds(34, 77, 189, 23);
+		contentPane.add(btnVerempleados);
+		
+		JButton btnVerDepartamentos = new JButton("Ver departamentos");
+		btnVerDepartamentos.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				
+			}
+		});
+		btnVerDepartamentos.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnVerDepartamentos.setBounds(237, 77, 158, 23);
+		contentPane.add(btnVerDepartamentos);
+	}
+}

@@ -1,0 +1,18 @@
+package pruebaProcedimientos;
+
+import java.sql.Connection;
+
+public class UsarFuncionCreada {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		Connection conexion = Conexiones.getOracle("EJEMPLO25", "ejemplo25");
+
+		String sql="Select dept_no, dnombre, loc from departamentos order by dept_no";
+		// FACTIVIDAD12 (d NUMBER, num out number) 
+		String fun = "{? = call FACTIVIDAD12 ( ?, ? ) }";
+		
+	}
+
+}

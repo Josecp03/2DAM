@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Extract method &apos;private static void subidasal(String [] args, Connection conexion) throws SQLException &apos; from &apos;pruebaProcedimientos.Principal.main(...)&apos; to &apos;pruebaProcedimientos.Principal&apos;&#x0D;&#x0A;- Original project: &apos;pruebaProcedimientos&apos;&#x0D;&#x0A;- Method name: &apos;subidasal&apos;&#x0D;&#x0A;- Destination type: &apos;pruebaProcedimientos.Principal&apos;&#x0D;&#x0A;- Declared visibility: &apos;private&apos;" comments="false" description="Extract method &apos;subidasal&apos;" destination="0" exceptions="false" flags="786434" id="org.eclipse.jdt.ui.extract.method" input="/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;pruebaProcedimientos{Principal.java" name="subidasal" replace="false" selection="253 601" stamp="1730308205265" version="1.0" visibility="2"/>
+</session>

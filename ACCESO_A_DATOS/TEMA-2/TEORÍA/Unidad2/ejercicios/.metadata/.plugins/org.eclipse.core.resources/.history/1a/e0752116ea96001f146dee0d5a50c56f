@@ -1,0 +1,28 @@
+package pruebaProcedimientos;
+
+public class CrearfuncionOracle {
+
+	public static void main(String[] args) {
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("CREATE OR REPLACE FUNCTION FACTIVIDAD12 (d NUMBER, num out number) ");
+		sql.append("RETURN number AS ");
+		sql.append("media number;");
+		sql.append(" C NUMBER; ");
+		sql.append("BEGIN ");
+		sql.append(" --existe el dep");
+		sql.append(" SELECT COUNT(*) INTO C FROM DEPARTAMENTOS WHERE DEPT_NO=d;");
+		sql.append(" IF C = 0 THEN ");
+		sql.append(" media :=-1;");
+		sql.append(" num:=0;");
+		sql.append(" ELSE ");
+		sql.append(" SELECT nvl(AVG(SALARIO),0), count(emp_no)");
+		sql.append("   INTO media, num");
+		sql.append("    FROM empleados WHERE dept_no=d;");
+		sql.append(" END IF;");
+		sql.append(" RETURN media;");
+		sql.append("END");
+
+	}
+
+}

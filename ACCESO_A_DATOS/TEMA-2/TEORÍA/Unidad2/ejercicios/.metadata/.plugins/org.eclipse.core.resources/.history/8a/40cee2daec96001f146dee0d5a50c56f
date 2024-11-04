@@ -1,0 +1,56 @@
+package pruebaProcedimientos;
+
+import java.sql.*;
+
+public class UsarFuncionCreada {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		Connection conexion = Conexiones.getOracle("EJEMPLO25", "ejemplo25");
+
+		String sql="Select dept_no, dnombre, loc from departamentos order by dept_no";
+		//devuelve media FACTIVIDAD12 (d NUMBER, num out number) 
+		String fun = "{? = call FACTIVIDAD12 ( ?, ? ) }";
+		
+		try {
+			Statement sentencia = conexion.createStatement();
+		    ResultSet resul = sentencia.executeQuery(sql);
+		    // cabeceras
+		    System.out.printf("%7s %15s %15s %12s %20s%n",
+		    "DEPT-NO","NOMBRE","LOCALIDAD","MEDIASALARIO","CONTADOREMPLES");
+		    System.out.printf("%7s %15s %15s %12s %20s%n",
+				    "-------","--------------","--------------",
+				    "------------","---------------------");
+			     
+		    while (resul.next()) {
+		    	// 
+		    	CallableStatement llamada = conexion.prepareCall(fun);
+
+		        llamada.registerOutParameter(1, Types.FLOAT);
+				llamada.setInt(2, resul.getInt(1));
+				llamada.registerOutParameter(3, Types.INTEGER);
+		    	
+				llamada.executeUpdate();
+				
+				 System.out.printf("%7s %15s %15s %12s %20s%n",
+						 resul.getInt(1), resul.getString(2),
+						 resul.getString(3), llamada.getFloat(1),
+						 llamada.getInt(3));
+				 
+						   
+		    }
+		    System.out.printf("%7s %15s %15s %12s %20s%n",
+				    "-------","--------------","--------------",
+				    "------------","---------------------");
+		
+		
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
+
+}

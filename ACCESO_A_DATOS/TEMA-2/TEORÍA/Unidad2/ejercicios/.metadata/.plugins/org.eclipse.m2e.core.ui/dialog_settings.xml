@@ -2,6 +2,8 @@
 <section name="Workbench">
 	<section name="MavenProjectWizardLocationPage">
 		<list key="location">
+			<item value="C:\Alicia\CompartidaAlicia_2425\Unidad2\ejercicios\operacionesEmple"/>
+			<item value="C:\Alicia\CompartidaAlicia_2425\Unidad2\ejercicios\pruebasentencias"/>
 			<item value="C:\Alicia\CompartidaAlicia_2425\Unidad2\ejercicios\prueba1"/>
 		</list>
 		<list key="projectNameTemplate">
@@ -49,6 +51,11 @@
 		<list key="name">
 		</list>
 		<list key="artifactId">
+			<item value="pruebaProcedimientos"/>
+			<item value="ejercicioJardineria"/>
+			<item value="operacionesEmple"/>
+			<item value="pruebasentencias"/>
+			<item value="pruebaJtable"/>
 			<item value="pruebaMaven"/>
 		</list>
 		<list key="projectNameTemplate">

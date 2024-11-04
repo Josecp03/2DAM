@@ -1,0 +1,241 @@
+package pruebaJtable;
+
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+import javax.swing.JLabel;
+import java.awt.Font;
+import java.awt.Color;
+import javax.swing.SwingConstants;
+import java.awt.event.ActionListener;
+
+import java.awt.event.ActionEvent;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import java.sql.*;
+import java.util.List;
+import java.util.Vector;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+
+public class Principal extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JTable table;
+	private DefaultTableModel modelo;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					Principal frame = new Principal();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public Principal() {
+		setTitle("PRUEBA JTABLE");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 592, 386);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+
+		JLabel lblNewLabel = new JLabel("PRUEBAS JTABLE-RESULTSEMETADATA");
+		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel.setForeground(Color.BLUE);
+		lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+		lblNewLabel.setBounds(29, 11, 357, 42);
+		contentPane.add(lblNewLabel);
+
+		JButton btnVerempleados = new JButton("Ver empleados");
+		btnVerempleados.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				llenartablabd("empleados");
+
+			}
+
+			
+		});
+		btnVerempleados.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnVerempleados.setBounds(34, 77, 189, 23);
+		contentPane.add(btnVerempleados);
+
+		JButton btnVerDepartamentos = new JButton("Ver departamentos");
+		btnVerDepartamentos.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				llenartablabd("departamentos");
+			}
+		});
+		btnVerDepartamentos.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnVerDepartamentos.setBounds(237, 77, 158, 23);
+		contentPane.add(btnVerDepartamentos);
+
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(29, 110, 525, 207);
+		contentPane.add(scrollPane);
+
+		table = new JTable();
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+				System.out.println("He pulsado en la fila " + table.getSelectedRow());
+				Vector datostabla = modelo.getDataVector();
+				List datosFila = (List) datostabla.get(table.getSelectedRow());
+				
+				System.out.println(datosFila);
+			
+				if (datosFila.size() > 0) {
+					 for (int i = 0; i < datosFila.size(); i++) {
+					   System.out.println("Dato " + i + " : " + datosFila.get(i));
+					}
+				}
+
+				
+			}
+		});
+		table.setModel(new DefaultTableModel(
+				new Object[][] { { "ssss", "sss", null, null, null }, { "ssss", "sss", null, null, null },
+						{ "ssss", null, null, null, null }, { null, null, "sss", "sss", null },
+						{ null, null, null, null, "sss" }, { null, null, null, null, null }, },
+				new String[] { "Columna1", "Columna2", "Columna3", "Columna4", "Columna5" }));
+		scrollPane.setViewportView(table);
+
+		JButton btnVerotro = new JButton("Ver otros");
+		btnVerotro.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+
+				llenarjtable();
+			}
+
+		});
+		btnVerotro.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnVerotro.setBounds(426, 78, 89, 23);
+		contentPane.add(btnVerotro);
+	}
+
+	
+	private void llenartablabd(String nombretabla) {
+		// TODO Auto-generated method stub
+		
+		try {
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+		
+		   Connection conexion = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE", 
+				"ejemplo25","ejemplo25");
+		   
+		    Statement sentencia = conexion.createStatement();
+			String consulta = "SELECT *  FROM "+ nombretabla;
+			ResultSet resul = sentencia.executeQuery(consulta);
+
+			ResultSetMetaData rsmd = resul.getMetaData();
+			
+			// Número de columnas
+			int nColumnas = rsmd.getColumnCount();
+
+		    //extraer las filas
+			String consulta2 = "SELECT count(*) FROM "+ nombretabla;
+			 Statement sentencia2 = conexion.createStatement();
+			ResultSet resul2 = sentencia2.executeQuery(consulta2);
+			resul2.next();
+			int filas = resul2.getInt(1);
+			sentencia2.close();
+			resul2.close();
+			
+			// creo los arrays
+			String[] etiquetas = new String[nColumnas];
+			Object[][] datos = new  Object[filas][nColumnas];
+			
+			//lleno las etiquetas
+			// Se obtiene cada una de las etiquetas para cada columna
+			for (int i = 1; i <= nColumnas; i++) {
+				rsmd.getColumnName(i);
+				System.out.println("Añado la columna " + rsmd.getColumnName(i).toUpperCase());
+				etiquetas[i - 1] = rsmd.getColumnName(i).toUpperCase();
+			}
+			System.out.println("Filas: " + filas + ", columnas: " + nColumnas);
+
+
+			// llenar ccon los datos de la tabla
+			int numeroFila = 0;
+			resul = sentencia.executeQuery(consulta);
+			while (resul.next()) {
+			   //Bucle para cada fila, añadir las columnas 
+		         for (int i = 0; i < nColumnas; i++) {
+					datos[numeroFila][i] = resul.getObject(i + 1);
+					System.out.println("Añado la columna " + i + ", datos " + 
+		                      resul.getString(i + 1));
+				}
+			   numeroFila++;
+			}
+
+			modelo = new DefaultTableModel(datos, etiquetas);
+			
+		    // Asignamos el modelo a la tabla
+			table.setModel(modelo);
+			
+			//dar color
+			Color fg = Color.PINK;
+			table.setBackground(fg);
+			table.setForeground(Color.BLUE);
+
+			resul.close();
+			conexion.close();
+
+			
+			
+		
+		
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
+	private void llenarjtable() {
+		String[] etiquetas = { "Nombre", "Apellido", "Tlf" };
+		Object[][] datos = { { "Ali", "Ramos", "1233" }, 
+				             { "Dori", "Gil", "125533" },
+				             { "Juan", "Sánchez", "333" }
+				             };
+
+		// Para llenar el JTABLE se necesita un DefaultTableModel
+		// Si lo cargo con mis datos lo hago así
+		modelo = new DefaultTableModel(datos, etiquetas);
+		modelo.setColumnIdentifiers(etiquetas);
+		modelo.setDataVector(datos, etiquetas);
+
+		// Asignamos el modelo a la tabla
+		table.setModel(modelo);
+		Color fg = Color.PINK;
+		table.setBackground(fg);
+		table.setForeground(Color.BLUE);
+
+	} // fin llenarjtable
+} // fin clase
