@@ -1,11 +1,14 @@
 package ejercicio;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Scanner;
 
 public class Jardineria {
@@ -122,13 +125,17 @@ public class Jardineria {
 				actualizarProductos();
 				break;
 			case 6:
-				
+				funcion("BCN-ES");
+				// funcion("ooooooo");
 				break;
 			case 7:
 				visualizarPedidosClientes();
 				break;
 			case 8:
 
+				break;
+			case 9:
+				pruebas();
 				break;
 			case 0:
 				System.out.println("\nHASTA PRONTO\n");
@@ -142,6 +149,73 @@ public class Jardineria {
 		// Cerrar el scanner
 		sc.close();
 
+	}
+
+	private static void funcion(String codigoOficina) throws SQLException {
+
+		// Realizar llamada a la función
+		String llamad = "{ ? = call veroficina(?,?,?,?,?)}";
+		CallableStatement llamada;
+		llamada = conexion.prepareCall(llamad);
+		
+		// Dar valor a los argumentos
+		llamada.registerOutParameter(1, Types.INTEGER);
+		llamada.setString(2, codigoOficina);
+		llamada.registerOutParameter(3, Types.VARCHAR);
+		llamada.registerOutParameter(4, Types.VARCHAR);
+		llamada.registerOutParameter(5, Types.VARCHAR);
+		llamada.registerOutParameter(6, Types.VARCHAR);
+		
+		// Ejecutar el procedimiento
+		llamada.executeUpdate();
+		
+		// Aignar variables
+		String ciudad = llamada.getString(3);
+		String pais = llamada.getString(4);
+		String region = llamada.getString(5);
+		String direccion = llamada.getString(6);
+		int numeroEmpleados = llamada.getInt(1);
+		
+		if (ciudad.equals("NO EXISTE OFICINA")) {
+			System.out.println("No existe la oficina");
+		} else {
+			
+			// Mostrar cabecera
+			System.out.printf("%n%-15s %-15s %-15s %-15s %-30s %-15s %n", "COD OFICINA", "CIUDAD", "PAIS", "REGION", "DIRECCION1", "NUM EMPLES");
+			System.out.printf("%-15s %-15s %-15s %-15s %-30s %-15s %n", "--------------", "--------------", "--------------", "--------------", "-----------------------------", "--------------");
+
+			// Imprimir los datos
+			System.out.printf("%-15s %-15s %-15s %-15s %-30s %-15s %n%n", codigoOficina, ciudad, pais, region, direccion, numeroEmpleados);
+			
+		}
+		
+		// Cerrar la llamada
+		llamada.close();
+			
+	}
+
+	private static void pruebas() throws SQLException {
+		
+		// Inicializar variables
+		int codigoEmpleado = 1;
+
+		// Realizar consulta
+		String sql = "select * from empleados where codigoempleado = ?";
+		PreparedStatement sentencia = conexion.prepareStatement(sql);
+		sentencia.setInt(1, codigoEmpleado);
+		ResultSet resul = sentencia.executeQuery();
+
+		resul.next();
+		
+		String nombre = resul.getString(2);
+		String apellido1 = resul.getString(3);
+		
+		System.out.println(nombre + " | "+ apellido1);
+
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
 	}
 
 	private static void actualizarProductos() throws SQLException {

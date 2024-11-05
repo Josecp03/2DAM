@@ -2,4 +2,7 @@
 <qualifiedTypeNameHistroy>
     <fullyQualifiedTypeName name="java.net.MulticastSocket"/>
     <fullyQualifiedTypeName name="ejercicio.Jardineria"/>
+    <fullyQualifiedTypeName name="java.sql.Types"/>
+    <fullyQualifiedTypeName name="com.mysql.jdbc.interceptors.ServerStatusDiffInterceptor"/>
+    <fullyQualifiedTypeName name="java.time.LocalDate"/>
 </qualifiedTypeNameHistroy>
