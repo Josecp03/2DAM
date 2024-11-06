@@ -53,12 +53,12 @@ public class Principal {
 		        String fechaReserva = fechaActual.format(formateador);
 		        
 		        // Distintos datos
-		        int codigoReserva = 100;
-		        int numeroPlaza = 1;
-		        int codigoViaje = 1;
+		        int codigoReserva = 2001;
+		        int numeroPlaza = 30;
+		        int codigoViaje = 10;
 		        int codigoCliente = 1;
 		        
-				insertarReserva(codigoReserva, numeroPlaza, codigoViaje, codigoCliente);
+				insertarReserva(codigoReserva, numeroPlaza, codigoViaje, codigoCliente, fechaReserva);
 				break;
 
 			case 0:
@@ -76,7 +76,7 @@ public class Principal {
 		
 	}
 
-	private static void insertarReserva(int codigoReserva, int numeroPlaza, int codigoViaje, int codigoCliente) throws SQLException {
+	private static void insertarReserva(int codigoReserva, int numeroPlaza, int codigoViaje, int codigoCliente, String fechaReserva) throws SQLException {
 		
 		if (!existeReserva(codigoReserva)) {
 			
@@ -92,7 +92,31 @@ public class Principal {
 								
 								if (primeraReservaViaje(codigoViaje)) {
 									
+									numeroPlaza = 1;
+									System.out.println("Es la primera reserva del viaje");
+									
 								} 
+																
+								// Realizar consulta
+								String sql = "insert into reservas values(?, ?, ?, ?, ?)";
+								PreparedStatement sentencia = conexion.prepareStatement(sql);
+								sentencia.setInt(1, codigoReserva);
+								sentencia.setInt(2, numeroPlaza);
+								sentencia.setString(3, fechaReserva);
+								sentencia.setInt(4, codigoCliente);
+								sentencia.setInt(5, codigoViaje);
+								ResultSet resul = sentencia.executeQuery();
+								
+								// Cerrar consulta
+								resul.close();
+								sentencia.close();
+								
+								// Mostrar mensaje de confirmación
+								System.out.println("Reserva insertada con éxito");
+								
+								// Actualizar las plazas ocupadas en el viaje
+								actualizarViajeReserva(codigoViaje);
+								
 								
 							} else {
 								
@@ -135,6 +159,50 @@ public class Principal {
 			System.out.println("Error. La reserva ya existe");
 			
 		}
+		
+	}
+
+	private static void actualizarViajeReserva(int codigoViaje) throws SQLException {
+		
+		// Realizar consulta
+		String sql = "update viajes set plazasocupadas = plazasocupadas + 1 where codviaje = ?";
+		PreparedStatement sentencia = conexion.prepareStatement(sql);
+		sentencia.setInt(1, codigoViaje);
+		ResultSet resul = sentencia.executeQuery();
+				
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+	}
+
+	private static boolean primeraReservaViaje(int codigoViaje) throws SQLException {
+		
+		// Inicializar variable
+		boolean esPrimerReserva = false;
+		int reservasEncontradas = 0;
+		
+		// Realizar consulta
+		String sql = "select count(*) from viajes where codviaje in (select codviaje from reservas) and codviaje = ?";
+		PreparedStatement sentencia = conexion.prepareStatement(sql);
+		sentencia.setInt(1, codigoViaje);
+		ResultSet resul = sentencia.executeQuery();
+
+		// Asignar datos
+		resul.next();
+		reservasEncontradas = resul.getInt(1);
+		
+		// Comprobar que sea correcto
+		if (reservasEncontradas == 0) {
+			esPrimerReserva = true;
+		}
+		
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+		// Devolver el valor
+		return esPrimerReserva;
 		
 	}
 
