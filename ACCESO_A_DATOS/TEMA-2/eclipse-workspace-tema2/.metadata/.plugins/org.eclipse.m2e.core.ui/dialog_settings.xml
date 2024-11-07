@@ -2,6 +2,7 @@
 <section name="Workbench">
 	<section name="MavenProjectWizardLocationPage">
 		<list key="location">
+			<item value="D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2\ExamenEmpresas\src\main\java\ejercicio\Principal.java"/>
 			<item value="D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2\ExamenViajes\src\main\java\ejercicio\Principal.java"/>
 			<item value="D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2\EjercicioJardineria\src\main\java\ejercicio\Jardineria.java"/>
 			<item value="D:\2DAM\ACCESO_A_DATOS\TEMA-2\eclipse-workspace-tema2\CONEXIONES_BD_JOSE\src\main\java\paquete\App.java"/>
@@ -49,12 +50,16 @@
 	</section>
 	<section name="MavenProjectWizardArtifactPage">
 		<list key="groupId">
+			<item value="jajaja"/>
+			<item value="aaaaaa"/>
 			<item value="bbbbbb"/>
 			<item value="aaaaaaaaaaa"/>
 		</list>
 		<list key="name">
 		</list>
 		<list key="artifactId">
+			<item value="Chuletario"/>
+			<item value="JoseCorrochanoPardo"/>
 			<item value="ExamenEmpresas"/>
 			<item value="ExamenViajes"/>
 		</list>
