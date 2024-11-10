@@ -395,38 +395,41 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButtonBulbasurActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBulbasurActionPerformed
+    private void jTabbedPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTabbedPane1MouseClicked
+
+        if (contadorClicker > 0 && !estadisticasDisponibles) {
+            JOptionPane.showMessageDialog(
+                null,
+                "No puedes cambiar de pestaña ahora",
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+
+            jTabbedPane1.setSelectedIndex(1);
+        }
+
+    }//GEN-LAST:event_jTabbedPane1MouseClicked
+
+    private void jPanelEstadisticasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanelEstadisticasMouseClicked
+
+    }//GEN-LAST:event_jPanelEstadisticasMouseClicked
+
+    private void jButtonSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSalirActionPerformed
 
         // Mostrar un cuadro de diálogo de confirmación
         int eleccion = JOptionPane.showConfirmDialog(
-                this,
-                "¿Está seguro de escoger a Bulbasaur?",
-                "Confirmación",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
+            this,
+            "¿Está seguro de que quiere salir del juego?",
+            "Confirmación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
         );
 
         // Verificar la respuesta del usuario
         if (eleccion == JOptionPane.YES_OPTION) {
-            setPokemonActual("Bulbasur");
-            jButtonClicker.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/Bulbasur.png")));
-            audiobulbasur.play();
-            jTabbedPane1.setSelectedIndex(1);
-
-            // Activar el boton de clicker hasta que se escoja el personaje
-            jButtonClicker.setEnabled(true);
-
-            // Cambiar el mensaje de ayuda
-            jLabelAyuda.setText("Haz click en el botón para ver el progreso!");
-
-            // Borrar componentes
-            jProgressBar1.setVisible(true);
-            jLabelMultiplicador.setVisible(true);
-
+            dispose();
         }
-
-
-    }//GEN-LAST:event_jButtonBulbasurActionPerformed
+    }//GEN-LAST:event_jButtonSalirActionPerformed
 
     private void jButtonClickerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClickerActionPerformed
 
@@ -438,22 +441,22 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
             if (pokemonActual.equals("MewTwo")) {
 
-                // Incrementar el contador 
+                // Incrementar el contador
                 contadorClicker += 10;
 
             } else if (evolucionActual.equals("SegundaEvolucion")) {
 
-                // Incrementar el contador 
+                // Incrementar el contador
                 contadorClicker += 3;
 
             } else if (evolucionActual.equals("TerceraEvolucion")) {
 
-                // Incrementar el contador 
+                // Incrementar el contador
                 contadorClicker += 5;
 
             } else {
 
-                // Incrementar el contador 
+                // Incrementar el contador
                 contadorClicker++;
             }
 
@@ -463,7 +466,7 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
         /*
         Evoluciones Bulbasur
-         */
+        */
         if (contadorClicker == 50 && pokemonActual.equals("Bulbasur")) {
 
             // Asignar al Clicker la imagen correspondiente
@@ -516,11 +519,11 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
             // Mostrar un cuadro de diálogo de confirmación
             int eleccion = JOptionPane.showConfirmDialog(
-                    jPanelMensaje,
-                    "¿Quieres ir a seleccionarlo?",
-                    "Confirmación",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE
+                jPanelMensaje,
+                "¿Quieres ir a seleccionarlo?",
+                "Confirmación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
             );
 
             // Verificar la respuesta del usuario
@@ -547,7 +550,7 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
         /*
         Evoluciones Charmander
-         */
+        */
         if (contadorClicker == 50 && pokemonActual.equals("Charmander")) {
 
             // Asignar al Clicker la imagen correspondiente
@@ -590,7 +593,7 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
         /*
         Evoluciones Squirtle
-         */
+        */
         if (contadorClicker == 50 && pokemonActual.equals("Squirtle")) {
 
             // Asignar al Clicker la imagen correspondiente
@@ -633,7 +636,7 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
         /*
         FIN DEL JUEGO
-         */
+        */
         if (contadorClicker >= MAX_CLICKS) {
 
             // Reproducir sonidos
@@ -662,11 +665,11 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
             // Mostrar un cuadro de diálogo de confirmación
             int eleccion = JOptionPane.showConfirmDialog(
-                    jPanelMensaje,
-                    "¿Quieres ver las estadísticas?",
-                    "Confirmación",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE
+                jPanelMensaje,
+                "¿Quieres ver las estadísticas?",
+                "Confirmación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
             );
 
             // Verificar la respuesta del usuario
@@ -676,7 +679,7 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
             // Confugurar Tabla
             DefaultTableModel dtm = new DefaultTableModel();
-            dtm.setColumnIdentifiers(new String[]{"Usuario", "NºClicks Charmander", "Nº Clicks Charmeleon", "Nº Clicks Charizard", "NºClicks Bulbasur", "NºClicks Ivysaur", "NºClicks Venusaur", "NºClicks Squirtle", "NºClicks Wartortle", "NºClicks Blastoise", "NºClicks MewTwo"});
+            dtm.setColumnIdentifiers(new String[]{"Usuario", "Clicks Charmander", "Clicks Charmeleon", "Clicks Charizard", "Clicks Bulbasur", "Clicks Ivysaur", "Clicks Venusaur", "Clicks Squirtle", "Clicks Wartortle", "Clicks Blastoise", "Clicks MewTwo"});
             dtm.addRow(new Object[]{getNick(), numClicksCharmander, numClicksCharmeleon, numClicksCharizard, numClicksBulbasur, numClicksIvysaur, numClicksVenusaur, numClicksSquirtle, numClicksWartortle, numClicksBlastoise, numClicksMewTwo});
             jTableEstadisticas.setModel(dtm);
 
@@ -689,7 +692,7 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
 
         /*
         GUARDAR ESTADÍSTICAS
-         */
+        */
         if (pokemonActual.equals("Bulbasur") && contadorClicker < 50) {
             numClicksBulbasur++;
         }
@@ -729,50 +732,21 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
         if (pokemonActual.equals("MewTwo")) {
             numClicksMewTwo++;
         }
-
     }//GEN-LAST:event_jButtonClickerActionPerformed
 
-    private void jButtonCharmanderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCharmanderActionPerformed
+    private void jPanelSeleccionPersonajesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanelSeleccionPersonajesMouseClicked
 
-        // Mostrar un cuadro de diálogo de confirmación
-        int eleccion = JOptionPane.showConfirmDialog(
-                this,
-                "¿Está seguro de escoger a Charmander?",
-                "Confirmación",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-        );
-
-        // Verificar la respuesta del usuario
-        if (eleccion == JOptionPane.YES_OPTION) {
-            setPokemonActual("Charmander");
-            jButtonClicker.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/Charmander.png")));
-            audioCharmander.play();
-            jTabbedPane1.setSelectedIndex(1);
-
-            // Activar el boton de clicker hasta que se escoja el personaje
-            jButtonClicker.setEnabled(true);
-
-            // Cambiar el mensaje de ayuda
-            jLabelAyuda.setText("Haz click en el botón para ver el progreso!");
-
-            // Borrar componentes
-            jProgressBar1.setVisible(true);
-            jLabelMultiplicador.setVisible(true);
-
-        }
-
-    }//GEN-LAST:event_jButtonCharmanderActionPerformed
+    }//GEN-LAST:event_jPanelSeleccionPersonajesMouseClicked
 
     private void jButtonMewtwoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMewtwoActionPerformed
 
         // Mostrar un cuadro de diálogo de confirmación
         int eleccion = JOptionPane.showConfirmDialog(
-                this,
-                "¿Está seguro de escoger a MewTwo?",
-                "Confirmación",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
+            this,
+            "¿Está seguro de escoger a MewTwo?",
+            "Confirmación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
         );
 
         // Verificar la respuesta del usuario
@@ -786,36 +760,17 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
         // Actualizar multiplicador
         jLabelMultiplicador.setText("X10");
 
-
     }//GEN-LAST:event_jButtonMewtwoActionPerformed
-
-    private void jButtonSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSalirActionPerformed
-
-        // Mostrar un cuadro de diálogo de confirmación
-        int eleccion = JOptionPane.showConfirmDialog(
-                this,
-                "¿Está seguro de que quiere salir del juego?",
-                "Confirmación",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-        );
-
-        // Verificar la respuesta del usuario
-        if (eleccion == JOptionPane.YES_OPTION) {
-            dispose();
-        }
-
-    }//GEN-LAST:event_jButtonSalirActionPerformed
 
     private void jButtonSquirtleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSquirtleActionPerformed
 
         // Mostrar un cuadro de diálogo de confirmación
         int eleccion = JOptionPane.showConfirmDialog(
-                this,
-                "¿Está seguro de escoger a Squirtle?",
-                "Confirmación",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
+            this,
+            "¿Está seguro de escoger a Squirtle?",
+            "Confirmación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
         );
 
         // Verificar la respuesta del usuario
@@ -836,32 +791,70 @@ public class SeleccionPersonajes extends javax.swing.JFrame {
             jLabelMultiplicador.setVisible(true);
 
         }
-
     }//GEN-LAST:event_jButtonSquirtleActionPerformed
 
-    private void jTabbedPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTabbedPane1MouseClicked
+    private void jButtonCharmanderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCharmanderActionPerformed
 
-        if (contadorClicker > 0 && !estadisticasDisponibles) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "No puedes cambiar de pestaña ahora",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+        // Mostrar un cuadro de diálogo de confirmación
+        int eleccion = JOptionPane.showConfirmDialog(
+            this,
+            "¿Está seguro de escoger a Charmander?",
+            "Confirmación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
 
+        // Verificar la respuesta del usuario
+        if (eleccion == JOptionPane.YES_OPTION) {
+            setPokemonActual("Charmander");
+            jButtonClicker.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/Charmander.png")));
+            audioCharmander.play();
             jTabbedPane1.setSelectedIndex(1);
+
+            // Activar el boton de clicker hasta que se escoja el personaje
+            jButtonClicker.setEnabled(true);
+
+            // Cambiar el mensaje de ayuda
+            jLabelAyuda.setText("Haz click en el botón para ver el progreso!");
+
+            // Borrar componentes
+            jProgressBar1.setVisible(true);
+            jLabelMultiplicador.setVisible(true);
+
+        }
+    }//GEN-LAST:event_jButtonCharmanderActionPerformed
+
+    private void jButtonBulbasurActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBulbasurActionPerformed
+
+        // Mostrar un cuadro de diálogo de confirmación
+        int eleccion = JOptionPane.showConfirmDialog(
+            this,
+            "¿Está seguro de escoger a Bulbasaur?",
+            "Confirmación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        // Verificar la respuesta del usuario
+        if (eleccion == JOptionPane.YES_OPTION) {
+            setPokemonActual("Bulbasur");
+            jButtonClicker.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgs/Bulbasur.png")));
+            audiobulbasur.play();
+            jTabbedPane1.setSelectedIndex(1);
+
+            // Activar el boton de clicker hasta que se escoja el personaje
+            jButtonClicker.setEnabled(true);
+
+            // Cambiar el mensaje de ayuda
+            jLabelAyuda.setText("Haz click en el botón para ver el progreso!");
+
+            // Borrar componentes
+            jProgressBar1.setVisible(true);
+            jLabelMultiplicador.setVisible(true);
+
         }
 
-
-    }//GEN-LAST:event_jTabbedPane1MouseClicked
-
-    private void jPanelSeleccionPersonajesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanelSeleccionPersonajesMouseClicked
-
-    }//GEN-LAST:event_jPanelSeleccionPersonajesMouseClicked
-
-    private void jPanelEstadisticasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanelEstadisticasMouseClicked
-
-    }//GEN-LAST:event_jPanelEstadisticasMouseClicked
+    }//GEN-LAST:event_jButtonBulbasurActionPerformed
 
     public void establecerNick(String nick) {
         setNick(nick);
