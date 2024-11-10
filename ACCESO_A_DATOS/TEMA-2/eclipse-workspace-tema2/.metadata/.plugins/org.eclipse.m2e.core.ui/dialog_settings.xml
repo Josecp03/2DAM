@@ -50,14 +50,15 @@
 	</section>
 	<section name="MavenProjectWizardArtifactPage">
 		<list key="groupId">
-			<item value="jajaja"/>
 			<item value="aaaaaa"/>
+			<item value="jajaja"/>
 			<item value="bbbbbb"/>
 			<item value="aaaaaaaaaaa"/>
 		</list>
 		<list key="name">
 		</list>
 		<list key="artifactId">
+			<item value="CorrochanoPardoJose"/>
 			<item value="Chuletario"/>
 			<item value="JoseCorrochanoPardo"/>
 			<item value="ExamenEmpresas"/>

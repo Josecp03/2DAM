@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Scanner;
 
 public class examen {
@@ -48,7 +49,9 @@ public class examen {
 			case 4:
 				prueba();
 				break;
-			
+			case 5:
+				prueba2();
+				break;
 			case 0:
 				System.out.println("\nHASTA PRONTO\n");
 				break;
@@ -63,10 +66,66 @@ public class examen {
 		
 	}
 	
+	
+	
+	private static void prueba2() throws SQLException {
+		
+		// Realizar consulta
+		String sql = "select * from entidades";
+		PreparedStatement sentencia = conexion.prepareStatement(sql);
+		ResultSet resul = sentencia.executeQuery();
+
+		// Recorrer todas las entidades
+		while (resul.next()) {
+			
+			int codigoEntidad = resul.getInt(1);
+			String descripcion = resul.getString(2);
+			String telefono = resul.getString(3);
+			String direccion = resul.getString(4);
+			String contacto = resul.getString(5);
+			
+			System.out.println("COD-EENTIDAD: " + codigoEntidad + " \t CONTACTO: " + contacto);
+			
+			visualizarProyectosEntidad(codigoEntidad);
+			
+		}
+		
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+	}
+
+	private static void visualizarProyectosEntidad(int codigoEntidad) throws SQLException {
+		
+		// Realizar consulta
+		String sql = "select * from proyectos where codigoproyecto in (select codigoproyecto from patrocina where codentidad = ?)";
+		PreparedStatement sentencia = conexion.prepareStatement(sql);
+		sentencia.setInt(1, codigoEntidad);
+		ResultSet resul = sentencia.executeQuery();
+
+		// Recorrer todas los proyectos
+		while (resul.next()) {
+			
+			int codigoProyecto = resul.getInt(1);
+			String nombre = resul.getString(2);
+			Date fechaInicio = resul.getDate(3);
+
+			System.out.println("Fecha inicio = " +fechaInicio);
+			
+		}
+		
+		// Cerrar consulta
+		resul.close();
+		sentencia.close();
+		
+		
+	}
+
 	private static void prueba() throws SQLException {
 		
 		// Realizar consulta
-		String sql = "select count(*) from empleados";
+		String sql = "select count(*) from entidades";
 		PreparedStatement sentencia = conexion.prepareStatement(sql);
 		ResultSet resul = sentencia.executeQuery();
 
