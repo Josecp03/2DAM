@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">PRC2_JoseCorrochano</string>
+    <string name="item1">Instrucciones</string>
+    <string name="item2">Reiniciar el juego</string>
+    <string name="item3">Configurar el juego</string>
+    <string name="tituloInstrucciones">Instrucciones</string>
+    <string name="contenidoInstrucciones">
+        Cuando pulsas en una casilla, sale un número que identifica cuántas minas hay alrededor.
+        Ten cuidado porque si pulsas en una casilla que tenga una mina escondida, perderás.
+        Si crees o tienes la certeza de que hay una mina escondida, haz un click largo sobre la
+        casilla para señalarla. No hagas un click largo en una casilla donde no hay una mina porque
+        perderás. Ganas una vez hayas encontrado todas las minas.
+    </string>
+    <string name="tituloDificultad">Dificultad</string>
+    <string name="nivelPrincipiante">Nivel Principiante</string>
+    <string name="nivelAmateur">Nivel Amateur</string>
+    <string name="nivelAvanzado">Nivel Avanzado</string>
+    <string name="tituloBombas">Seleccionar Bomba</string>
+    <string name="minaClasica">Mina Clásica</string>
+    <string name="minaBomber">Mina Bomber</string>
+    <string name="minaDiamita">Mina Dinamita</string>
+    <string name="minaSubmarina">Mina Submarina</string>
+    <string name="coctelMolotov">Coctel Molotov</string>
+
+
+
+
+
+
+</resources>

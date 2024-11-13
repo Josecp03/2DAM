@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Tema base de la aplicación -->
+    <style name="Base.Theme.PRC2_JoseCorrochano" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Desactivar la ActionBar nativa -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Tema principal de la aplicación -->
+    <style name="Theme.PRC2_JoseCorrochano" parent="Base.Theme.PRC2_JoseCorrochano">
+        <!-- Colores personalizados, si es necesario -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryDark">@color/purple_700</item>
+        <item name="colorAccent">@color/teal_200</item>
+    </style>
+</resources>
