@@ -9,19 +9,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.GridLayout;
+import androidx.gridlayout.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -41,9 +39,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private ImageView ic_bomba = null;
     private Spinner customSpinner = null;
     private GridLayout g = null;
-    private int numFilas = 0;
-    private int numColumnas = 0;
-    private int numMinas = 0;
+    private int numFilas = 8;
+    private int numColumnas = 8;
+    private int numMinas = 10;
+    private int bombaSeleccionada = R.mipmap.ic_bomba_menu;
+    private int[][] matriz = new int[8][8];
+    private RadioButton rbPrincipiante = null;
+    private RadioButton rbAmateur = null;
+    private RadioButton rbAvanzado = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         dialogoDificultad = crearDiaogoDificultad();
         dialogoBombas = crearDiaogoBombas();
 
-
         ic_bomba = findViewById(R.id.imageViewBomba);
 
         ic_bomba.setOnClickListener(new View.OnClickListener() {
@@ -77,35 +79,29 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
 
-        // Obtener el ConstraintLayout principal
-        ConstraintLayout constraintLayout = findViewById(R.id.main);
-
-        // Crear el GridLayout programáticamente
-        g = new GridLayout(this);
-        g.setLayoutParams(new ConstraintLayout.LayoutParams(
-                ConstraintLayout.LayoutParams.MATCH_PARENT,
-                ConstraintLayout.LayoutParams.MATCH_PARENT
-        ));
+        // Obtener el GridLayout del XML
+        g = findViewById(R.id.tablero);
 
         // Configurar las propiedades del GridLayout
-        numFilas = 8;
-        numColumnas = 8;
-        numMinas = 10;
+        configurarLayout(g);
+
+        // Crear la matriz de minas y números
+        matriz = crearMatriz(numFilas, numColumnas, numMinas);
+
+        // Rellenar la matriz
+        rellenarMatriz(matriz, g);
+
+    }
+
+    private void configurarLayout(GridLayout g) {
+
         g.setRowCount(numFilas);
         g.setColumnCount(numColumnas);
         g.setUseDefaultMargins(true);
         g.setAlignmentMode(GridLayout.ALIGN_BOUNDS);
+    }
 
-        // Agregar restricciones al GridLayout para que ocupe todo el espacio
-        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) g.getLayoutParams();
-        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
-        params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID;
-        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
-        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
-        g.setLayoutParams(params);
-
-        // Crear la matriz de minas y números
-        int[][] matriz = crearMatriz(numFilas, numColumnas, numMinas);
+    private void rellenarMatriz(int[][] matriz, GridLayout g) {
 
         // Añadir botones al GridLayout según la matriz
         for (int i = 0; i < matriz.length; i++) {
@@ -115,12 +111,24 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 gridParams.height = 0; // Para ocupar todo el espacio disponible
                 gridParams.rowSpec = GridLayout.spec(i, 1, 1f);
                 gridParams.columnSpec = GridLayout.spec(j, 1, 1f);
+                gridParams.setMargins(0, 0, 0, 0);
 
                 if (matriz[i][j] == -1) {
+                    // Crear un ImageButton para representar una bomba
                     ImageButton imageButton = new ImageButton(this);
-                    imageButton.setImageResource(R.drawable.ic_launcher_background);
                     imageButton.setLayoutParams(gridParams);
-                    imageButton.setScaleType(ImageButton.ScaleType.CENTER_CROP);
+
+                    // Establecer la imagen como drawable
+                    imageButton.setImageResource(bombaSeleccionada); // Reemplaza con tu imagen de bomba
+
+                    // Configurar escalado de la imagen
+                    imageButton.setScaleType(ImageButton.ScaleType.FIT_CENTER);
+                    imageButton.setAdjustViewBounds(true);
+
+                    // Reducir los paddings del botón
+                    imageButton.setPadding(10, 10, 10, 10); // Ajusta según sea necesario
+
+                    // Agregar el botón al GridLayout
                     g.addView(imageButton);
                 } else {
                     Button button = new Button(this);
@@ -131,12 +139,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
 
-        // Añadir el GridLayout al ConstraintLayout principal
-        constraintLayout.addView(g);
-
-
-
-
     }
 
     private AlertDialog crearDiaogoDificultad() {
@@ -145,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         AlertDialog dialogo = null;
 
         // Convertir el archivo XML del diseño del diálogo en un objeto View para poder utilizarlo
-        View alertCustomDialog = LayoutInflater.from(MainActivity.this).inflate(R.layout.custom_dialog_dificultad,null);
+        View alertCustomDialog = LayoutInflater.from(MainActivity.this).inflate(R.layout.custom_dialog_dificultad, null);
 
         // Constructor del diálogo
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
@@ -153,8 +155,34 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // Establecer la vista personalizada (alertCustomDialog) como el contenido del diálogo
         alertDialog.setView(alertCustomDialog);
 
+        // Encontrar los RadioButtons dentro del diseño del diálogo
+        rbPrincipiante = alertCustomDialog.findViewById(R.id.radioButtonNivelPrincipiante);
+        rbAmateur = alertCustomDialog.findViewById(R.id.radioButtonNivelAmateur);
+        rbAvanzado = alertCustomDialog.findViewById(R.id.radioButtonNivelAvanzado);
+
+        rbPrincipiante.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cambiarDificultad(8, 8, 10);
+            }
+        });
+
+        rbAmateur.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cambiarDificultad(12, 12, 30);
+            }
+        });
+
+        rbAvanzado.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cambiarDificultad(16, 16, 60);
+            }
+        });
+
         // Inicializar variables
-        cancelButton = (ImageButton) alertCustomDialog.findViewById(R.id.cancelID);
+        cancelButton = alertCustomDialog.findViewById(R.id.cancelID);
 
         // Crear el Diálogo
         dialogo = alertDialog.create();
@@ -164,16 +192,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         // Añadir evento cuando se pulsa el icono de salir
         AlertDialog finalDialogo = dialogo;
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finalDialogo.cancel();
-            }
-        });
+        cancelButton.setOnClickListener(v -> finalDialogo.dismiss());
 
-        // Devolver el dialogo creado
+        // Devolver el diálogo creado
         return dialogo;
-
     }
 
     private AlertDialog crearDiaogoInstrucciones() {
@@ -266,7 +288,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return dialogo;
     }
 
-
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.overflow, menu);
         return true;
@@ -296,11 +317,36 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         CustomItems items = (CustomItems) parent.getSelectedItem();
-        Toast.makeText(this, items.getSpinnerText(), Toast.LENGTH_SHORT).show();
+
+        if (items.getSpinnerText().equals("Mina Clásica")) {
+            bombaSeleccionada = R.mipmap.ic_bomba_menu;
+        }
+
+        if (items.getSpinnerText().equals("Mina Bomber")) {
+            bombaSeleccionada = R.mipmap.ic_bomba_bomber;
+        }
+
+        if (items.getSpinnerText().equals("Dinamita")) {
+            bombaSeleccionada = R.mipmap.ic_dinamita;
+        }
+
+        if (items.getSpinnerText().equals("Granada")) {
+            bombaSeleccionada = R.mipmap.ic_granada;
+        }
+
+        if (items.getSpinnerText().equals("Mina Submarina")) {
+            bombaSeleccionada = R.mipmap.ic_bomba_submarina;
+        }
+
+        if (items.getSpinnerText().equals("Coctel Molotov")) {
+            bombaSeleccionada = R.mipmap.ic_coctel_molotov;
+        }
+
+        rellenarMatriz(matriz, g);
+
     }
 
     @Override
@@ -308,7 +354,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-    // Método para crear la matriz con minas y números
     public int[][] crearMatriz(int numFilas, int numColumnas, int numMinas) {
         int[][] matriz = new int[numFilas][numColumnas];
         int minasColocadas = 0;
@@ -342,5 +387,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         return matriz;
     }
+
+    private void cambiarDificultad(int filas, int columnas, int minas) {
+        // Actualizar configuración
+        numFilas = filas;
+        numColumnas = columnas;
+        numMinas = minas;
+
+        // Limpiar el tablero actual
+        g.removeAllViews();
+
+        // Configurar el GridLayout con las nuevas dimensiones
+        g.setRowCount(numFilas);
+        g.setColumnCount(numColumnas);
+
+        // Crear una nueva matriz y rellenar el tablero
+        matriz = crearMatriz(numFilas, numColumnas, numMinas);
+        rellenarMatriz(matriz, g);
+    }
+
+
+
 
 }
