@@ -101,9 +101,46 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         g.setAlignmentMode(GridLayout.ALIGN_BOUNDS);
     }
 
-    private void rellenarMatriz(int[][] matriz, GridLayout g) {
+    public int[][] crearMatriz(int numFilas, int numColumnas, int numMinas) {
+        int[][] matriz = new int[numFilas][numColumnas];
+        int minasColocadas = 0;
 
-        // Añadir botones al GridLayout según la matriz
+        // Colocar minas (-1) en posiciones aleatorias
+        while (minasColocadas < numMinas) {
+            int fila = (int) (Math.random() * numFilas);
+            int columna = (int) (Math.random() * numColumnas);
+
+            // Colocar mina si la posición está libre
+            if (matriz[fila][columna] != -1) {
+                matriz[fila][columna] = -1;
+                minasColocadas++;
+
+                // Incrementar el conteo en celdas adyacentes
+                for (int i = -1; i <= 1; i++) {
+                    for (int j = -1; j <= 1; j++) {
+                        int nuevaFila = fila + i;
+                        int nuevaColumna = columna + j;
+
+                        // Verificar los límites y que no sea mina
+                        if (nuevaFila >= 0 && nuevaFila < numFilas &&
+                                nuevaColumna >= 0 && nuevaColumna < numColumnas &&
+                                matriz[nuevaFila][nuevaColumna] != -1) {
+                            matriz[nuevaFila][nuevaColumna]++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return matriz;
+    }
+
+    private void rellenarMatriz(int[][] matriz, GridLayout g) {
+        g.removeAllViews(); // Limpiar el tablero
+
+        // Crear una matriz de botones para gestionar estados
+        Button[][] botones = new Button[numFilas][numColumnas];
+
         for (int i = 0; i < matriz.length; i++) {
             for (int j = 0; j < matriz[i].length; j++) {
                 GridLayout.LayoutParams gridParams = new GridLayout.LayoutParams();
@@ -111,34 +148,100 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 gridParams.height = 0; // Para ocupar todo el espacio disponible
                 gridParams.rowSpec = GridLayout.spec(i, 1, 1f);
                 gridParams.columnSpec = GridLayout.spec(j, 1, 1f);
-                gridParams.setMargins(0, 0, 0, 0);
 
-                if (matriz[i][j] == -1) {
-                    // Crear un ImageButton para representar una bomba
-                    ImageButton imageButton = new ImageButton(this);
-                    imageButton.setLayoutParams(gridParams);
+                Button button = new Button(this);
+                button.setLayoutParams(gridParams);
+                button.setBackgroundColor(Color.LTGRAY); // Color inicial de los botones
 
-                    // Establecer la imagen como drawable
-                    imageButton.setImageResource(bombaSeleccionada); // Reemplaza con tu imagen de bomba
+                final int fila = i, columna = j; // Variables finales para usar en el listener
 
-                    // Configurar escalado de la imagen
-                    imageButton.setScaleType(ImageButton.ScaleType.FIT_CENTER);
-                    imageButton.setAdjustViewBounds(true);
+                // Listener para manejar el clic del botón
+                button.setOnClickListener(v -> {
+                    if (matriz[fila][columna] == -1) {
+                        // Es una mina, fin del juego
+                        button.setBackgroundResource(bombaSeleccionada); // Usar la imagen seleccionada
+                        mostrarToast("¡Has perdido!");
+                        deshabilitarBotones(botones);
+                    } else {
+                        // Descubrir casilla
+                        descubrirCasilla(fila, columna, matriz, botones);
+                        if (verificarVictoria(matriz, botones)) {
+                            mostrarToast("¡Has ganado!");
+                            deshabilitarBotones(botones);
+                        }
+                    }
+                });
 
-                    // Reducir los paddings del botón
-                    imageButton.setPadding(10, 10, 10, 10); // Ajusta según sea necesario
+                botones[i][j] = button;
+                g.addView(button);
+            }
+        }
+    }
 
-                    // Agregar el botón al GridLayout
-                    g.addView(imageButton);
-                } else {
-                    Button button = new Button(this);
-                    button.setText(String.valueOf(matriz[i][j]));
-                    button.setLayoutParams(gridParams);
-                    g.addView(button);
+
+    private void descubrirCasilla(int fila, int columna, int[][] matriz, Button[][] botones) {
+        // Si está fuera de los límites o ya está descubierto, no hacer nada
+        if (fila < 0 || columna < 0 || fila >= numFilas || columna >= numColumnas || !botones[fila][columna].isEnabled()) {
+            return;
+        }
+
+        int valor = matriz[fila][columna];
+        botones[fila][columna].setEnabled(false); // Desactivar botón
+        botones[fila][columna].setBackgroundColor(Color.WHITE); // Cambiar color
+
+        if (valor == 0) {
+            botones[fila][columna].setText(""); // Sin texto para casillas vacías
+            // Descubrir las celdas adyacentes
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    descubrirCasilla(fila + i, columna + j, matriz, botones);
+                }
+            }
+        } else {
+            botones[fila][columna].setText(String.valueOf(valor)); // Mostrar número
+        }
+    }
+
+    private void deshabilitarBotones(Button[][] botones) {
+        for (int i = 0; i < numFilas; i++) {
+            for (int j = 0; j < numColumnas; j++) {
+                botones[i][j].setEnabled(false);
+            }
+        }
+    }
+
+    private boolean verificarVictoria(int[][] matriz, Button[][] botones) {
+        for (int i = 0; i < numFilas; i++) {
+            for (int j = 0; j < numColumnas; j++) {
+                if (matriz[i][j] != -1 && botones[i][j].isEnabled()) {
+                    // Si queda alguna casilla sin descubrir que no sea una mina, no hay victoria
+                    return false;
                 }
             }
         }
+        return true; // Todas las casillas descubiertas correctamente
+    }
 
+    private void mostrarToast(String mensaje) {
+        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
+    }
+
+    private void cambiarDificultad(int filas, int columnas, int minas) {
+        // Actualizar configuración
+        numFilas = filas;
+        numColumnas = columnas;
+        numMinas = minas;
+
+        // Limpiar el tablero actual
+        g.removeAllViews();
+
+        // Configurar el GridLayout con las nuevas dimensiones
+        g.setRowCount(numFilas);
+        g.setColumnCount(numColumnas);
+
+        // Crear una nueva matriz y rellenar el tablero
+        matriz = crearMatriz(numFilas, numColumnas, numMinas);
+        rellenarMatriz(matriz, g);
     }
 
     private AlertDialog crearDiaogoDificultad() {
@@ -354,57 +457,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-    public int[][] crearMatriz(int numFilas, int numColumnas, int numMinas) {
-        int[][] matriz = new int[numFilas][numColumnas];
-        int minasColocadas = 0;
 
-        // Colocar minas (-1) en posiciones aleatorias
-        while (minasColocadas < numMinas) {
-            int fila = (int) (Math.random() * numFilas);
-            int columna = (int) (Math.random() * numColumnas);
 
-            // Colocar mina si la posición está libre
-            if (matriz[fila][columna] != -1) {
-                matriz[fila][columna] = -1;
-                minasColocadas++;
-
-                // Incrementar el conteo en celdas adyacentes
-                for (int i = -1; i <= 1; i++) {
-                    for (int j = -1; j <= 1; j++) {
-                        int nuevaFila = fila + i;
-                        int nuevaColumna = columna + j;
-
-                        // Verificar los límites y que no sea mina
-                        if (nuevaFila >= 0 && nuevaFila < numFilas &&
-                                nuevaColumna >= 0 && nuevaColumna < numColumnas &&
-                                matriz[nuevaFila][nuevaColumna] != -1) {
-                            matriz[nuevaFila][nuevaColumna]++;
-                        }
-                    }
-                }
-            }
-        }
-
-        return matriz;
-    }
-
-    private void cambiarDificultad(int filas, int columnas, int minas) {
-        // Actualizar configuración
-        numFilas = filas;
-        numColumnas = columnas;
-        numMinas = minas;
-
-        // Limpiar el tablero actual
-        g.removeAllViews();
-
-        // Configurar el GridLayout con las nuevas dimensiones
-        g.setRowCount(numFilas);
-        g.setColumnCount(numColumnas);
-
-        // Crear una nueva matriz y rellenar el tablero
-        matriz = crearMatriz(numFilas, numColumnas, numMinas);
-        rellenarMatriz(matriz, g);
-    }
 
 
 
