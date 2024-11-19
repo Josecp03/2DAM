@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:backgroundTint="#00FFFFFF"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:id="@+id/LinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#1C1C1C"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textViewTitulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-160sp"
+            android:layout_marginBottom="100sp"
+            android:fontFamily="@font/archivo_black"
+            android:text="GUARDAR PREFERENCIAS"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="34sp" />
+
+        <TextView
+            android:id="@+id/textViewColorFondo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/archivo_black"
+            android:text="Cambiar Color de Fondo"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/buttonFondoAzul"
+            android:layout_width="218dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#FFFFFF"
+            android:fontFamily="@font/archivo_black"
+            android:text="Button"
+            android:textColor="#000000"
+            tools:text="Cambiar Fondo Azul" />
+
+        <Button
+            android:id="@+id/buttonFondoRojo"
+            android:layout_width="217dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#FFFFFF"
+            android:fontFamily="@font/archivo_black"
+            android:text="Button"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/textViewColorBotones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/archivo_black"
+            android:text="Cambiar Color Botones"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="24dp" />
+
+        <Button
+            android:id="@+id/buttonBotonesLetrasAzules"
+            android:layout_width="235dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#FFFFFF"
+            android:fontFamily="@font/archivo_black"
+            android:text="Cambiar Botones Y Letras Azules"
+            android:textColor="#000000" />
+
+        <Button
+            android:id="@+id/buttonBotonesLetrasRojas"
+            android:layout_width="238dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#FFFFFF"
+            android:fontFamily="@font/archivo_black"
+            android:text="Cambiar Botones Y Letras Rojas"
+            android:textColor="#000000" />
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

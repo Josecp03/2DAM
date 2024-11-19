@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#1C1C1C"
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="-27dp">
+
+        <TextView
+            android:id="@+id/textViewTitulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/alfa_slab_one"
+            android:text="PARCELABLE"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="34sp" />
+
+        <TextView
+            android:id="@+id/textViewTituloAlumno"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/alfa_slab_one"
+            android:text="Datos Alumno"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp" />
+
+        <EditText
+            android:id="@+id/editTextNombre"
+            android:layout_width="201dp"
+            android:layout_height="57dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:ems="10"
+            android:fontFamily="@font/alfa_slab_one"
+            android:hint="Nombre "
+            android:inputType="text"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B1B1B1"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/editTextEdad"
+            android:layout_width="201dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:ems="10"
+            android:fontFamily="@font/alfa_slab_one"
+            android:hint="Edad"
+            android:inputType="number"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B1B1B1"
+            android:textSize="14sp"
+            android:maxLength="3"/>
+
+        <EditText
+            android:id="@+id/editTextNotaMedia"
+            android:layout_width="202dp"
+            android:layout_height="66dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:ems="10"
+            android:fontFamily="@font/alfa_slab_one"
+            android:hint="Nota Media"
+            android:inputType="numberDecimal"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B1B1B1"
+            android:textSize="14sp"
+            android:maxLength="4"/>
+
+        <Button
+            android:id="@+id/buttonNuevaAsignatura"
+            android:layout_width="212dp"
+            android:layout_height="65dp"
+            android:layout_marginTop="50dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/alfa_slab_one"
+            android:text="Añadir Nueva Asignatura"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <EditText
+            android:id="@+id/editTextNombreAsignatura"
+            android:layout_width="211dp"
+            android:layout_height="63dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:ems="10"
+            android:fontFamily="@font/alfa_slab_one"
+            android:hint="Nombre Asignatura"
+            android:inputType="text"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B1B1B1"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/editTextNotaAsignatura"
+            android:layout_width="211dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="30dp"
+            android:ems="10"
+            android:fontFamily="@font/alfa_slab_one"
+            android:hint="Nota Asignatura"
+            android:inputType="numberDecimal"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B1B1B1"
+            android:textSize="14sp"
+            android:maxLength="4"/>
+
+        <Button
+            android:id="@+id/buttonVisualizarDatos"
+            android:layout_width="139dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/alfa_slab_one"
+            android:text="Visualizar Datos"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:id="@+id/LinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#1C1C1C"
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
+
+        <TextView
+            android:id="@+id/textViewTituloPrincipal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-175dp"
+            android:layout_marginBottom="150dp"
+            android:fontFamily="@font/baloo"
+            android:text="Intente Explicite"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="34sp" />
+
+        <Button
+            android:id="@+id/buttonAbrirWeb"
+            android:layout_width="272dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#00FFFFFF"
+            android:drawableLeft="@drawable/round_web_24"
+            android:fontFamily="@font/baloo"
+            android:text="Abrir Web Personalizada"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <Button
+            android:id="@+id/buttonEnviarCorreo"
+            android:layout_width="280dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#00FFFFFF"
+            android:drawableLeft="@drawable/baseline_alternate_email_24"
+            android:fontFamily="@font/baloo"
+            android:text="Enviar Correo Personalizado"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <Button
+            android:id="@+id/buttonTomarFoto"
+            android:layout_width="273dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#00FFFFFF"
+            android:drawableLeft="@drawable/baseline_photo_camera_24"
+            android:fontFamily="@font/baloo"
+            android:text="Tomar Foto"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <Button
+            android:id="@+id/buttonConfigurar"
+            android:layout_width="188dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#00FFFFFF"
+            android:drawableLeft="@drawable/baseline_edit_24"
+            android:fontFamily="@font/baloo"
+            android:text="Configurar"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
