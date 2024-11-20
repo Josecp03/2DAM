@@ -32,8 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private float notaMedia = 0;
     private ArrayList<Asignatura> asignaturas = new ArrayList<>();
     private int contadorAsignaturas = 0;
-
-
+    private boolean visualizarDatos = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +81,9 @@ public class MainActivity extends AppCompatActivity {
                             edtNombre.setEnabled(false);
                             edtEdad.setEnabled(false);
                             edtNotaMedia.setEnabled(false);
+
+                            // Actualizar valor variable booleana
+                            visualizarDatos = true;
 
                             // Hacer aparecer los campos para rellenar los datos de la asignatura
                             edtNombreAsignatura.setVisibility(View.VISIBLE);
@@ -199,11 +201,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                Alumno a = new Alumno(nombre, asignaturas, edad, notaMedia);
+                if (visualizarDatos) {
 
-                Intent i = new Intent(MainActivity.this, ViewActivity.class);
-                i.putExtra("obj1", a);
-                startActivity(i);
+                    Alumno a = new Alumno(nombre, asignaturas, edad, notaMedia);
+
+                    Intent i = new Intent(MainActivity.this, ViewActivity.class);
+                    i.putExtra("obj1", a);
+                    startActivity(i);
+
+                } else {
+
+                    // Mostrar mensaje de error
+                    Toast.makeText(MainActivity.this, "Añade primero los datos del alumno", Toast.LENGTH_SHORT).show();
+
+                }
+
+
 
             }
         });
