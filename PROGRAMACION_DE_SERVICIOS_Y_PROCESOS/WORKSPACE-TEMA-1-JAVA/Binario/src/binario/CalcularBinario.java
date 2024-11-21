@@ -41,5 +41,7 @@ public class CalcularBinario {
         sc.close();
 		
 	}
+
+	
 	
 }
