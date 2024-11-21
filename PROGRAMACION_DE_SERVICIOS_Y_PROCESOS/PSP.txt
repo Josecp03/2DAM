@@ -1,0 +1,175 @@
+package barberoDurmiente;
+
+public class BarberoDurmiente {
+	private int nSillasEspera;
+	private int nSillasEsperaOcupadas = 0;
+	private boolean sillaBarberoOcupada = false;
+	private boolean finCorte = false;
+	private boolean barberoDormido = false;
+
+	public BarberoDurmiente(int nSillasEspera) {
+		this.nSillasEspera = nSillasEspera;
+	}
+
+	public synchronized boolean entrar(int clienteId) throws InterruptedException {
+
+		if (nSillasEsperaOcupadas == nSillasEspera) {
+			// Si no hay sillas libres, me voy sin cortar el pelo
+			System.out.println("****** El cliente " + clienteId + " intenta entrar pero no hay sitio******");
+			return false;
+
+		} else {
+
+			// Me quedo esperando si la silla del barbero está ocupada
+			nSillasEsperaOcupadas++;
+			System.out.println("****** El cliente " + clienteId + " se sienta en una silla de la sala de espera******");
+
+			while (sillaBarberoOcupada) {
+				wait();
+			}
+
+			// Desocupo la silla de espera
+			nSillasEsperaOcupadas--;
+
+			// Me siento en la silla del barbero
+			sillaBarberoOcupada = true;
+
+			// Si el barbero está dormido lo despierto
+			if (barberoDormido) {
+				System.out.println("****** El cliente " + clienteId + " despierta al barbero ******");
+				notifyAll();
+			}
+
+			// Espero a que me corte el pelo
+			System.out.println("****** El cliente " + clienteId + " en la silla de barbero ******");
+
+			while (!finCorte) {
+				wait();
+			}
+
+			sillaBarberoOcupada = false;
+
+			// Que pase el siguiente
+			notifyAll();
+			System.out.println("****** El cliente " + clienteId + " se va con el pelo cortado ******");
+
+			return true;
+
+		}
+	}
+
+	public synchronized void esperarCliente() throws InterruptedException { 
+    
+		// El barbero espera a que llegue un cliente 
+		// Se supone que le corta el pelo fuera del monitor
+		barberoDormido = true;
+		while (!sillaBarberoOcupada) {
+			
+			System.out.println(" 		Barbero se duerme esperando clientes -_- ZZZZZZZZZZ");
+			wait();
+			
+		}
+		
+		barberoDormido = false;			
+		System.out.println("		Barbero cortando el pelo XXXXXXXXXX");
+                          
+    }
+
+	public synchronized void acabarCorte() {
+
+		finCorte = true;
+		System.out.println("		Barbero termina de cortar el pelo y llama al siguiente......");
+		notifyAll();
+
+	}
+
+	public static void main(String[] args) {
+
+		int numSillas = 4;
+		int numClientes = 6;
+		BarberoDurmiente s = new BarberoDurmiente(numSillas);
+		new BarberoB(s).start();
+		for (int i = 0; i < numClientes; i++)
+			new ClienteB(s, i).start();
+
+	}
+
+}
+
+
+
+package parking;
+
+public class Parking {
+    private int plazasTotales;
+    private int plazasOcupadas = 0;
+
+    public Parking(int plazasTotales) {
+        this.plazasTotales = plazasTotales;
+    }
+
+    public synchronized boolean entrar(int cocheId) throws InterruptedException {
+        while (plazasOcupadas == plazasTotales) {
+            System.out.println("****** Coche " + cocheId + " intenta entrar pero no hay plazas libres ******");
+            wait(); // Espera hasta que haya una plaza disponible
+        }
+        plazasOcupadas++;
+        System.out.println("****** Coche " + cocheId + " entra en el parking. Plazas ocupadas: " + plazasOcupadas + " ******");
+        return true;
+    }
+
+    public synchronized void salir(int cocheId) {
+        plazasOcupadas--;
+        System.out.println("****** Coche " + cocheId + " sale del parking. Plazas ocupadas: " + plazasOcupadas + " ******");
+        notifyAll(); // Notifica a los coches esperando
+    }
+}
+
+
+
+package parking;
+
+public class Coche extends Thread {
+    private Parking parking;
+    private int cocheId;
+
+    public Coche(Parking parking, int cocheId) {
+        this.parking = parking;
+        this.cocheId = cocheId;
+    }
+
+    @Override
+    public void run() {
+        try {
+            // Intenta entrar al parking
+            parking.entrar(cocheId);
+
+            // Simula la estancia en el parking
+            Thread.sleep((int) (Math.random() * 5000) + 2000);
+
+            // Sale del parking
+            parking.salir(cocheId);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+package parking;
+
+public class Main {
+    public static void main(String[] args) {
+        int plazas = 5; // Número de plazas en el parking
+        int numCoches = 10; // Número total de coches
+
+        Parking parking = new Parking(plazas);
+
+        for (int i = 0; i < numCoches; i++) {
+            new Coche(parking, i).start();
+        }
+    }
+}
+
+
+
