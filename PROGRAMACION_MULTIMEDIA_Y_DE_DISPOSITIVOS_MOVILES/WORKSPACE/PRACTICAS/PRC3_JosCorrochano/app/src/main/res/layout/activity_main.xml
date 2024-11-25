@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#1C1C1C"
+    tools:context=".MainActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imageViewShareMyBikeLogo"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="20dp"
+            android:contentDescription="@string/share_my_bike_logo_contentDescription"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_percent="0.2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.8"
+            app:srcCompat="@drawable/share_my_bike_logo" />
+
+        <TextView
+            android:id="@+id/textViewSlogan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:fontFamily="@font/archivo_black"
+            android:text="@string/textSlogan"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imageViewShareMyBikeLogo" />
+
+        <LinearLayout
+            android:id="@+id/linearLayoutPlace"
+            android:layout_width="323dp"
+            android:layout_height="49dp"
+            android:layout_marginTop="44dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.487"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewSlogan"
+            app:layout_constraintWidth_percent="0.9">
+
+            <ImageButton
+                android:id="@+id/imageButtonPlace"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/abrir_ubicacion"
+                app:srcCompat="@drawable/baseline_place_24" />
+
+            <TextView
+                android:id="@+id/textViewPlace"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:fontFamily="@font/archivo_black"
+                android:gravity="center_vertical"
+                android:text="@string/direccion_postal"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayoutMail"
+            android:layout_width="322dp"
+            android:layout_height="47dp"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.487"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/linearLayoutPlace"
+            app:layout_constraintWidth_percent="0.9">
+
+            <ImageButton
+                android:id="@+id/imageButtonMail"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/abrir_correo"
+                app:srcCompat="@drawable/baseline_alternate_email_24" />
+
+            <EditText
+                android:id="@+id/editTextMail"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:fontFamily="@font/archivo_black"
+                android:hint="share@mybike.com"
+                android:inputType="textEmailAddress"
+                android:textAlignment="center"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#B1B1B1"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/buttonLogin"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="132dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/archivo_black"
+            android:text="@string/login"
+            android:textColor="#FFFFFF"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/linearLayoutMail"
+            app:layout_constraintWidth_percent="0.5"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="32dp"
+            android:contentDescription="@string/logo_ribera"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_percent="0.2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonLogin"
+            app:layout_constraintWidth_percent="0.4"
+            app:srcCompat="@drawable/logo_ribera" />
+
+        <Button
+            android:id="@+id/buttonClaro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="36dp"
+            android:layout_marginEnd="12dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/archivo_black"
+            android:text="Modo Claro"
+            android:textColor="#FFFFFF"
+            app:layout_constraintBottom_toTopOf="@+id/buttonLogin"
+            app:layout_constraintEnd_toEndOf="@+id/linearLayoutMail"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayoutMail"
+            app:layout_constraintVertical_bias="0.062"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <Button
+            android:id="@+id/buttonOscuro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="36dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/archivo_black"
+            android:text="Modo Oscuro"
+            android:textColor="#FFFFFF"
+            app:layout_constraintBottom_toTopOf="@+id/buttonLogin"
+            app:layout_constraintStart_toStartOf="@+id/linearLayoutMail"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayoutMail"
+            app:layout_constraintVertical_bias="0.062"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

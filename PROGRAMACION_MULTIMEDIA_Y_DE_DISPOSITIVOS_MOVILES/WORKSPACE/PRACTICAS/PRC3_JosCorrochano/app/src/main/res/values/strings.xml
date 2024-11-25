@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">PRC3_JoséCorrochano</string>
+    <string name="share_my_bike_logo_contentDescription">Logotipo minimalista en fondo negro con una motocicleta estilizada en blanco y el texto SHARE MY BIKE en mayúsculas, limpio y moderno</string>
+    <string name="textSlogan">The bike experience exchange app</string>
+    <string name="abrir_ubicacion">Abrir ubicación</string>
+    <string name="direccion_postal"><![CDATA[<Dirección postal>]]></string>
+    <string name="abrir_correo">share@mybike.com</string>
+    <string name="login">Login</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">Select Date</string>
+    <string name="second_fragment_label">List Of Available Bikes</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="logo_ribera">Logo Ribera</string>
+    <string name="select_the_date_to_list_the_available_bikes">Select the date to list the available bikes</string>
+    <string name="boton_con_una_imagen_del_icono_de_mail">Boton con una imagen del icono de mail</string>
+</resources>

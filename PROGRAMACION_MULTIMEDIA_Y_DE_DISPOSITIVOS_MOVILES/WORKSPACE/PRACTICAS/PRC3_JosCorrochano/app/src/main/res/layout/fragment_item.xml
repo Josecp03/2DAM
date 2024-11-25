@@ -1,0 +1,83 @@
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    android:layout_margin="8dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <!-- Imagen de la bicicleta -->
+        <ImageView
+            android:id="@+id/imageViewFotoBici"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Nombre de la ciudad -->
+        <TextView
+            android:id="@+id/TextViewCiudad"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/imageViewFotoBici"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Propietario de la bicicleta -->
+        <TextView
+            android:id="@+id/TextViewPropietario"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/imageViewFotoBici"
+            app:layout_constraintTop_toBottomOf="@id/TextViewCiudad" />
+
+        <!-- Dirección -->
+        <TextView
+            android:id="@+id/TextViewUbicacion"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/imageViewFotoBici"
+            app:layout_constraintTop_toBottomOf="@id/TextViewPropietario" />
+
+        <!-- Descripción -->
+        <TextView
+            android:id="@+id/TextViewDescripcion"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textColor="#000000"
+            android:ellipsize="none"
+            android:scrollHorizontally="false"
+            android:inputType="textMultiLine"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/imageViewFotoBici"
+            app:layout_constraintTop_toBottomOf="@id/TextViewUbicacion"
+            app:layout_constraintBottom_toTopOf="@id/ImageButtonEnviarEmail" />
+
+        <!-- Botón de correo como ImageButton -->
+        <ImageButton
+            android:id="@+id/ImageButtonEnviarEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/boton_con_una_imagen_del_icono_de_mail"
+            android:src="@drawable/baseline_email_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
