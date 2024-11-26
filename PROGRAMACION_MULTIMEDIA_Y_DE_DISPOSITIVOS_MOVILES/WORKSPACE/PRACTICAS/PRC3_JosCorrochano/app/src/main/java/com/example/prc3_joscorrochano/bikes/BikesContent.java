@@ -21,13 +21,12 @@ public class BikesContent {
 
     public static void loadBikesFromJSON(Context c) {
         if (!ITEMS.isEmpty()) {
-
-            return;
+            return; // Evitar cargar los datos nuevamente si ya están cargados
         }
 
         String json = null;
         try {
-
+            // Leer archivo JSON
             InputStream is = c.getAssets().open("bikeList.json");
             int size = is.available();
             byte[] buffer = new byte[size];
@@ -35,33 +34,47 @@ public class BikesContent {
             is.close();
             json = new String(buffer, "UTF-8");
 
+            // Parsear JSON principal
             JSONObject jsonObject = new JSONObject(json);
-            JSONArray couchList = jsonObject.getJSONArray("bike_list");
+            JSONArray bikeList = jsonObject.getJSONArray("bike_list");
 
-            for (int i = 0; i < couchList.length(); i++) {
-                JSONObject jsonCouch = couchList.getJSONObject(i);
+            for (int i = 0; i < bikeList.length(); i++) {
+                JSONObject jsonBike = bikeList.getJSONObject(i);
 
-                String owner = jsonCouch.getString("owner");
-                String description = jsonCouch.getString("description");
-                String city = jsonCouch.getString("city");
-                String location = jsonCouch.getString("location");
-                String email = jsonCouch.getString("email");
+                // Validar campos obligatorios
+                if (jsonBike.has("owner") && jsonBike.has("description") &&
+                        jsonBike.has("city") && jsonBike.has("location") &&
+                        jsonBike.has("email") && jsonBike.has("image")) {
 
-                Bitmap photo = null;
-                try {
-                    photo = BitmapFactory.decodeStream(
-                            c.getAssets().open("images/" + jsonCouch.getString("image"))
-                    );
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    String owner = jsonBike.getString("owner");
+                    String description = jsonBike.getString("description");
+                    String city = jsonBike.getString("city");
+                    String location = jsonBike.getString("location");
+                    String email = jsonBike.getString("email");
+                    String image = jsonBike.getString("image");
+
+                    // Validar que los valores no sean nulos o vacíos
+                    if (!owner.isEmpty() && !description.isEmpty() &&
+                            !city.isEmpty() && !location.isEmpty() &&
+                            !email.isEmpty() && !image.isEmpty()) {
+
+                        Bitmap photo = null;
+                        try {
+                            photo = BitmapFactory.decodeStream(c.getAssets().open("images/" + image));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        // Agregar el objeto válido a la lista
+                        ITEMS.add(new Bike(photo, owner, description, city, location, email));
+                    }
                 }
-
-                ITEMS.add(new Bike(photo, owner, description, city, location, email));
             }
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
     }
+
 
     // Getters y Setters para la fecha seleccionada
     public static String getSelectedDate() {

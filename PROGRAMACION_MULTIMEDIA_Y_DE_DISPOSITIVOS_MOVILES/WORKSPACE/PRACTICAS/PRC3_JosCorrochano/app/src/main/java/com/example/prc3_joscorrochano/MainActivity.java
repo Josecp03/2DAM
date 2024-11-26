@@ -1,12 +1,18 @@
 package com.example.prc3_joscorrochano;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -14,6 +20,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import com.example.prc3_joscorrochano.databinding.ActivityMainBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -165,18 +173,26 @@ public class MainActivity extends AppCompatActivity {
                     } else {
 
                         // Mostrar mensaje de error si no se ha guardado el código postal correctamente
-                        Toast.makeText(MainActivity.this, "Guarda antes el código postal", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Guarda antes el código postal pulsando en el icono", Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
 
                     // Mostrar mensaje de error si no se ha guardado el correo correctamente
-                    Toast.makeText(MainActivity.this, "Guarda antes el correo correctamente", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Guarda antes el correo correctamente pulsando en el icono", Toast.LENGTH_SHORT).show();
 
                 }
 
             }
         });
+
+        // Comprobar que la aplicación tiene permisos para recibir SMS
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // Comprobar si la versión es API 23 o superior
+            if (checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
+                // Pedirle permisos de notificaciones al usuario para usar en la aplicación
+                requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, 1);
+            }
+        }
 
     }
 
@@ -231,10 +247,12 @@ public class MainActivity extends AppCompatActivity {
     private void abrirGoogleMaps(double latitud, double longitud) {
 
         // Inicializar el String que le paso luego al intent
-        String geoUri = "geo:0,0?q=" + latitud + "," + longitud;
+        String geoUri = "geo:" + latitud + "," + longitud + "?q=" + latitud + ", " + longitud;
 
         // Crear el Intent
         Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(geoUri));
+
+        intent.setPackage("com.google.android.apps.maps");
 
         // Lanzar el intent
         startActivity(intent);
@@ -299,4 +317,5 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "Modo cambiado y guardado", Toast.LENGTH_SHORT).show();
 
     }
+
 }
