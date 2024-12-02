@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    
+    <Factura>
+        <Numero>12345</Numero>
+        <Fecha>2024-11-20</Fecha>
+        <Nombre>Juan Pérez</Nombre>
+        <Cliente>
+            <Telefono>555-123-4567</Telefono>
+            <Direccion>Calle Falsa 123, Ciudad Ejemplo</Direccion>
+        </Cliente>
+        <Concepto>Compra de productos electrónicos</Concepto>
+        <Total>1500.50</Total>
+    </Factura>
+
+    
+</root>

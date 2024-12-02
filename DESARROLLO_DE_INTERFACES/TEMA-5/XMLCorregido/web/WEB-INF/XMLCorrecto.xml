@@ -1,0 +1,23 @@
+<root>
+    
+    <?xml version="1.0" encoding="UTF-8"?>
+    <capitales>
+        <capital>
+            <nombre>Pekín</nombre>
+            <pais>China</pais>
+        </capital>
+        <capital>
+            <nombre>Roma</nombre>
+            <pais>Italia</pais>
+        </capital>
+        <capital> <!-- Modificar etiqueta de apertura -->
+            <nombre>Lisboa</nombre>
+            <pais>Portugal</pais> <!-- Modificar etiqueta de apertura -->
+        </capital>
+        <capital>
+            <nombre>Lima</nombre>
+            <pais>Perú</pais>
+        </capital> <!-- Cerrar corrctamente la etiqueta -->
+    </capitales>
+
+</root>
