@@ -21,8 +21,6 @@
             android:id="@+id/textViewTitulo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-100dp"
-            android:layout_marginBottom="20dp"
             android:fontFamily="@font/aldrich"
             android:text="Agregar Imágenes"
             android:textAlignment="center"
@@ -33,11 +31,11 @@
             android:id="@+id/editTextTextUrl"
             android:layout_width="302dp"
             android:layout_height="67dp"
-            android:layout_marginTop="150dp"
+            android:layout_marginTop="10dp"
             android:layout_marginBottom="20dp"
             android:ems="10"
             android:fontFamily="@font/aldrich"
-            android:hint="URL"
+            android:hint="URL Imagen"
             android:inputType="text"
             android:textAlignment="center"
             android:textColor="#FFFFFF"
@@ -47,8 +45,8 @@
             android:id="@+id/buttonAgregarImagen"
             android:layout_width="300dp"
             android:layout_height="69dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:backgroundTint="#00FFFFFF"
             android:fontFamily="@font/aldrich"
             android:text="Agregar Imagen"
@@ -68,5 +66,49 @@
             android:textSize="16sp"
             app:strokeColor="#FFFFFF"
             app:strokeWidth="3dp" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:fontFamily="@font/aldrich"
+            android:text="Agregar Código Documentos"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp" />
+
+        <EditText
+            android:id="@+id/edURL"
+            android:layout_width="314dp"
+            android:layout_height="71dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:ems="10"
+            android:fontFamily="@font/aldrich"
+            android:hint="URL Descarga"
+            android:inputType="text"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B1B1B1" />
+
+        <Button
+            android:id="@+id/buttonDescargar"
+            android:layout_width="314dp"
+            android:layout_height="78dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/aldrich"
+            android:text="Descargar"
+            android:textSize="16sp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <TextView
+            android:id="@+id/txtDescarga"
+            android:layout_width="match_parent"
+            android:layout_height="257dp"
+            android:layout_marginTop="20dp"
+            android:paddingLeft="10dp"
+            android:textColor="#FDFDFD" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
