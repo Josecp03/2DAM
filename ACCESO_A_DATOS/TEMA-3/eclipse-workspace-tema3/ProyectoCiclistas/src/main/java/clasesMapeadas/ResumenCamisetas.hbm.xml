@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generated 10 dic 2024, 11:13:40 by Hibernate Tools 5.4.33.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="clasesMapeadas.ResumenCamisetas" optimistic-lock="none" table="RESUMEN_CAMISETAS">
+        <composite-id class="clasesMapeadas.ResumenCamisetasId" name="id">
+            <key-property name="codigoequipo" type="big_integer">
+                <column name="CODIGOEQUIPO" precision="22" scale="0"/>
+            </key-property>
+            <key-property name="codigociclista" type="big_integer">
+                <column name="CODIGOCICLISTA" precision="22" scale="0"/>
+            </key-property>
+            <key-property name="codigocamiseta" type="big_integer">
+                <column name="CODIGOCAMISETA" precision="22" scale="0"/>
+            </key-property>
+        </composite-id>
+        <many-to-one class="clasesMapeadas.Camisetas" fetch="select" insert="true" name="camisetas" update="true">
+            <column name="CODIGOCAMISETA" not-null="true" precision="22" scale="0"/>
+        </many-to-one>
+        <many-to-one class="clasesMapeadas.Ciclistas" fetch="select" insert="true" name="ciclistas" update="true">
+            <column name="CODIGOCICLISTA" not-null="true" precision="22" scale="0"/>
+        </many-to-one>
+        <many-to-one class="clasesMapeadas.Equipos" fetch="select" insert="true" name="equipos" update="true">
+            <column name="CODIGOEQUIPO" not-null="true" precision="22" scale="0"/>
+        </many-to-one>
+        <property name="numveces" type="big_integer">
+            <column name="NUMVECES" not-null="true" precision="22" scale="0"/>
+        </property>
+        <property name="importepremio" type="big_integer">
+            <column name="IMPORTEPREMIO" not-null="true" precision="22" scale="0"/>
+        </property>
+    </class>
+</hibernate-mapping>
