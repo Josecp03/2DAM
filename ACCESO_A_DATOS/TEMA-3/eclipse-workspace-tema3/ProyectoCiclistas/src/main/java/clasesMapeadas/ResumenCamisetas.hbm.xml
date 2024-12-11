@@ -13,13 +13,13 @@
                 <column name="CODIGOCAMISETA" precision="22" scale="0"/>
             </key-property>
         </composite-id>
-        <many-to-one class="clasesMapeadas.Camisetas" fetch="select" insert="true" name="camisetas" update="true">
+        <many-to-one class="clasesMapeadas.Camisetas" fetch="select" insert="false" name="camisetas" update="false">
             <column name="CODIGOCAMISETA" not-null="true" precision="22" scale="0"/>
         </many-to-one>
-        <many-to-one class="clasesMapeadas.Ciclistas" fetch="select" insert="true" name="ciclistas" update="true">
+        <many-to-one class="clasesMapeadas.Ciclistas" fetch="select" insert="false" name="ciclistas" update="false">
             <column name="CODIGOCICLISTA" not-null="true" precision="22" scale="0"/>
         </many-to-one>
-        <many-to-one class="clasesMapeadas.Equipos" fetch="select" insert="true" name="equipos" update="true">
+        <many-to-one class="clasesMapeadas.Equipos" fetch="select" insert="false" name="equipos" update="false">
             <column name="CODIGOEQUIPO" not-null="true" precision="22" scale="0"/>
         </many-to-one>
         <property name="numveces" type="big_integer">
