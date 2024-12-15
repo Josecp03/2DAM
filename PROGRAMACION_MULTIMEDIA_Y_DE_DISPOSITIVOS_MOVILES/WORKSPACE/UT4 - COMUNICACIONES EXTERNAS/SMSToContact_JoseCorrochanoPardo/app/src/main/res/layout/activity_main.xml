@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#00FFFFFF"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:id="@+id/Main"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#1C1C1C"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/buttonSeleccionarContacto"
+            android:layout_width="275dp"
+            android:layout_height="75dp"
+            android:layout_marginBottom="20dp"
+            android:backgroundTint="#00FFFFFF"
+            android:drawableRight="@drawable/baseline_person_add_24"
+            android:fontFamily="@font/aclonica"
+            android:text="Seleccionar Contacto"
+            android:textSize="16sp"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <LinearLayout
+            android:id="@+id/LinearLayoutNombre"
+            android:layout_width="316dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/editTextNombre"
+                android:layout_width="184dp"
+                android:layout_height="69dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:fontFamily="@font/aclonica"
+                android:hint="Nombre"
+                android:inputType="text"
+                android:textAlignment="center"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#B1B1B1"
+                android:maxLength="30"/>
+
+            <ImageButton
+                android:id="@+id/imageButtonSearchNombre"
+                android:layout_width="29dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="#00FFFFFF"
+                app:srcCompat="@drawable/baseline_search_24" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/LinearLayoutApellido"
+            android:layout_width="315dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/editTextApellido"
+                android:layout_width="161dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:ems="10"
+                android:fontFamily="@font/aclonica"
+                android:hint="Apellido"
+                android:inputType="text"
+                android:textAlignment="center"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#B1B1B1"
+                android:maxLength="30"/>
+
+            <ImageButton
+                android:id="@+id/imageButtonSearchApellido"
+                android:layout_width="2dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:backgroundTint="#00FFFFFF"
+                app:srcCompat="@drawable/baseline_search_24" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/LinearLayoutContactos"
+            android:layout_width="319dp"
+            android:layout_height="433dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="30dp"
+            android:background="#1C1C1C"
+            android:gravity="center"
+            android:orientation="vertical"/>
+
+        <EditText
+            android:id="@+id/editTextMensaje"
+            android:layout_width="316dp"
+            android:layout_height="71dp"
+            android:ems="10"
+            android:fontFamily="@font/aclonica"
+            android:hint="Mensaje"
+            android:inputType="textMultiLine"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B1B1B1"
+            android:maxLength="60"/>
+
+        <Button
+            android:id="@+id/buttonEnviarSMS"
+            android:layout_width="179dp"
+            android:layout_height="65dp"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="#00FFFFFF"
+            android:drawableRight="@drawable/baseline_sms_24"
+            android:fontFamily="@font/aclonica"
+            android:text="Enviar SMS"
+            app:strokeColor="#F6F6F6"
+            app:strokeWidth="3dp" />
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
