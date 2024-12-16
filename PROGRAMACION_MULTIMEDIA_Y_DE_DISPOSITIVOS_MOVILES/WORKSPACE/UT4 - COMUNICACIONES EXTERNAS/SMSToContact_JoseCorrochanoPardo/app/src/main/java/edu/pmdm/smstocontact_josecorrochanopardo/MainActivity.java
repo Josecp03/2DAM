@@ -11,6 +11,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.telephony.SmsManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSeleccionarContacto = null;
 
     private static final int PERMISSION_REQUEST_READ_CONTACTS = 100;
+    private static final int PERMISSION_REQUEST_SEND_SMS = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
         lyContactos.setVisibility(View.INVISIBLE);
         edtMensaje.setVisibility(View.INVISIBLE);
         btnEnviarSMS.setVisibility(View.INVISIBLE);
+
+        // Solicitar los permisos para mandar SMS
+        solicitarPermisosSMS();
 
         // Listener para cuando se pulse el botón de seleccionar contacto
         btnSeleccionarContacto.setOnClickListener(new View.OnClickListener() {
@@ -91,6 +96,15 @@ public class MainActivity extends AppCompatActivity {
                 solicitarPermisoContactos();
             }
         });
+
+    }
+
+    private void solicitarPermisosSMS() {
+
+        // Verificar permisos de envío de SMS
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, PERMISSION_REQUEST_SEND_SMS);
+        }
 
     }
 
@@ -131,6 +145,17 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
+
+
+        if (requestCode == PERMISSION_REQUEST_SEND_SMS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permiso para enviar SMS concedido", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Permiso para enviar SMS denegado", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+
     }
 
     private void realizarBusquedaContactos() {
@@ -254,6 +279,9 @@ public class MainActivity extends AppCompatActivity {
         // Obtener el mensaje ingresado
         String mensaje = edtMensaje.getText().toString().trim();
 
+        // Enviar el SMS al contacto
+        enviarSMS(telefono, mensaje);
+
         // Comprobar que el mensaje esté vacío
         if (mensaje.isEmpty()) {
             Toast.makeText(this, "No puedes enviar un SMS sin mensaje", Toast.LENGTH_SHORT).show();
@@ -291,6 +319,7 @@ public class MainActivity extends AppCompatActivity {
             dialog.dismiss();
             reiniciarInterfaz();
         });
+
     }
 
 
@@ -353,6 +382,16 @@ public class MainActivity extends AppCompatActivity {
         edtNombre.setText("");
         edtApellido.setText("");
         edtMensaje.setText("");
+    }
+
+    private void enviarSMS(String numero, String mensaje) {
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(numero, null, mensaje, null, null);
+            Toast.makeText(this, "Mensaje enviado a " + numero, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error al enviar el mensaje: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
 
