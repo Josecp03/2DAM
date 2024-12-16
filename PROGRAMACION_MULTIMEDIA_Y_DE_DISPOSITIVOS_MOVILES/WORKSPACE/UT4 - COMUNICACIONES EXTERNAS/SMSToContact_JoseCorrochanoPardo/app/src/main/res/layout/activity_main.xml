@@ -92,15 +92,20 @@
                 app:srcCompat="@drawable/baseline_search_24" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/LinearLayoutContactos"
+        <ScrollView
             android:layout_width="319dp"
             android:layout_height="433dp"
             android:layout_marginTop="30dp"
             android:layout_marginBottom="30dp"
-            android:background="#1C1C1C"
-            android:gravity="center"
-            android:orientation="vertical"/>
+            android:background="#1C1C1C">
+
+            <LinearLayout
+                android:id="@+id/LinearLayoutContactos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </ScrollView>
 
         <EditText
             android:id="@+id/editTextMensaje"

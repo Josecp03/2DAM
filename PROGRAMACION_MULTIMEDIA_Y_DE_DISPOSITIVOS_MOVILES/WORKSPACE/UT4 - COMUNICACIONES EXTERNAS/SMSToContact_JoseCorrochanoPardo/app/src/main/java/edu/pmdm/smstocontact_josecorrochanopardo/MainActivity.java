@@ -1,10 +1,14 @@
 package edu.pmdm.smstocontact_josecorrochanopardo;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
@@ -17,11 +21,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,16 +38,12 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton imgBuscarApellido = null;
     private Button btnSeleccionarContacto = null;
 
+    private static final int PERMISSION_REQUEST_READ_CONTACTS = 100;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         // Asignar valores XML
         lyNombre = findViewById(R.id.LinearLayoutNombre);
@@ -66,192 +64,295 @@ public class MainActivity extends AppCompatActivity {
         edtMensaje.setVisibility(View.INVISIBLE);
         btnEnviarSMS.setVisibility(View.INVISIBLE);
 
-        // Listener para cuando se pulse el botón de seleciconar contacto
+        // Listener para cuando se pulse el botón de seleccionar contacto
         btnSeleccionarContacto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                // Hacer visibles los componentes correspondientes
+                // Hacer visible los layouts para la búsqueda
                 lyNombre.setVisibility(View.VISIBLE);
                 lyApellido.setVisibility(View.VISIBLE);
 
             }
         });
 
-        // Listener para cuando se pulse el botón de buscar por nombre
+        // Lisener para cuando se pulsa el botón de buscar por nombre
         imgbBuscarNombre.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                realizarBusquedaContactos();
-
+                solicitarPermisoContactos();
             }
         });
 
-        // Listener para cuando se pulsa el botón de buscar por apellido
+        // Lisener para cuando se pulsa el botón de buscar por apellido
         imgBuscarApellido.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                realizarBusquedaContactos();
-
+                solicitarPermisoContactos();
             }
         });
 
+    }
 
 
+    private void solicitarPermisoContactos() {
+
+        // Comprobar que los permisos estén ya concedidos
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+
+            // Pedir los permisos
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, PERMISSION_REQUEST_READ_CONTACTS);
+
+        } else {
+
+            // Llamar al métood para realizar la búsqueda de los contactos
+            realizarBusquedaContactos();
+
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // Comprobar cúal es el código del permiso
+        if (requestCode == PERMISSION_REQUEST_READ_CONTACTS) {
+
+            // Comprobar que ya se haya garantizado el permiso
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                // Realizar la búsqueda de los contactos
+                realizarBusquedaContactos();
+
+            } else {
+
+                // Mostrar un mensaje indicando que se han denegado los permisos
+                Toast.makeText(this, "Permiso para acceder a los contactos denegado", Toast.LENGTH_SHORT).show();
+
+            }
+        }
     }
 
     private void realizarBusquedaContactos() {
 
+        // Hacer visible el layout donde van a aparecer los contactos
         lyContactos.setVisibility(View.VISIBLE);
 
-        // Comprobar que los dos campos estén vacíos
+        // Comprobar si los campos están vacíos
         if (camposVacios()) {
 
+            // Llamar al método que muestra todos los contactos sin ningún filtro
             mostrarTodosLosContactos();
 
-        }
-
-        lyContactos.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-
-                // Hacer visible lo demás
-                edtMensaje.setVisibility(View.VISIBLE);
-                btnEnviarSMS.setVisibility(View.VISIBLE);
-
-                return false;
-            }
-        });
-
-        btnEnviarSMS.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                // Comprobar que haya mensaje
-                if (!edtMensaje.getText().toString().isEmpty()) {
-
-                    // Resetear los campos
-                    edtNombre.setText("");
-                    edtApellido.setText("");
-                    lyContactos.setVisibility(View.INVISIBLE);
-                    edtMensaje.setText("");
-                    edtMensaje.setVisibility(View.INVISIBLE);
-                    btnEnviarSMS.setVisibility(View.INVISIBLE);
-
-                    // Crear el diálogo
-                    AlertDialog dialogoVistaConactos = crearDialogoVistaContacto();
-
-                    // Mostrar el diálogo
-                    dialogoVistaConactos.show();
-
-                } else {
-
-                    // Mostrar mensaje de error
-                    Toast.makeText(MainActivity.this, "No puedes enviar un SMS sin mensaje", Toast.LENGTH_SHORT).show();
-
-                }
-
-
-            }
-        });
-
-    }
-
-    private void mostrarTodosLosContactos() {
-        // Proyección para limitar las columnas que necesitamos
-        String[] proyeccion = new String[]{
-                ContactsContract.Contacts._ID,
-                ContactsContract.Contacts.DISPLAY_NAME
-        };
-
-        // Obtener el ContentResolver para consultar los contactos
-        ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query(
-                ContactsContract.Contacts.CONTENT_URI,
-                proyeccion, // Solo las columnas especificadas
-                null,       // Sin filtro, obtendremos todos los contactos
-                null,
-                null        // Sin orden específico
-        );
-
-        // Limpiar cualquier vista previa en el layout
-        lyContactos.removeAllViews();
-
-        if (cur != null) {
-            while (cur.moveToNext()) {
-                // Obtener el índice de las columnas en la proyección
-                int indexNombre = cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME);
-
-                // Extraer el nombre del contacto
-                String nombre = indexNombre != -1 ? cur.getString(indexNombre) : "Sin Nombre";
-
-                // Crear un nuevo TextView
-                TextView contactoView = new TextView(this);
-                contactoView.setText(nombre); // Mostrar el nombre
-                contactoView.setTextColor(Color.WHITE); // Ajusta los estilos según prefieras
-                contactoView.setTextSize(16);
-                contactoView.setPadding(10, 10, 10, 10);
-
-                // Agregar el TextView al LinearLayout
-                lyContactos.addView(contactoView);
-            }
-            cur.close();
         } else {
-            // Mostrar mensaje si no hay contactos encontrados
-            TextView noContactos = new TextView(this);
-            noContactos.setText("No se encontraron contactos");
-            noContactos.setTextColor(Color.RED);
-            noContactos.setTextSize(16);
-            noContactos.setPadding(10, 10, 10, 10);
-            lyContactos.addView(noContactos);
+
+            // Asignar a variables el nombre y apellido introducido en los editText
+            String filtroNombre = edtNombre.getText().toString();
+            String filtroApellido = edtApellido.getText().toString();
+
+            // Llamar al método para mostrar los contactos filtrados por nombre y apellido
+            mostrarContactosFiltrados(filtroNombre, filtroApellido);
+
         }
     }
 
-
-    private boolean camposVacios(){
+    private boolean camposVacios() {
         return edtNombre.getText().toString().isEmpty() && edtApellido.getText().toString().isEmpty();
     }
 
-    private AlertDialog crearDialogoVistaContacto() {
+    private void mostrarTodosLosContactos() {
+        ContentResolver cr = getContentResolver();
+        Cursor cursor = cr.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.Contacts.HAS_PHONE_NUMBER},
+                null,
+                null,
+                null
+        );
 
-        // Inicializar Variables
-        View alertCustomDialog = LayoutInflater.from(MainActivity.this).inflate(R.layout.custom_dialog_vista_contacto, null);
+        mostrarContactosDesdeCursor(cursor);
+    }
 
-        // Inicializar el ImageView desde el layout inflado
-        ImageView imageView = alertCustomDialog.findViewById(R.id.imageViewContacto);
+    private void mostrarContactosFiltrados(String nombre, String apellido) {
 
-        // Configurar la imagen
-        imageView.setImageResource(R.drawable.img_1);
+        String filtro;
+        String[] argsFiltro;
 
-        // Constructor del diálogo
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+        // Convertir caracteres especiales en patrones SQL
+        nombre = nombre.replace("#", "%").replace("?", "_");
+        apellido = apellido.replace("#", "%").replace("?", "_");
 
-        // Establecer la vista personalizada como el contenido del diálogo
-        alertDialog.setView(alertCustomDialog);
+        // Comprobar cada caso posible
+        if (!nombre.isEmpty() && apellido.isEmpty()) {
+            // Buscar solo por nombre
+            filtro = ContactsContract.Contacts.DISPLAY_NAME + " LIKE ?";
+            argsFiltro = new String[]{nombre + "%"};
+        } else if (nombre.isEmpty() && !apellido.isEmpty()) {
+            // Buscar solo por apellido
+            filtro = ContactsContract.Contacts.DISPLAY_NAME + " LIKE ?";
+            argsFiltro = new String[]{"% " + apellido + "%"};
+        } else {
+            // Buscar por nombre y apellido
+            filtro = ContactsContract.Contacts.DISPLAY_NAME + " LIKE ? AND " +
+                    ContactsContract.Contacts.DISPLAY_NAME + " LIKE ?";
+            argsFiltro = new String[]{nombre + "%", "% " + apellido + "%"};
+        }
 
-        // Inicializar variables
-        ImageButton cancelButton = alertCustomDialog.findViewById(R.id.cancelID);
+        // Realizar la consulta al ContentResolver
+        ContentResolver cr = getContentResolver();
+        Cursor cursor = cr.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.Contacts.HAS_PHONE_NUMBER},
+                filtro,
+                argsFiltro,
+                null
+        );
 
-        // Crear el Diálogo
-        AlertDialog dialogo = alertDialog.create();
+        mostrarContactosDesdeCursor(cursor);
+    }
 
-        // Establecer fondo del diálogo transparente
-        dialogo.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        // Añadir evento cuando se pulsa el icono de salir
-        AlertDialog finalDialogo = dialogo;
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finalDialogo.cancel();
+    private void mostrarContactosDesdeCursor(Cursor cursor) {
+
+        // Limpiar lo que había antes
+        lyContactos.removeAllViews();
+
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                @SuppressLint("Range") String nombreCompleto = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                @SuppressLint("Range") String contactoId = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                @SuppressLint("Range") int tieneTelefono = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
+
+                if (tieneTelefono > 0) {
+                    TextView textView = new TextView(this);
+                    textView.setText(nombreCompleto);
+                    textView.setTextSize(16);
+                    textView.setPadding(20, 10, 20, 10);
+                    textView.setTextColor(getResources().getColor(android.R.color.white));
+                    lyContactos.addView(textView);
+
+                    textView.setOnLongClickListener(v -> {
+                        edtMensaje.setVisibility(View.VISIBLE);
+                        btnEnviarSMS.setVisibility(View.VISIBLE);
+
+                        btnEnviarSMS.setOnClickListener(btn -> mostrarDialogoContacto(nombreCompleto, contactoId));
+                        return true;
+                    });
+                }
             }
+            cursor.close();
+        } else {
+            Toast.makeText(this, "No se encontraron contactos", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void mostrarDialogoContacto(String nombreCompleto, String contactoId) {
+
+        // Obtener el número de teléfono del contacto
+        String telefono = obtenerTelefonoContacto(contactoId);
+
+        // Obtener el mensaje ingresado
+        String mensaje = edtMensaje.getText().toString().trim();
+
+        // Comprobar que el mensaje esté vacío
+        if (mensaje.isEmpty()) {
+            Toast.makeText(this, "No puedes enviar un SMS sin mensaje", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Inflar el diseño del diálogo
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.custom_dialog_vista_contacto, null);
+
+        // Configurar los datos en el diálogo
+        TextView telefonoView = dialogView.findViewById(R.id.TextViewTelefono);
+        TextView nombreView = dialogView.findViewById(R.id.textViewNombre);
+        TextView mensajeView = dialogView.findViewById(R.id.textViewMensaje);
+        ImageView fotoContacto = dialogView.findViewById(R.id.imageViewContacto);
+
+        // Asignar los valores obtenidos al diálogo
+        telefonoView.setText(telefono);
+        nombreView.setText(nombreCompleto);
+        mensajeView.setText(mensaje);
+
+        // Cargar la foto del contacto
+        cargarFotoContacto(contactoId, fotoContacto);
+
+        // Crear y mostrar el diálogo
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogView);
+
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.show();
+
+        // Configurar el botón de cierre
+        ImageButton closeButton = dialogView.findViewById(R.id.cancelID);
+        closeButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            reiniciarInterfaz();
         });
+    }
 
-        // Devolver el dialogo creado
-        return dialogo;
 
+
+    private String obtenerTelefonoContacto(String contactoId) {
+        ContentResolver cr = getContentResolver();
+        Cursor phoneCursor = cr.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                new String[]{contactoId},
+                null
+        );
+
+        String telefono = "No disponible";
+        if (phoneCursor != null && phoneCursor.moveToFirst()) {
+            @SuppressLint("Range") String numero = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            telefono = numero != null ? numero : telefono;
+            phoneCursor.close();
+        }
+
+        return telefono;
+    }
+
+
+    private void cargarFotoContacto(String contactoId, ImageView imageView) {
+        ContentResolver cr = getContentResolver();
+        Cursor photoCursor = cr.query(
+                ContactsContract.Data.CONTENT_URI,
+                new String[]{ContactsContract.CommonDataKinds.Photo.PHOTO_URI},
+                ContactsContract.Data.CONTACT_ID + " = ? AND " +
+                        ContactsContract.Data.MIMETYPE + " = ?",
+                new String[]{contactoId, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE},
+                null
+        );
+
+        if (photoCursor != null && photoCursor.moveToFirst()) {
+            @SuppressLint("Range") String photoUri = photoCursor.getString(photoCursor.getColumnIndex(ContactsContract.CommonDataKinds.Photo.PHOTO_URI));
+            if (photoUri != null) {
+                imageView.setImageURI(Uri.parse(photoUri));
+            } else {
+                imageView.setImageResource(R.drawable.img_1);
+            }
+            photoCursor.close();
+        } else {
+            imageView.setImageResource(R.drawable.img_1);
+        }
+    }
+
+    private void reiniciarInterfaz() {
+
+        // Ocultar todos los elementos no iniciales
+        lyNombre.setVisibility(View.INVISIBLE);
+        lyApellido.setVisibility(View.INVISIBLE);
+        lyContactos.setVisibility(View.INVISIBLE);
+        edtMensaje.setVisibility(View.INVISIBLE);
+        btnEnviarSMS.setVisibility(View.INVISIBLE);
+
+        // Limpiar los campos de texto
+        edtNombre.setText("");
+        edtApellido.setText("");
+        edtMensaje.setText("");
     }
 
 
