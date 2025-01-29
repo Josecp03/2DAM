@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report name" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6493f723-32a0-475d-907b-0a8f6255060f">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="NIVEL" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select * from Ejercicios where nivel = $P{NIVEL}]]>
+	</queryString>
+	<field name="id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="nombre" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="tipo" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="musculo" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="nivel" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="duracion" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="calorias" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch">
+			<textField>
+				<reportElement x="145" y="28" width="281" height="26" uuid="0a0d8a3b-b4e3-442e-a4ed-d91e9f920ac1"/>
+				<textElement>
+					<font size="16" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ejercicios de nivel " + $P{NIVEL}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="61" splitType="Stretch">
+			<staticText>
+				<reportElement x="116" y="22" width="100" height="20" uuid="23e260aa-d677-4905-9e4a-d6417353c0c1"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[NOMBRE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="234" y="22" width="100" height="20" uuid="fd95d02d-d638-4afc-8296-7bc2726ae2c5"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[MÚSCULO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="350" y="22" width="100" height="20" uuid="97f6765f-996e-4574-a335-3838df293825"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DURACIÓN]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="39" splitType="Stretch">
+			<textField>
+				<reportElement x="116" y="10" width="100" height="20" uuid="6c0b68b2-93d2-48ff-8825-9707a1639a25"/>
+				<textFieldExpression><![CDATA[$F{nombre}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="234" y="10" width="100" height="20" uuid="7e82eb97-2a6a-4463-a5ec-430e678baf0d"/>
+				<textFieldExpression><![CDATA[$F{musculo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="350" y="10" width="134" height="20" uuid="d0c78288-f12b-4c44-bdf6-9b2e6d3298a1"/>
+				<textFieldExpression><![CDATA[$F{duracion} + " segundos"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

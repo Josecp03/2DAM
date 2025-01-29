@@ -1,0 +1,20 @@
+SMAP
+registrarPelicula_jsp.java
+JSP
+*S JSP
+*F
++ 0 registrarPelicula.jsp
+registrarPelicula.jsp
++ 1 css.jsp
+css.jsp
+*L
+5,15:53
+1#1,231:68
+19#0,51:299
+70:350,3
+71:353,6
+72:359,3
+73,10:362
+83:372,3
+84,13:375
+*E
