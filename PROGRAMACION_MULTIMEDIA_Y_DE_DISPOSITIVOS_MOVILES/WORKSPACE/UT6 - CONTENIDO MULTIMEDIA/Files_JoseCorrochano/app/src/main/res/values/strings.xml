@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Files_JoseCorrochanoPardo</string>
+    <string name="textTitle">Files José Corrochano Pardo</string>
+    <string name="editTextPath">Path</string>
+    <string name="textButtonFile">Select File</string>
+</resources>
