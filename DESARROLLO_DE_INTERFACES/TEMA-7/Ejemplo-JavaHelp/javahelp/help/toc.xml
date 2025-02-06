@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<toc version="1.0"> <!--  categoryclosedimage="FolderClosed" categoryopenimage="FolderOpened"  
+topicimage="ItemIco"-->
+        <tocitem text="Menú Principal" target="index">
+        <tocitem text="1. Introducción" target="introduccion"/>
+        <tocitem text="2. Instalación" target="instalacion"/>
+        <tocitem text="3. Interfaz de Usuario" target="interfaz"/>
+        <tocitem text="4. Funciones Principales" target="funciones"/>
+        <tocitem text="5. Solución de Problemas" target="solucion"/>
+        <tocitem text="6. Acerca de" target="acerca"/>
+        </tocitem>
+</toc>

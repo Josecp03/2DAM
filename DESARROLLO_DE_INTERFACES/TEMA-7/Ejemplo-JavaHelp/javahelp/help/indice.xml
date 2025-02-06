@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE index
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Index Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/index_1_0.dtd">
+
+<index version="1.0">
+    <!-- Página principal -->
+    <indexitem text="Menú Principal" target="index"/>
+
+    <!-- Nuevos temas -->
+    <indexitem text="1. Introducción" target="introduccion"/>
+    <indexitem text="2. Instalación" target="instalacion"/>
+    <indexitem text="3. Interfaz de Usuario" target="interfaz"/>
+    <indexitem text="4. Funciones Principales" target="funciones"/>
+    <indexitem text="5. Solución de Problemas" target="solucion"/>
+    <indexitem text="6. Acerca de" target="acerca"/>
+</index>
