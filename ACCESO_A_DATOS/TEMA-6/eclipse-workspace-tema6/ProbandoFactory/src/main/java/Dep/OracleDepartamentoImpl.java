@@ -1,0 +1,105 @@
+package Dep;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class OracleDepartamentoImpl implements DepartamentoDAO {
+    Connection conexion;
+
+    public OracleDepartamentoImpl() {
+        conexion = OracleDAOFactory.crearConexion();
+    }
+
+    @Override
+    public boolean InsertarDep(Departamento dep) {
+        boolean valor = false;
+        String sql = "INSERT INTO departamentos (dept_no, dnombre, loc) VALUES (?, ?, ?)";
+        try {
+            PreparedStatement sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, dep.getDeptno());
+            sentencia.setString(2, dep.getDnombre());
+            sentencia.setString(3, dep.getLoc());
+            int filas = sentencia.executeUpdate();
+            if (filas > 0) {
+                valor = true;
+                System.out.printf("Departamento %d insertado%n", dep.getDeptno());
+            }
+            sentencia.close();
+        } catch (SQLException e) {
+            mostrarExcepcion(e);
+        }
+        return valor;
+    }
+
+    @Override
+    public boolean EliminarDep(int deptno) {
+        boolean valor = false;
+        String sql = "DELETE FROM departamentos WHERE dept_no = ?";
+        try {
+            PreparedStatement sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, deptno);
+            int filas = sentencia.executeUpdate();
+            if (filas > 0) {
+                valor = true;
+                System.out.printf("Departamento %d eliminado%n", deptno);
+            }
+            sentencia.close();
+        } catch (SQLException e) {
+            mostrarExcepcion(e);
+        }
+        return valor;
+    }
+
+    @Override
+    public boolean ModificarDep(int deptno, Departamento dep) {
+        boolean valor = false;
+        String sql = "UPDATE departamentos SET dnombre = ?, loc = ? WHERE dept_no = ?";
+        try {
+            PreparedStatement sentencia = conexion.prepareStatement(sql);
+            sentencia.setString(1, dep.getDnombre());
+            sentencia.setString(2, dep.getLoc());
+            sentencia.setInt(3, deptno);
+            int filas = sentencia.executeUpdate();
+            if (filas > 0) {
+                valor = true;
+                System.out.printf("Departamento %d modificado%n", deptno);
+            }
+            sentencia.close();
+        } catch (SQLException e) {
+            mostrarExcepcion(e);
+        }
+        return valor;
+    }
+
+    @Override
+    public Departamento ConsultarDep(int deptno) {
+        Departamento dep = new Departamento();
+        String sql = "SELECT dept_no, dnombre, loc FROM departamentos WHERE dept_no = ?";
+        try {
+            PreparedStatement sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, deptno);
+            ResultSet rs = sentencia.executeQuery();
+            if (rs.next()) {
+                dep.setDeptno(rs.getInt("dept_no"));
+                dep.setDnombre(rs.getString("dnombre"));
+                dep.setLoc(rs.getString("loc"));
+            } else {
+                System.out.printf("Departamento: %d No existe%n", deptno);
+            }
+            rs.close();
+            sentencia.close();
+        } catch (SQLException e) {
+            mostrarExcepcion(e);
+        }
+        return dep;
+    }
+
+    private void mostrarExcepcion(SQLException e) {
+        System.out.printf("HA OCURRIDO UNA EXCEPCIÓN:%n");
+        System.out.printf("Mensaje   : %s %n", e.getMessage());
+        System.out.printf("SQL estado: %s %n", e.getSQLState());
+        System.out.printf("Cód error : %s %n", e.getErrorCode());
+    }
+}
