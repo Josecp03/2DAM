@@ -1,0 +1,53 @@
+<!-- res/layout/activity_main.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1C1C1C"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-200dp"
+        android:layout_marginBottom="100dp"
+        android:fontFamily="@font/audiowide"
+        android:text="Fotos Vídeos José Corrochano"
+        android:textAlignment="center"
+        android:textColor="#FDFDFD"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/btnFoto"
+        android:layout_width="228dp"
+        android:layout_height="92dp"
+        android:layout_marginBottom="50dp"
+        android:backgroundTint="#00FFFFFF"
+        android:fontFamily="@font/audiowide"
+        android:onClick="irFoto"
+        android:text="Ir a Fotos"
+        android:textColor="#FDFDFD"
+        android:textSize="24sp"
+        app:icon="@drawable/baseline_camera_alt_24_white"
+        app:strokeColor="#E9E9E9"
+        app:strokeWidth="3dp" />
+
+    <Button
+        android:id="@+id/btnVideo"
+        android:layout_width="230dp"
+        android:layout_height="81dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#00FFFFFF"
+        android:fontFamily="@font/audiowide"
+        android:onClick="irVideo"
+        android:text="Ir a Videos"
+        android:textColor="#FDFDFD"
+        android:textSize="24sp"
+        app:icon="@drawable/baseline_videocam_24"
+        app:strokeColor="#E9E9E9"
+        app:strokeWidth="3dp" />
+
+</LinearLayout>

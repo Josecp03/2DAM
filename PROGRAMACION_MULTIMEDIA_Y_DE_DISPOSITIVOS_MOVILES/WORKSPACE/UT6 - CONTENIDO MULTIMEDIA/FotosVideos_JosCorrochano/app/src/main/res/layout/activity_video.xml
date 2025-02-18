@@ -1,0 +1,91 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1C1C1C"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Botón para grabar video -->
+
+    <!-- VideoView -->
+
+    <!-- Nuevo contenedor para los 3 botones, en HORIZONTAL -->
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-50dp"
+        android:layout_marginBottom="50dp"
+        android:fontFamily="@font/audiowide"
+        android:text="Grabar Vídeos José Corrochano"
+        android:textAlignment="center"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp" />
+
+    <VideoView
+        android:id="@+id/videoView"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="40dp" />
+
+    <Button
+        android:id="@+id/btnCapturarVideo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:backgroundTint="#00FFFFFF"
+        android:fontFamily="@font/audiowide"
+        android:onClick="capturarVideo"
+        android:text="Grabar Video"
+        app:icon="@drawable/baseline_videocam_24"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="3dp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonSpeedHalf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/audiowide"
+            android:onClick="velocidadMedia"
+            android:text="0.5x"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <Button
+            android:id="@+id/buttonSpeedNormal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/audiowide"
+            android:onClick="velocidadNormal"
+            android:text="1x"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <Button
+            android:id="@+id/buttonSpeedDouble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/audiowide"
+            android:onClick="velocidadDoble"
+            android:text="2x"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+    </LinearLayout>
+
+</LinearLayout>

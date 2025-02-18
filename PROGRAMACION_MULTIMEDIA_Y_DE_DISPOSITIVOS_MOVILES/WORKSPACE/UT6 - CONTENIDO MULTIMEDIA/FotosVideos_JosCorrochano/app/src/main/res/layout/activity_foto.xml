@@ -1,0 +1,137 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1C1C1C">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1C1C1C"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="20dp"
+            android:fontFamily="@font/audiowide"
+            android:text="Editar Fotos José Corrochano"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="384dp"
+            android:layout_height="348dp"
+            android:adjustViewBounds="true" />
+
+        <!-- Botón para tomar la foto -->
+        <Button
+            android:id="@+id/buttonFoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="110dp"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/audiowide"
+            android:onClick="hacerFoto"
+            android:text="Hacer Foto"
+            app:icon="@drawable/baseline_camera_alt_24_white"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <!-- SeekBar para Brillo (0..200) -->
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="20dp"
+            android:fontFamily="@font/audiowide"
+            android:text="Ajustar Brillo"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp" />
+
+        <SeekBar
+            android:id="@+id/seekBarBrillo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:max="200"
+            android:progress="100" />
+
+        <!-- CheckBox para Escala de Grises -->
+        <CheckBox
+            android:id="@+id/checkBoxGris"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/audiowide"
+            android:text="Escala de Grises"
+            android:textColor="#FFFFFF" />
+
+        <!-- CheckBox para Invertir Colores -->
+        <CheckBox
+            android:id="@+id/checkBoxInvertir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/audiowide"
+            android:text="Invertir Colores"
+            android:textColor="#FFFFFF" />
+
+        <!-- Botón para rotar la imagen -->
+        <LinearLayout
+            android:layout_width="393dp"
+            android:layout_height="59dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonRotar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:backgroundTint="#00FFFFFF"
+                android:fontFamily="@font/audiowide"
+                android:text="Rotar 90°"
+                app:icon="@drawable/baseline_rotate_left_24"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="3dp" />
+
+            <Button
+                android:id="@+id/buttonRecortar"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="60dp"
+                android:backgroundTint="#00FFFFFF"
+                android:fontFamily="@font/audiowide"
+                android:text="Recortar"
+                app:icon="@drawable/baseline_content_cut_24"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="3dp" />
+        </LinearLayout>
+
+        <!-- Botón para recortar la imagen -->
+
+        <!-- Botón para guardar la foto editada -->
+
+        <Button
+            android:id="@+id/buttonGuardar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="100dp"
+            android:backgroundTint="#00FFFFFF"
+            android:fontFamily="@font/audiowide"
+            android:onClick="guardarFoto"
+            android:text="Guardar Foto"
+            app:icon="@drawable/baseline_save_24"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+    </LinearLayout>
+</ScrollView>
